@@ -12,14 +12,26 @@
 #include "activationfunctions.h"
 
 /*
+ * The network is the public class users are intended to work with.
+ * Default implementation has one output node.
+ */
+class FFNetwork {
+private:
+	int numOfInputs;
+public:
+	double output(double *inputs);
+	void learn(double **data);
+};
+
+/*
  * The neuron is not intended to be public. Users are only intended to use Network.
  */
 class Neuron {
 private:
 	// Connections is a vector of neuron-weight pairs
-	std::vector<std::pair<Neuron*, double>* > *neuronConnections;
+	std::vector<std::pair<Neuron*, double> > *neuronConnections;
 	// If connected to the input values, index-weight pairs
-	std::vector<std::pair<int, double>* > *inputConnections;
+	std::vector<std::pair<int, double> > *inputConnections;
 
 	double cachedOutput;
 	// Function pointers
@@ -39,14 +51,11 @@ public:
 	 * Connect this neuron to the specified neuron and weight
 	 */
 	void connectTo(Neuron *neuron, double weight);
-	void disconnectFrom(Neuron *neuron);
 
 	/*
 	 * connect this neuron to the specified input with weight
 	 */
 	void connectTo(int index, double weight);
-	void disconnectFrom(int index);
-	
 
 	/*
 	 * Returns the value which was calculated by the previous call to output(*inputs)
@@ -61,8 +70,8 @@ public:
 	 */
 	virtual double outputDeriv();
 
-	void setActivationFunction(double (*activationFunction)(double), double (*activationDerivative)(double))
-	{
+	void setActivationFunction(double (*activationFunction)(double),
+			double (*activationDerivative)(double)) {
 		this->activationFunction = activationFunction;
 		this->activationDerivative = activationDerivative;
 	}
