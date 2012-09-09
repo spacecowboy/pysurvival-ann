@@ -1,19 +1,20 @@
-/*
- * ANN.h
- *
- *  Created on: 7 sep 2012
- *      Author: jonas
- */
+//============================================================================
+// Name        : FFNeuron.h
+// Author      : jonas
+// Date        : 2012-09-09
+// Copyright   :
+// Description :
+//============================================================================
 
-#ifndef ANN_H_
-#define ANN_H_
+#ifndef FFNEURON_H_
+#define FFNEURON_H_
 
 #include <vector>
 #include "activationfunctions.h"
 
 /*
  * The network is the public class users are intended to work with.
- * Default implementation has one output node.
+ * Has one output node. Constructor takes number of input and hidden nodes.
  */
 class FFNetwork {
 private:
@@ -94,4 +95,4 @@ public:
 	}
 };
 
-#endif /* ANN_H_ */
+#endif /* FFNEURON_H_ */

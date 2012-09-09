@@ -1,14 +1,14 @@
 //============================================================================
-// Name        : ANN.cpp
-// Author      : 
-// Version     :
+// Name        : FFNeuron.cpp
+// Author      : jonas
+// Date        : 2012-09-09
 // Copyright   :
 // Description :
 //============================================================================
 
 #include <stdio.h>
 
-#include "ANN.h"
+#include "FFNeuron.h"
 
 // ------------------
 // Network definitions
