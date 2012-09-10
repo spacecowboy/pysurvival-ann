@@ -18,10 +18,18 @@
 // Neuron definitions
 // -------------------
 Neuron::Neuron() {
-	this->activationFunction = &sigmoid;
-	this->activationDerivative = &sigmoidDeriv;
-	cachedOutput = 0;
+	init();
+	setActivationFunction(&sigmoid, &sigmoidDeriv);
+}
 
+Neuron::Neuron(double (*activationFunction)(double),
+		double (*activationDerivative)(double)) {
+	init();
+	setActivationFunction(activationFunction, activationDerivative);
+}
+
+void Neuron::init() {
+	cachedOutput = 0;
 	neuronConnections = new std::vector<std::pair<Neuron*, double>>;
 	inputConnections = new std::vector<std::pair<int, double>>;
 }
@@ -39,39 +47,43 @@ void Neuron::connectTo(Neuron *neuron, double weight) {
 	neuronConnections->push_back(std::pair<Neuron*, double>(neuron, weight));
 }
 
-double Neuron::inputSum(double *inputs) {
-	double sum = 0;
+double Neuron::output() {
+	return cachedOutput;
+}
+
+double Neuron::output(double *inputs) {
+	// First calculate the input sum
+	cachedInputSum = 0;
+
 	// Iterate over input connections first
 	std::vector<std::pair<int, double>>::iterator ic;
 
 	for (ic = inputConnections->begin(); ic < inputConnections->end(); ic++) {
-		sum += inputs[ic->first] * ic->second;
-		printf("input iterator sum = %f\n", sum);
+		cachedInputSum += inputs[ic->first] * ic->second;
+		printf("input iterator sum = %f\n", cachedInputSum);
 	}
 
 	// Then take neuron connections
 	std::vector<std::pair<Neuron*, double>>::iterator nc;
 
 	for (nc = neuronConnections->begin(); nc < neuronConnections->end(); nc++) {
-		sum += nc->first->output(inputs) * nc->second;
-		printf("neuron iterator sum = %f\n", sum);
+		cachedInputSum += nc->first->output(inputs) * nc->second;
+		printf("neuron iterator sum = %f\n", cachedInputSum);
 	}
 
-	return sum;
-}
-
-double Neuron::output() {
-	return cachedOutput;
-}
-
-double Neuron::output(double *inputs) {
-	cachedOutput = activationFunction(inputSum(inputs));
+	cachedOutput = activationFunction(cachedInputSum);
 	printf("Output is %f\n", cachedOutput);
 	return cachedOutput;
 }
 
 double Neuron::outputDeriv() {
 	return activationDerivative(cachedOutput);
+}
+
+void Neuron::setActivationFunction(double (*activationFunction)(double),
+		double (*activationDerivative)(double)) {
+	this->activationFunction = activationFunction;
+	this->activationDerivative = activationDerivative;
 }
 
 int main(int argc, char* argv[]) {

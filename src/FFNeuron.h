@@ -13,18 +13,6 @@
 #include "activationfunctions.h"
 
 /*
- * The network is the public class users are intended to work with.
- * Has one output node. Constructor takes number of input and hidden nodes.
- */
-class FFNetwork {
-private:
-	int numOfInputs;
-public:
-	double output(double *inputs);
-	void learn(double **data);
-};
-
-/*
  * The neuron is not intended to be public. Users are only intended to use Network.
  */
 class Neuron {
@@ -35,17 +23,17 @@ private:
 	std::vector<std::pair<int, double> > *inputConnections;
 
 	double cachedOutput;
+	double cachedInputSum;
 	// Function pointers
 	double (*activationFunction)(double);
 	double (*activationDerivative)(double);
 
-	/*
-	 * Calculate what value to pass into the activation function
-	 */
-	double inputSum(double *inputs);
+	void init();
 
 public:
 	Neuron();
+	Neuron(double (*activationFunction)(double),
+			double (*activationDerivative)(double));
 	virtual ~Neuron();
 
 	/*
@@ -72,10 +60,7 @@ public:
 	virtual double outputDeriv();
 
 	void setActivationFunction(double (*activationFunction)(double),
-			double (*activationDerivative)(double)) {
-		this->activationFunction = activationFunction;
-		this->activationDerivative = activationDerivative;
-	}
+			double (*activationDerivative)(double));
 
 };
 
