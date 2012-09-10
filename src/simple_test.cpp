@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 
 	delete ann;
 
-	RPropNetwork *rprop = getRPropNetwork(2, 1);
+	RPropNetwork *rprop = getRPropNetwork(2, 3);
 
 	printf("Factory network out: %f\n", rprop->output(x));
 
