@@ -20,7 +20,7 @@ private:
 	// Connections is a vector of neuron-weight pairs
 	std::vector<std::pair<Neuron*, double> > *neuronConnections;
 	// If connected to the input values, index-weight pairs
-	std::vector<std::pair<int, double> > *inputConnections;
+	std::vector<std::pair<unsigned int, double> > *inputConnections;
 
 	double cachedOutput;
 	double cachedInputSum;
@@ -39,19 +39,20 @@ public:
 	/*
 	 * Connect this neuron to the specified neuron and weight
 	 */
-	void connectTo(Neuron *neuron, double weight);
+	void connectToNeuron(Neuron *neuron, double weight);
 
 	/*
 	 * connect this neuron to the specified input with weight
 	 */
-	void connectTo(int index, double weight);
+	void connectToInput(unsigned int index, double weight);
 
 	/*
 	 * Returns the value which was calculated by the previous call to output(*inputs)
 	 */
 	virtual double output();
 	/*
-	 * Traverse the network as required and calculate the output of this neuron
+	 * Calculate the output of this neuron.
+	 * Assumes connected nodes have already computed their outputs.
 	 */
 	virtual double output(double *inputs);
 	/*
@@ -67,7 +68,7 @@ public:
 /*
  * Special neuron which always outputs 1. Has no derivative but returns 0 for compatibility.
  */
-class Bias: Neuron {
+class Bias: public Neuron {
 public:
 	virtual double output() {
 		return 1;
