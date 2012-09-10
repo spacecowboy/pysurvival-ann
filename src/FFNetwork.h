@@ -39,7 +39,7 @@ public:
 
 	double output(double *inputs);
 
-	//virtual void learn(double **data) = 0;
+	virtual void learn(double **data) = 0;
 	/*
 	 * Connects the first argument to the second argument. Meaning that the following
 	 * will be true: First.output = w * Second.output

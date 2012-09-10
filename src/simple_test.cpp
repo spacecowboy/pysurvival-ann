@@ -7,13 +7,13 @@
 
 #include <stdio.h>
 #include "FFNeuron.h"
-#include "FFNetwork.h"
+#include "RPropNetwork.h"
 
 int main(int argc, char* argv[]) {
 
 	Bias b;
 	printf("Bias output is %f\n", b.output());
-	double x[2] = { -1.0, 1.0 };
+	double x[2] = { 0.5, 0.5 };
 	Neuron *n = new Neuron;
 	n->connectToInput(0, 0.5);
 	n->connectToInput(1, 0.7);
@@ -26,9 +26,21 @@ int main(int argc, char* argv[]) {
 	delete o;
 	delete n;
 
-	FFNetwork *ann = new FFNetwork(2, 0);
+	FFNetwork *ann = new RPropNetwork(2, 0);
 
+	printf("Before connect, ann out = %f\n", ann->output(x));
+	ann->connectOToI(0, 1.0);
+	printf("Connect to I0, ann out = %f\n", ann->output(x));
+	ann->connectOToI(1, 1.0);
+	printf("Connect to I1, ann out = %f\n", ann->output(x));
+	ann->connectOToB(1.0);
+	printf("Connect to Bias, ann out = %f\n", ann->output(x));
 
+	delete ann;
+
+	ann = getRPropNetwork(2, 2);
+
+	printf("Factory network out: %f\n", ann->output(x));
 
 	delete ann;
 }
