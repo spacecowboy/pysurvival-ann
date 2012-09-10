@@ -60,7 +60,7 @@ double SSE(double target, double output) {
 
 RPropNetwork::RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden) :
 		FFNetwork(numOfInputs, numOfHidden) {
-	maxEpochs = 1000;
+	maxEpochs = 10000;
 	maxError = 0.0000001;
 	printf("rprop network constr\n");
 	initNodes();
