@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "FFNeuron.h"
 #include "RPropNetwork.h"
+#include <exception>
 
 int main(int argc, char* argv[]) {
 
@@ -38,9 +39,63 @@ int main(int argc, char* argv[]) {
 
 	delete ann;
 
-	ann = getRPropNetwork(2, 2);
+	RPropNetwork *rprop = getRPropNetwork(2, 3);
 
-	printf("Factory network out: %f\n", ann->output(x));
+	printf("Factory network out: %f\n", rprop->output(x));
 
-	delete ann;
+	//double xorIn[4][2] = { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } };
+	double **xorIn = new double*[4];
+	for (int i = 0; i < 4; i++) {
+		xorIn[i] = new double[2];
+	}
+	xorIn[0][0] = 0;
+	xorIn[0][1] = 0;
+
+	xorIn[1][0] = 0;
+	xorIn[1][1] = 1;
+
+	xorIn[2][0] = 1;
+	xorIn[2][1] = 0;
+
+	xorIn[3][0] = 1;
+	xorIn[3][1] = 1;
+
+	double* xorOut = new double[4];
+	xorOut[0] = 0;
+	xorOut[1] = 1;
+	xorOut[2] = 1;
+	xorOut[3] = 0;
+
+	printf("Before training of XOR\n");
+	printf("%f %f : %f\n", xorIn[0][0], xorIn[0][1], rprop->output(xorIn[0]));
+	printf("%f %f : %f\n", xorIn[1][0], xorIn[1][1], rprop->output(xorIn[1]));
+	printf("%f %f : %f\n", xorIn[2][0], xorIn[2][1], rprop->output(xorIn[2]));
+	printf("%f %f : %f\n", xorIn[3][0], xorIn[3][1], rprop->output(xorIn[3]));
+
+	printf("Learning...\n");
+
+	try {
+		rprop->learn(xorIn, xorOut, 4);
+
+		printf("After training of XOR\n");
+		printf("%f %f : %f\n", xorIn[0][0], xorIn[0][1],
+				rprop->output(xorIn[0]));
+		printf("%f %f : %f\n", xorIn[1][0], xorIn[1][1],
+				rprop->output(xorIn[1]));
+		printf("%f %f : %f\n", xorIn[2][0], xorIn[2][1],
+				rprop->output(xorIn[2]));
+		printf("%f %f : %f\n", xorIn[3][0], xorIn[3][1],
+				rprop->output(xorIn[3]));
+
+	} catch (std::exception& e) {
+		printf("Exception cast ");
+	}
+
+	delete rprop;
+	delete[] xorOut;
+	delete[] xorIn[0];
+	delete[] xorIn[1];
+	delete[] xorIn[2];
+	delete[] xorIn[3];
+	delete[] xorIn;
 }

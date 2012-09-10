@@ -10,13 +10,12 @@
 #define FFNEURON_H_
 
 #include <vector>
-#include "activationfunctions.h"
 
 /*
  * The neuron is not intended to be public. Users are only intended to use Network.
  */
 class Neuron {
-private:
+protected:
 	// Connections is a vector of neuron-weight pairs
 	std::vector<std::pair<Neuron*, double> > *neuronConnections;
 	// If connected to the input values, index-weight pairs
@@ -28,8 +27,6 @@ private:
 	double (*activationFunction)(double);
 	double (*activationDerivative)(double);
 
-	void init();
-
 public:
 	Neuron();
 	Neuron(double (*activationFunction)(double),
@@ -39,12 +36,12 @@ public:
 	/*
 	 * Connect this neuron to the specified neuron and weight
 	 */
-	void connectToNeuron(Neuron *neuron, double weight);
+	virtual void connectToNeuron(Neuron *neuron, double weight);
 
 	/*
 	 * connect this neuron to the specified input with weight
 	 */
-	void connectToInput(unsigned int index, double weight);
+	virtual void connectToInput(unsigned int index, double weight);
 
 	/*
 	 * Returns the value which was calculated by the previous call to output(*inputs)

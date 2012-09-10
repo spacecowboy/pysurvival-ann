@@ -7,13 +7,28 @@ O_SRCS += \
 ../src/ann.o 
 
 CPP_SRCS += \
-../src/ANN.cpp 
+../src/FFNetwork.cpp \
+../src/FFNeuron.cpp \
+../src/RPropNetwork.cpp \
+../src/activationfunctions.cpp \
+../src/drand.cpp \
+../src/simple_test.cpp 
 
 OBJS += \
-./src/ANN.o 
+./src/FFNetwork.o \
+./src/FFNeuron.o \
+./src/RPropNetwork.o \
+./src/activationfunctions.o \
+./src/drand.o \
+./src/simple_test.o 
 
 CPP_DEPS += \
-./src/ANN.d 
+./src/FFNetwork.d \
+./src/FFNeuron.d \
+./src/RPropNetwork.d \
+./src/activationfunctions.d \
+./src/drand.d \
+./src/simple_test.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

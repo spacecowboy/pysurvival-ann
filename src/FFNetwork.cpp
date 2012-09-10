@@ -10,28 +10,11 @@
 #include "FFNeuron.h"
 #include "activationfunctions.h"
 #include <stdexcept>
+#include <stdio.h>
 
 FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden) {
 	this->numOfInputs = numOfInputs;
 	this->numOfHidden = numOfHidden;
-
-	initNodes();
-}
-
-/**
- * Create hidden nodes with tanh-function and output node with
- * sigmoid-function.
- */
-void FFNetwork::initNodes() {
-	this->hiddenNeurons = new Neuron*[this->numOfHidden];
-	unsigned int i;
-	for (i = 0; i < this->numOfHidden; i++) {
-		this->hiddenNeurons[i] = new Neuron(&hyperbole, &hyperboleDeriv);
-	}
-
-	this->outputNeuron = new Neuron(&sigmoid, &sigmoidDeriv);
-
-	bias = new Bias;
 }
 
 FFNetwork::~FFNetwork() {

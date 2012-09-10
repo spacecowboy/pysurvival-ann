@@ -25,21 +25,19 @@ class Bias;
  * training algorithm.
  */
 class FFNetwork {
-private:
+protected:
 	unsigned int numOfInputs;
 	unsigned int numOfHidden;
 	Neuron **hiddenNeurons;
 	Neuron *outputNeuron;
-	Bias *bias;
+	Neuron *bias;
 
-	virtual void initNodes();
 public:
 	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden);
 	virtual ~FFNetwork();
 
 	double output(double *inputs);
 
-	virtual void learn(double **data) = 0;
 	/*
 	 * Connects the first argument to the second argument. Meaning that the following
 	 * will be true: First.output = w * Second.output

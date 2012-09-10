@@ -7,25 +7,25 @@
 //============================================================================
 
 #include "FFNeuron.h"
+#include "activationfunctions.h"
+#include <stdio.h>
 
 // -------------------
 // Neuron definitions
 // -------------------
 Neuron::Neuron() {
-	init();
+	cachedOutput = 0;
+	neuronConnections = new std::vector<std::pair<Neuron*, double>>;
+	inputConnections = new std::vector<std::pair<unsigned int, double>>;
 	setActivationFunction(&sigmoid, &sigmoidDeriv);
 }
 
 Neuron::Neuron(double (*activationFunction)(double),
 		double (*activationDerivative)(double)) {
-	init();
-	setActivationFunction(activationFunction, activationDerivative);
-}
-
-void Neuron::init() {
 	cachedOutput = 0;
 	neuronConnections = new std::vector<std::pair<Neuron*, double>>;
 	inputConnections = new std::vector<std::pair<unsigned int, double>>;
+	setActivationFunction(activationFunction, activationDerivative);
 }
 
 Neuron::~Neuron() {
