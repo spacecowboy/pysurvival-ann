@@ -10,7 +10,6 @@
 #include "FFNeuron.h"
 #include "activationfunctions.h"
 #include <stdexcept>
-#include <stdio.h>
 
 FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden) {
 	this->numOfInputs = numOfInputs;

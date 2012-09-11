@@ -62,12 +62,11 @@ RPropNetwork::RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden) :
 		FFNetwork(numOfInputs, numOfHidden) {
 	maxEpochs = 10000;
 	maxError = 0.0000001;
-	printf("rprop network constr\n");
+	printEpoch = 100;
 	initNodes();
 }
 
 void RPropNetwork::initNodes() {
-	printf("rprop initnodes\n");
 	this->hiddenNeurons = new Neuron*[this->numOfHidden];
 	unsigned int i;
 	for (i = 0; i < this->numOfHidden; i++) {
@@ -79,6 +78,30 @@ void RPropNetwork::initNodes() {
 	this->bias = new RPropBias;
 }
 
+unsigned int RPropNetwork::getMaxEpochs() const {
+	return maxEpochs;
+}
+
+void RPropNetwork::setMaxEpochs(unsigned int maxEpochs) {
+	this->maxEpochs = maxEpochs;
+}
+
+double RPropNetwork::getMaxError() const {
+	return maxError;
+}
+
+int RPropNetwork::getPrintEpoch() const {
+	return printEpoch;
+}
+
+void RPropNetwork::setPrintEpoch(int printEpoch) {
+	this->printEpoch = printEpoch;
+}
+
+void RPropNetwork::setMaxError(double maxError) {
+	this->maxError = maxError;
+}
+
 void RPropNetwork::learn(double **X, double *Y, unsigned int length) {
 	double error = 0, errorDeriv = 0;
 	unsigned int epoch = 0;
@@ -86,7 +109,8 @@ void RPropNetwork::learn(double **X, double *Y, unsigned int length) {
 	int i, n;
 
 	do {
-		printf("epoch: %d, error: %f\n", epoch, error);
+		if (printEpoch > 0 && epoch % printEpoch == 0)
+			printf("epoch: %d, error: %f\n", epoch, error);
 		// Evaluate for each value in input vector
 		for (i = 0; i < (int) length; i++) {
 			// First let all neurons evaluate
@@ -119,8 +143,6 @@ void RPropNetwork::learn(double **X, double *Y, unsigned int length) {
 
 RPropNeuron::RPropNeuron() :
 		Neuron() {
-	printf("rprop init\n");
-
 	localError = 0;
 
 	prevNeuronUpdates = new std::vector<double>;
@@ -135,8 +157,6 @@ RPropNeuron::RPropNeuron() :
 RPropNeuron::RPropNeuron(double (*activationFunction)(double),
 		double (*activationDerivative)(double)) :
 		Neuron(activationFunction, activationDerivative) {
-	printf("rprop init\n");
-
 	localError = 0;
 
 	prevNeuronUpdates = new std::vector<double>;

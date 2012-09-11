@@ -8,7 +8,6 @@
 
 #include "FFNeuron.h"
 #include "activationfunctions.h"
-#include <stdio.h>
 
 // -------------------
 // Neuron definitions

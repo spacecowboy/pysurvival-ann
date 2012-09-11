@@ -88,6 +88,7 @@ class RPropNetwork: public FFNetwork {
 protected:
 	unsigned int maxEpochs;
 	double maxError;
+	int printEpoch;
 
 	void initNodes();
 
@@ -98,6 +99,12 @@ public:
 	 * Y is an array of target outputs.
 	 */
 	void learn(double **X, double *Y, unsigned int length);
+	unsigned int getMaxEpochs() const;
+	void setMaxEpochs(unsigned int maxEpochs);
+	double getMaxError() const;
+	void setMaxError(double maxError);
+	int getPrintEpoch() const;
+	void setPrintEpoch(int printEpoch);
 };
 
 /*
