@@ -9,6 +9,7 @@
 #include "FFNeuron.h"
 #include "RPropNetwork.h"
 #include <exception>
+#include <time.h>
 
 int main(int argc, char* argv[]) {
 
@@ -72,6 +73,8 @@ int main(int argc, char* argv[]) {
 	printf("%f %f : %f\n", xorIn[2][0], xorIn[2][1], rprop->output(xorIn[2]));
 	printf("%f %f : %f\n", xorIn[3][0], xorIn[3][1], rprop->output(xorIn[3]));
 
+	rprop->setMaxError(0);
+	rprop->setMaxEpochs(1000);
 	printf("Learning...\n");
 
 	try {
@@ -90,6 +93,18 @@ int main(int argc, char* argv[]) {
 	} catch (std::exception& e) {
 		printf("Exception cast ");
 	}
+
+	printf("Train a 1000 epochs 1000 times\n");
+	int t, i;
+	rprop->setMaxError(0);
+	rprop->setMaxEpochs(1000);
+	rprop->setPrintEpoch(-1);
+	t = clock();
+	for (i = 0; i < 1000; i++) {
+		rprop->learn(xorIn, xorOut, 4);
+	}
+	float dt = ((float) clock() - t)/CLOCKS_PER_SEC;
+	printf("Training takes %f milliseconds per 1000 epochs\n", dt);
 
 	delete rprop;
 	delete[] xorOut;
