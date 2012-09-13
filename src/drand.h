@@ -9,10 +9,6 @@
 #define DRAND_H_
 
 /*
- * Sets seed to current time
- */
-void setSeed();
-/*
  * Returns a random double between -1 and 1. Note that this should not
  * be relied upon for "strong" randomness.
  */

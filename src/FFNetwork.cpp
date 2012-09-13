@@ -37,6 +37,22 @@ double FFNetwork::output(double *inputs) {
 	return outputNeuron->output(inputs);
 }
 
+Neuron** FFNetwork::getHiddenNeurons() const {
+	return hiddenNeurons;
+}
+
+unsigned int FFNetwork::getNumOfHidden() const {
+	return numOfHidden;
+}
+
+unsigned int FFNetwork::getNumOfInputs() const {
+	return numOfInputs;
+}
+
+Neuron* FFNetwork::getOutputNeuron() const {
+	return outputNeuron;
+}
+
 void FFNetwork::connectOToB(double weight) {
 	outputNeuron->connectToNeuron(bias, weight);
 }

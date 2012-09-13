@@ -36,6 +36,11 @@ public:
 	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden);
 	virtual ~FFNetwork();
 
+	/**
+	 * Derived classes must implement this and initialize internal neuron lists
+	 */
+	virtual void initNodes() = 0;
+
 	double output(double *inputs);
 
 	/*
@@ -68,6 +73,10 @@ public:
 	 * Connect the output neuron to the bias
 	 */
 	void connectOToB(double weight);
+	Neuron** getHiddenNeurons() const;
+	unsigned int getNumOfHidden() const;
+	unsigned int getNumOfInputs() const;
+	Neuron* getOutputNeuron() const;
 };
 
 #endif /* FFNETWORK_H_ */

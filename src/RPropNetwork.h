@@ -90,10 +90,9 @@ protected:
 	double maxError;
 	int printEpoch;
 
-	void initNodes();
-
 public:
 	RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden);
+	virtual void initNodes();
 	/*
 	 * Uses the RProp algorithm to train the network. X is an array of input arrays.
 	 * Y is an array of target outputs.

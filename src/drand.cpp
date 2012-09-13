@@ -9,10 +9,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-void setSeed() {
-	srand(time(NULL));
-}
-
 double dRand() {
 	double fMin = -1;
 	double fMax = 1;

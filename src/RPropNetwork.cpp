@@ -27,9 +27,6 @@ RPropNetwork* getRPropNetwork(unsigned int numOfInputs,
 		unsigned int numOfHidden) {
 	RPropNetwork *net = new RPropNetwork(numOfInputs, numOfHidden);
 
-	// Set random seed
-	setSeed();
-
 	unsigned int i, j;
 	// Connect hidden to input and bias
 	// Connect output to hidden
