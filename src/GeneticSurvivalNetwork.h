@@ -27,8 +27,7 @@ private:
 	double weightMutationStdDev;
 
 	// If this is non zero, it is interpreted as the generation where the stddev should have
-	// decreased to half its value. The stddev is calculated according to the logsig func:
-	// weightMutationStdDev / (1 + exp(generation - weightMutationHalfPoint))
+	// decreased to half its value.
 	// This calculation is NOT done if this is zero, which it is by default.
 	unsigned int weightMutationHalfPoint;
 
@@ -53,7 +52,7 @@ public:
 					boost::normal_distribution<double> > *gaussian,
 					boost::variate_generator<boost::mt19937&, boost::uniform_int<> > *uniform,
 			double mutationChance, double stdDev,
-			unsigned int deviationHalfPoint, unsigned int epoch);
+			int deviationHalfPoint, int epoch);
 
 	// Makes this network into a clone of the original. Assumes equal structure.
 	void cloneNetwork(GeneticSurvivalNetwork *original);

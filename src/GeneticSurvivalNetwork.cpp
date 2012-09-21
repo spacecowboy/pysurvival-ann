@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "boost/random.hpp"
 #include <time.h>
+#include <math.h>
 
 using namespace std;
 
@@ -151,13 +152,12 @@ void GeneticSurvivalNetwork::mutateWeights(
 		boost::variate_generator<boost::mt19937&,
 				boost::normal_distribution<double> >* gaussian,
 		boost::variate_generator<boost::mt19937&, boost::uniform_int<> > *uniform,
-		double mutationChance, double stdDev, unsigned int deviationHalfPoint,
-		unsigned int epoch) {
+		double mutationChance, double stdDev, int deviationHalfPoint,
+		int epoch) {
 
-	// TODO First calculate new std dev
 	double currentStdDev = stdDev;
 	if (deviationHalfPoint > 0 && epoch > 0) {
-
+		currentStdDev = stdDev * (1.0 - 0.5 * ((double) epoch / (double) deviationHalfPoint));
 	}
 
 	unsigned int n;
