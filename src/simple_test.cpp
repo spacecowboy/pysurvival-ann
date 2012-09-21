@@ -172,15 +172,26 @@ void rPropTest() {
 void geneticSurvivalTest() {
 	GeneticSurvivalNetwork* net = getGeneticSurvivalNetwork(2, 3);
 
+	net->setGenerations(500);
+	net->setPopulationSize(50);
+
 	double x[2] = { 0.5, 0.5 };
+
+	double *px = new double[2];
+	px[0] = 0.5;
+	px[1] = 0.5;
+	double **ppx = new double*[1];
+	ppx[0] = px;
 
 	printf("Factory gene-network out: %f\n", net->output(x));
 
+	net->learn(ppx, NULL, 1);
 
-
-	net->learn(NULL, NULL, 0);
+	printf("After breeding out: %f\n", net->output(x));
 
 	delete net;
+	delete[] ppx;
+	delete[] px;
 }
 
 int main(int argc, char* argv[]) {

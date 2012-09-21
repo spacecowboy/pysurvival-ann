@@ -16,11 +16,6 @@
  */
 class Neuron {
 protected:
-	// Connections is a vector of neuron-weight pairs
-	std::vector<std::pair<Neuron*, double> > *neuronConnections;
-	// If connected to the input values, index-weight pairs
-	std::vector<std::pair<unsigned int, double> > *inputConnections;
-
 	double cachedOutput;
 	double cachedInputSum;
 	// Function pointers
@@ -28,6 +23,11 @@ protected:
 	double (*activationDerivative)(double);
 
 public:
+	// Connections is a vector of neuron-weight pairs
+	std::vector<std::pair<Neuron*, double> > *neuronConnections;
+	// If connected to the input values, index-weight pairs
+	std::vector<std::pair<unsigned int, double> > *inputConnections;
+
 	Neuron();
 	Neuron(double (*activationFunction)(double),
 			double (*activationDerivative)(double));

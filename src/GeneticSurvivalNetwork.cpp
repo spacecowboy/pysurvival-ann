@@ -9,14 +9,30 @@
 #include "FFNeuron.h"
 #include "FFNetwork.h"
 #include "activationfunctions.h"
-#include "drand.h"
 #include <vector>
 #include <stdio.h>
+#include "boost/random.hpp"
+#include <time.h>
 
 using namespace std;
 
 GeneticSurvivalNetwork* getGeneticSurvivalNetwork(unsigned int numOfInputs,
 		unsigned int numOfHidden) {
+	// Init random number stuff
+	boost::mt19937 eng; // a core engine class
+	eng.seed(time(NULL));
+	// Uniform distribution 0 to 1 (inclusive)
+	boost::uniform_int<> uni_dist(0, 1);
+	boost::variate_generator<boost::mt19937&, boost::uniform_int<> > uniform(
+			eng, uni_dist);
+
+	return getGeneticSurvivalNetwork(numOfInputs, numOfHidden, &uniform);
+}
+
+GeneticSurvivalNetwork* getGeneticSurvivalNetwork(unsigned int numOfInputs,
+		unsigned int numOfHidden,
+		boost::variate_generator<boost::mt19937&, boost::uniform_int<> >* uniform) {
+
 	GeneticSurvivalNetwork *net = new GeneticSurvivalNetwork(numOfInputs,
 			numOfHidden);
 
@@ -24,15 +40,15 @@ GeneticSurvivalNetwork* getGeneticSurvivalNetwork(unsigned int numOfInputs,
 	// Connect hidden to input and bias
 	// Connect output to hidden
 	for (i = 0; i < numOfHidden; i++) {
-		net->connectHToB(i, dRand());
-		net->connectOToH(i, dRand());
+		net->connectHToB(i, ((*uniform)() - 0.5) * 0.1);
+		net->connectOToH(i, ((*uniform)() - 0.5) * 0.1);
 		// Inputs
 		for (j = 0; j < numOfInputs; j++) {
-			net->connectHToI(i, j, dRand());
+			net->connectHToI(i, j, ((*uniform)() - 0.5) * 0.1);
 		}
 	}
 	// Connect output to bias
-	net->connectOToB(dRand());
+	net->connectOToB(((*uniform)() - 0.5) * 0.1);
 
 	// Set output node to linear activation function
 	net->getOutputNeuron()->setActivationFunction(&linear, &linearDeriv);
@@ -43,10 +59,10 @@ GeneticSurvivalNetwork* getGeneticSurvivalNetwork(unsigned int numOfInputs,
 GeneticSurvivalNetwork::GeneticSurvivalNetwork(unsigned int numOfInputs,
 		unsigned int numOfHidden) :
 		FFNetwork(numOfInputs, numOfHidden) {
-	populationSize = 5;
-	generations = 10;
+	populationSize = 50;
+	generations = 100;
 	weightMutationChance = 0.15;
-	weightMutationMean = 0.1;
+	weightMutationStdDev = 0.1;
 	weightMutationHalfPoint = 0;
 
 	initNodes();
@@ -92,6 +108,121 @@ void insertSorted(vector<GeneticSurvivalNetwork*> * const sortedPopulation,
 	}
 }
 
+void selectParents(
+		boost::variate_generator<boost::mt19937&,
+				boost::geometric_distribution<int, double> > *geometric,
+		unsigned int maximum, unsigned int *mother, unsigned int *father) {
+
+	*mother = (*geometric)();
+	while (*mother >= maximum) {
+		*mother = (*geometric)();
+	}
+	// Make sure they are not the same
+	*father = *mother;
+	while (*father == *mother || *father >= maximum) {
+		*father = (*geometric)();
+	}
+}
+
+void GeneticSurvivalNetwork::crossover(
+		boost::variate_generator<boost::mt19937&, boost::uniform_int<> > *uniform,
+		GeneticSurvivalNetwork* mother, GeneticSurvivalNetwork* father) {
+	// Each individual node is replaced with some probability
+	unsigned int n;
+	for (n = 0; n < numOfHidden; n++) {
+		if ((*uniform)() < 0.5)
+			((GeneticSurvivalNeuron *) hiddenNeurons[n])->cloneNeuron(
+					mother->hiddenNeurons[n]);
+		else
+			((GeneticSurvivalNeuron *) hiddenNeurons[n])->cloneNeuron(
+					father->hiddenNeurons[n]);
+	}
+	// Then output node
+	if ((*uniform)() < 0.5)
+		((GeneticSurvivalNeuron *) outputNeuron)->cloneNeuron(
+				mother->outputNeuron);
+	else
+		((GeneticSurvivalNeuron *) outputNeuron)->cloneNeuron(
+				father->outputNeuron);
+
+}
+
+void GeneticSurvivalNetwork::mutateWeights(
+		boost::variate_generator<boost::mt19937&,
+				boost::normal_distribution<double> >* gaussian,
+		boost::variate_generator<boost::mt19937&, boost::uniform_int<> > *uniform,
+		double mutationChance, double stdDev, unsigned int deviationHalfPoint,
+		unsigned int epoch) {
+
+	// TODO First calculate new std dev
+	double currentStdDev = stdDev;
+	if (deviationHalfPoint > 0 && epoch > 0) {
+
+	}
+
+	unsigned int n;
+	for (n = 0; n < numOfHidden; n++) {
+		((GeneticSurvivalNeuron*) hiddenNeurons[n])->mutateWeights(gaussian,
+				uniform, mutationChance, currentStdDev);
+	}
+	((GeneticSurvivalNeuron*) outputNeuron)->mutateWeights(gaussian, uniform,
+			mutationChance, currentStdDev);
+}
+
+unsigned int GeneticSurvivalNetwork::getGenerations() const {
+	return generations;
+}
+
+void GeneticSurvivalNetwork::setGenerations(unsigned int generations) {
+	this->generations = generations;
+}
+
+unsigned int GeneticSurvivalNetwork::getPopulationSize() const {
+	return populationSize;
+}
+
+void GeneticSurvivalNetwork::setPopulationSize(unsigned int populationSize) {
+	this->populationSize = populationSize;
+}
+
+double GeneticSurvivalNetwork::getWeightMutationChance() const {
+	return weightMutationChance;
+}
+
+void GeneticSurvivalNetwork::setWeightMutationChance(
+		double weightMutationChance) {
+	this->weightMutationChance = weightMutationChance;
+}
+
+unsigned int GeneticSurvivalNetwork::getWeightMutationHalfPoint() const {
+	return weightMutationHalfPoint;
+}
+
+void GeneticSurvivalNetwork::setWeightMutationHalfPoint(
+		unsigned int weightMutationHalfPoint) {
+	this->weightMutationHalfPoint = weightMutationHalfPoint;
+}
+
+double GeneticSurvivalNetwork::getWeightMutationStdDev() const {
+	return weightMutationStdDev;
+}
+
+void GeneticSurvivalNetwork::setWeightMutationStdDev(
+		double weightMutationStdDev) {
+	this->weightMutationStdDev = weightMutationStdDev;
+}
+
+void GeneticSurvivalNetwork::cloneNetwork(GeneticSurvivalNetwork* original) {
+	unsigned int n;
+	for (n = 0; n < numOfHidden; n++) {
+		((GeneticSurvivalNeuron *) hiddenNeurons[n])->cloneNeuron(
+				original->hiddenNeurons[n]);
+	}
+	// Then output node
+	((GeneticSurvivalNeuron *) outputNeuron)->cloneNeuron(
+			original->outputNeuron);
+}
+
 /*
  * This version does not replace the entire population each generation. Two parents are selected at random to create a child.
  * This child is inserted into the list sorted on error. The worst network is destroyed if population exceeds limit.
@@ -101,6 +232,24 @@ void insertSorted(vector<GeneticSurvivalNetwork*> * const sortedPopulation,
  */
 void GeneticSurvivalNetwork::learn(double **X, double **Y,
 		unsigned int length) {
+	// Init random number stuff
+	boost::mt19937 eng; // a core engine class
+	eng.seed(time(NULL));
+	// Geometric distribution for selecting parents
+	boost::geometric_distribution<int, double> geo_dist(0.95);
+	boost::variate_generator<boost::mt19937&,
+			boost::geometric_distribution<int, double> > geometric(eng,
+			geo_dist);
+	// Normal distribution for weight mutation, 0 mean and 1 stddev
+	// We can then get any normal distribution with y = mean + stddev * x
+	boost::normal_distribution<double> gauss_dist(0, 1);
+	boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> > gaussian(
+			eng, gauss_dist);
+	// Uniform distribution 0 to 1 (inclusive)
+	boost::uniform_int<> uni_dist(0, 1);
+	boost::variate_generator<boost::mt19937&, boost::uniform_int<> > uniform(
+			eng, uni_dist);
+
 	// Create a population of networks
 	printf("Creating population\n");
 	vector<GeneticSurvivalNetwork*> sortedPopulation;
@@ -110,15 +259,15 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 	sortedErrors.reserve(populationSize + 1);
 	// Rank and insert them in a sorted order
 	double error;
-	unsigned int i, j;
+	unsigned int i;
 	vector<GeneticSurvivalNetwork*>::iterator netIt;
 	vector<double>::iterator errorIt;
 	for (i = 0; i < populationSize + 1; i++) {
 		printf("Creating individual\n");
 		GeneticSurvivalNetwork *net = getGeneticSurvivalNetwork(numOfInputs,
-				numOfHidden);
+				numOfHidden, &uniform);
 		// TODO evaluate error here
-		error = dRand();
+		error = net->output(X[0]);
 
 		insertSorted(&sortedPopulation, &sortedErrors, error, net);
 	}
@@ -139,20 +288,23 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 		for (genChild = 0; genChild < populationSize; genChild++) {
 			// We recycle the worst network
 			child = sortedPopulation.back();
-			//printf("error at back: %f\n", sortedErrors.back());
+			printf("error at back: %f\n", sortedErrors.back());
 			// Remove it from the list
 			sortedPopulation.pop_back();
 			sortedErrors.pop_back();
 			// Select two networks
-			// TODO selectParents(&mother, &father);
+			selectParents(&geometric, populationSize, &mother, &father);
+			printf("Mother: %d, Father: %d\n", mother, father);
 
 			// Create new child through crossover
-			// TODO child->crossOver(mother, father)
+			child->crossover(&uniform, sortedPopulation[mother],
+					sortedPopulation[father]);
 			// Mutate child
-			// TODO child->mutate(weightMutationChance, weightMutationMean, weightMutationHalfPoint, curGen)
+			child->mutateWeights(&gaussian, &uniform, weightMutationChance,
+					weightMutationStdDev, weightMutationHalfPoint, curGen);
 
 			// TODO Evaluate child
-			error = dRand();
+			error = child->output(X[0]);
 			//printf("new child error: %f\n", error);
 			// Insert child into the sorted list
 			insertSorted(&sortedPopulation, &sortedErrors, error, child);
@@ -166,16 +318,17 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 			errorIt++) {
 		printf("sortedError: %f\n", *errorIt);
 	}
+	printf("best error: %f\n", best->output(X[0]));
 
 	// When done, make this network into the best network
-	// TODO this->cloneNetwork(best);
+	this->cloneNetwork(best);
 
 	// And destroy population
 	// do this last of all!
 	best = NULL;
 	for (netIt = sortedPopulation.begin(); netIt < sortedPopulation.end();
 			netIt++) {
-		printf("deleting population\n");
+		//printf("deleting population\n");
 		delete *netIt;
 	}
 }
@@ -200,3 +353,35 @@ GeneticSurvivalNeuron::GeneticSurvivalNeuron(
 GeneticSurvivalNeuron::~GeneticSurvivalNeuron() {
 
 }
+
+void GeneticSurvivalNeuron::cloneNeuron(Neuron* original) {
+	unsigned int i = 0;
+	// First hidden connections
+	for (i = 0; i < neuronConnections->size(); i++) {
+		neuronConnections->at(i).second =
+				original->neuronConnections->at(i).second;
+	}
+
+	// Then input connections
+	for (i = 0; i < inputConnections->size(); i++) {
+		inputConnections->at(i).second =
+				original->inputConnections->at(i).second;
+	}
+}
+
+void GeneticSurvivalNeuron::mutateWeights(
+		boost::variate_generator<boost::mt19937&,
+				boost::normal_distribution<double> >* gaussian,
+		boost::variate_generator<boost::mt19937&, boost::uniform_int<> > *uniform,
+		double mutationChance, double stdDev) {
+	unsigned int n;
+	for (n = 0; n < neuronConnections->size(); n++) {
+		if ((*uniform)() <= mutationChance)
+			neuronConnections->at(n).second += (*gaussian)() * stdDev;
+	}
+	for (n = 0; n < inputConnections->size(); n++) {
+		if ((*uniform)() <= mutationChance)
+			inputConnections->at(n).second += (*gaussian)() * stdDev;
+	}
+}
+
