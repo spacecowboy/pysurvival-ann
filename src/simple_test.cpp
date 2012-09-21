@@ -174,7 +174,7 @@ void geneticSurvivalTest() {
 
 	net->setGenerations(100);
 	net->setPopulationSize(50);
-	net->setWeightMutationHalfPoint(100);
+	//net->setWeightMutationHalfPoint(100);
 
 	double x[2] = { 0.5, 0.5 };
 

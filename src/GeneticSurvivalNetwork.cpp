@@ -288,13 +288,13 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 		for (genChild = 0; genChild < populationSize; genChild++) {
 			// We recycle the worst network
 			child = sortedPopulation.back();
-			printf("error at back: %f\n", sortedErrors.back());
+			//printf("error at back: %f\n", sortedErrors.back());
 			// Remove it from the list
 			sortedPopulation.pop_back();
 			sortedErrors.pop_back();
 			// Select two networks
 			selectParents(&geometric, populationSize, &mother, &father);
-			printf("Mother: %d, Father: %d\n", mother, father);
+			//printf("Mother: %d, Father: %d\n", mother, father);
 
 			// Create new child through crossover
 			child->crossover(&uniform, sortedPopulation[mother],
