@@ -79,24 +79,27 @@ void baseTest() {
 	delete o;
 	delete n;
 
-	FFNetwork *ann = new RPropNetwork(2, 0);
+	FFNetwork *ann = new RPropNetwork(2, 0, 1);
+	double *outputs = new double[1];
 
-	printf("Before connect, ann out = %f\n", ann->output(x));
-	ann->connectOToI(0, 1.0);
-	printf("Connect to I0, ann out = %f\n", ann->output(x));
-	ann->connectOToI(1, 1.0);
-	printf("Connect to I1, ann out = %f\n", ann->output(x));
-	ann->connectOToB(1.0);
-	printf("Connect to Bias, ann out = %f\n", ann->output(x));
+	printf("Before connect, ann out = %f\n", ann->output(x, outputs)[0]);
+	ann->connectOToI(0, 0, 1.0);
+	printf("Connect to I0, ann out = %f\n", ann->output(x, outputs)[0]);
+	ann->connectOToI(0, 1, 1.0);
+	printf("Connect to I1, ann out = %f\n", ann->output(x, outputs)[0]);
+	ann->connectOToB(0, 1.0);
+	printf("Connect to Bias, ann out = %f\n", ann->output(x, outputs)[0]);
 
 	delete ann;
+	delete[] outputs;
 }
 
 void rPropTest() {
 	RPropNetwork *rprop = getRPropNetwork(2, 3);
 	double x[2] = { 0.5, 0.5 };
+	double *outputs = new double[1];
 
-	printf("Factory network out: %f\n", rprop->output(x));
+	printf("Factory network out: %f\n", rprop->output(x, outputs)[0]);
 
 	//double xorIn[4][2] = { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } };
 	double **xorIn = new double*[4];
@@ -115,20 +118,23 @@ void rPropTest() {
 	xorIn[3][0] = 1;
 	xorIn[3][1] = 1;
 
-	double* xorOut = new double[4];
-	xorOut[0] = 0;
-	xorOut[1] = 1;
-	xorOut[2] = 1;
-	xorOut[3] = 0;
+	double** xorOut = new double*[4];
+	for (int i = 0; i < 4; i++) {
+		xorOut[i] = new double[1];
+	}
+	xorOut[0][0] = 0;
+	xorOut[1][0] = 1;
+	xorOut[2][0] = 1;
+	xorOut[3][0] = 0;
 
 	printf("Before training of XOR\n");
-	printf("%f %f : %f\n", xorIn[0][0], xorIn[0][1], rprop->output(xorIn[0]));
-	printf("%f %f : %f\n", xorIn[1][0], xorIn[1][1], rprop->output(xorIn[1]));
-	printf("%f %f : %f\n", xorIn[2][0], xorIn[2][1], rprop->output(xorIn[2]));
-	printf("%f %f : %f\n", xorIn[3][0], xorIn[3][1], rprop->output(xorIn[3]));
+	printf("%f %f : %f\n", xorIn[0][0], xorIn[0][1], rprop->output(xorIn[0], outputs)[0]);
+	printf("%f %f : %f\n", xorIn[1][0], xorIn[1][1], rprop->output(xorIn[1], outputs)[0]);
+	printf("%f %f : %f\n", xorIn[2][0], xorIn[2][1], rprop->output(xorIn[2], outputs)[0]);
+	printf("%f %f : %f\n", xorIn[3][0], xorIn[3][1], rprop->output(xorIn[3], outputs)[0]);
 
 	rprop->setMaxError(0);
-	rprop->setMaxEpochs(1000);
+	rprop->setMaxEpochs(100);
 	printf("Learning...\n");
 
 	try {
@@ -136,37 +142,43 @@ void rPropTest() {
 
 		printf("After training of XOR\n");
 		printf("%f %f : %f\n", xorIn[0][0], xorIn[0][1],
-				rprop->output(xorIn[0]));
+				rprop->output(xorIn[0], outputs)[0]);
 		printf("%f %f : %f\n", xorIn[1][0], xorIn[1][1],
-				rprop->output(xorIn[1]));
+				rprop->output(xorIn[1], outputs)[0]);
 		printf("%f %f : %f\n", xorIn[2][0], xorIn[2][1],
-				rprop->output(xorIn[2]));
+				rprop->output(xorIn[2], outputs)[0]);
 		printf("%f %f : %f\n", xorIn[3][0], xorIn[3][1],
-				rprop->output(xorIn[3]));
+				rprop->output(xorIn[3], outputs)[0]);
 
 	} catch (std::exception& e) {
 		printf("Exception cast ");
 	}
 
-	printf("Train a 1000 epochs 100 times\n");
+	printf("Train a 100 epochs 10 times\n");
 	int t, i;
 	rprop->setMaxError(0);
-	rprop->setMaxEpochs(1000);
+	rprop->setMaxEpochs(100);
 	rprop->setPrintEpoch(-1);
 	t = clock();
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 10; i++) {
 		rprop->learn(xorIn, xorOut, 4);
 	}
 	float dt = 10 * ((float) clock() - t) / CLOCKS_PER_SEC;
-	printf("Training takes %f milliseconds per 1000 epochs\n", dt);
+	printf("Training takes %f milliseconds per 100 epochs\n", dt);
 
 	delete rprop;
+	delete[] xorOut[0];
+	delete[] xorOut[1];
+	delete[] xorOut[2];
+	delete[] xorOut[3];
 	delete[] xorOut;
 	delete[] xorIn[0];
 	delete[] xorIn[1];
 	delete[] xorIn[2];
 	delete[] xorIn[3];
 	delete[] xorIn;
+
+	delete[] outputs;
 }
 
 void geneticSurvivalTest() {
@@ -184,20 +196,24 @@ void geneticSurvivalTest() {
 	double **ppx = new double*[1];
 	ppx[0] = px;
 
-	printf("Factory gene-network out: %f\n", net->output(x));
+	double *outputs = new double[1];
+
+	printf("Factory gene-network out: %f\n", net->output(x, outputs)[0]);
 
 	net->learn(ppx, NULL, 1);
 
-	printf("After breeding out: %f\n", net->output(x));
+	printf("After breeding out: %f\n", net->output(x, outputs)[0]);
 
 	delete net;
 	delete[] ppx;
 	delete[] px;
+
+	delete[] outputs;
 }
 
 int main(int argc, char* argv[]) {
 	//randomTest();
-	//baseTest();
-	//rPropTest();
+	baseTest();
+	rPropTest();
 	geneticSurvivalTest();
 }

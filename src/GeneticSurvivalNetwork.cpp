@@ -42,24 +42,24 @@ GeneticSurvivalNetwork* getGeneticSurvivalNetwork(unsigned int numOfInputs,
 	// Connect output to hidden
 	for (i = 0; i < numOfHidden; i++) {
 		net->connectHToB(i, ((*uniform)() - 0.5) * 0.1);
-		net->connectOToH(i, ((*uniform)() - 0.5) * 0.1);
+		net->connectOToH(0, i, ((*uniform)() - 0.5) * 0.1);
 		// Inputs
 		for (j = 0; j < numOfInputs; j++) {
 			net->connectHToI(i, j, ((*uniform)() - 0.5) * 0.1);
 		}
 	}
 	// Connect output to bias
-	net->connectOToB(((*uniform)() - 0.5) * 0.1);
+	net->connectOToB(0, ((*uniform)() - 0.5) * 0.1);
 
 	// Set output node to linear activation function
-	net->getOutputNeuron()->setActivationFunction(&linear, &linearDeriv);
+	net->getOutputNeurons()[0]->setActivationFunction(&linear, &linearDeriv);
 
 	return net;
 }
 
 GeneticSurvivalNetwork::GeneticSurvivalNetwork(unsigned int numOfInputs,
 		unsigned int numOfHidden) :
-		FFNetwork(numOfInputs, numOfHidden) {
+		FFNetwork(numOfInputs, numOfHidden, 1) {
 	populationSize = 50;
 	generations = 100;
 	weightMutationChance = 0.15;
@@ -76,7 +76,8 @@ void GeneticSurvivalNetwork::initNodes() {
 		this->hiddenNeurons[i] = new GeneticSurvivalNeuron(&hyperbole,
 				&hyperboleDeriv);
 	}
-	this->outputNeuron = new GeneticSurvivalNeuron(&sigmoid, &sigmoidDeriv);
+	this->outputNeurons = new Neuron*[1];
+	this->outputNeurons[0] = new GeneticSurvivalNeuron(&sigmoid, &sigmoidDeriv);
 	this->bias = new GeneticSurvivalBias;
 }
 
@@ -140,11 +141,11 @@ void GeneticSurvivalNetwork::crossover(
 	}
 	// Then output node
 	if ((*uniform)() < 0.5)
-		((GeneticSurvivalNeuron *) outputNeuron)->cloneNeuron(
-				mother->outputNeuron);
+		((GeneticSurvivalNeuron *) outputNeurons[0])->cloneNeuron(
+				mother->outputNeurons[0]);
 	else
-		((GeneticSurvivalNeuron *) outputNeuron)->cloneNeuron(
-				father->outputNeuron);
+		((GeneticSurvivalNeuron *) outputNeurons[0])->cloneNeuron(
+				father->outputNeurons[0]);
 
 }
 
@@ -165,7 +166,7 @@ void GeneticSurvivalNetwork::mutateWeights(
 		((GeneticSurvivalNeuron*) hiddenNeurons[n])->mutateWeights(gaussian,
 				uniform, mutationChance, currentStdDev);
 	}
-	((GeneticSurvivalNeuron*) outputNeuron)->mutateWeights(gaussian, uniform,
+	((GeneticSurvivalNeuron*) outputNeurons[0])->mutateWeights(gaussian, uniform,
 			mutationChance, currentStdDev);
 }
 
@@ -219,8 +220,8 @@ void GeneticSurvivalNetwork::cloneNetwork(GeneticSurvivalNetwork* original) {
 				original->hiddenNeurons[n]);
 	}
 	// Then output node
-	((GeneticSurvivalNeuron *) outputNeuron)->cloneNeuron(
-			original->outputNeuron);
+	((GeneticSurvivalNeuron *) outputNeurons[0])->cloneNeuron(
+			original->outputNeurons[0]);
 }
 
 /*
@@ -259,6 +260,7 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 	sortedErrors.reserve(populationSize + 1);
 	// Rank and insert them in a sorted order
 	double error;
+	double *outputs = new double[numOfOutput];
 	unsigned int i;
 	vector<GeneticSurvivalNetwork*>::iterator netIt;
 	vector<double>::iterator errorIt;
@@ -267,7 +269,7 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 		GeneticSurvivalNetwork *net = getGeneticSurvivalNetwork(numOfInputs,
 				numOfHidden, &uniform);
 		// TODO evaluate error here
-		error = net->output(X[0]);
+		error = net->output(X[0], outputs)[0];
 
 		insertSorted(&sortedPopulation, &sortedErrors, error, net);
 	}
@@ -304,7 +306,7 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 					weightMutationStdDev, weightMutationHalfPoint, curGen);
 
 			// TODO Evaluate child
-			error = child->output(X[0]);
+			error = child->output(X[0], outputs)[0];
 			//printf("new child error: %f\n", error);
 			// Insert child into the sorted list
 			insertSorted(&sortedPopulation, &sortedErrors, error, child);
@@ -318,7 +320,7 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 			errorIt++) {
 		printf("sortedError: %f\n", *errorIt);
 	}
-	printf("best error: %f\n", best->output(X[0]));
+	printf("best error: %f\n", best->output(X[0], outputs)[0]);
 
 	// When done, make this network into the best network
 	this->cloneNetwork(best);
@@ -331,6 +333,8 @@ void GeneticSurvivalNetwork::learn(double **X, double **Y,
 		//printf("deleting population\n");
 		delete *netIt;
 	}
+
+	delete[] outputs;
 }
 
 /*

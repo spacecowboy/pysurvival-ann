@@ -9,6 +9,8 @@
 #ifndef FFNETWORK_H_
 #define FFNETWORK_H_
 
+
+
 // Forward-declare the Neuron class
 class Neuron;
 class Bias;
@@ -28,20 +30,25 @@ class FFNetwork {
 protected:
 	unsigned int numOfInputs;
 	unsigned int numOfHidden;
+	unsigned int numOfOutput;
 	Neuron **hiddenNeurons;
-	Neuron *outputNeuron;
+	Neuron **outputNeurons;
 	Neuron *bias;
 
 public:
-	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden);
+	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden, unsigned int numOfOutput);
 	virtual ~FFNetwork();
 
 	/**
 	 * Derived classes must implement this and initialize internal neuron lists
 	 */
-	virtual void initNodes() = 0;
+	virtual void initNodes();
 
-	double output(double *inputs);
+	/**
+	 * Returns the pointer given as output, so pay no attention to return object
+	 * if not wanted.
+	 */
+	double *output(double *inputs, double *output);
 
 	/*
 	 * Connects the first argument to the second argument. Meaning that the following
@@ -62,21 +69,40 @@ public:
 	/*
 	 * Connects the output neuron to the specified hidden neuron.
 	 */
-	void connectOToH(unsigned int hiddenIndex, double weight);
+	void connectOToH(unsigned int outputIndex, unsigned int hiddenIndex, double weight);
 
 	/*
 	 * Connect the output neuron to the specified input index.
 	 */
-	void connectOToI(unsigned int inputIndex, double weight);
+	void connectOToI(unsigned int outputIndex, unsigned int inputIndex, double weight);
 
 	/*
 	 * Connect the output neuron to the bias
 	 */
-	void connectOToB(double weight);
+	void connectOToB(unsigned int outputIndex, double weight);
 	Neuron** getHiddenNeurons() const;
 	unsigned int getNumOfHidden() const;
 	unsigned int getNumOfInputs() const;
-	Neuron* getOutputNeuron() const;
+	unsigned int getNumOfOutputs() const;
+	Neuron** getOutputNeurons() const;
+
+	Neuron* getBias() const {
+		return bias;
+	}
 };
+
+/*
+ * Utility functions
+ */
+
+/*
+ * Save network to file in semi-human-readable format
+ */
+//void saveFFNetwork(FFNetwork *ann, std::string filename);
+
+/*
+ * Load an exact copy of a network that was saved by saveFFNetwork
+ */
+//FFNetwork* loadFFNetwork(std::string filename);
 
 #endif /* FFNETWORK_H_ */

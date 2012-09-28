@@ -25,21 +25,21 @@ signed int sign(double x) {
  */
 RPropNetwork* getRPropNetwork(unsigned int numOfInputs,
 		unsigned int numOfHidden) {
-	RPropNetwork *net = new RPropNetwork(numOfInputs, numOfHidden);
+	RPropNetwork *net = new RPropNetwork(numOfInputs, numOfHidden, 1);
 
 	unsigned int i, j;
 	// Connect hidden to input and bias
 	// Connect output to hidden
 	for (i = 0; i < numOfHidden; i++) {
 		net->connectHToB(i, dRand());
-		net->connectOToH(i, dRand());
+		net->connectOToH(0, i, dRand());
 		// Inputs
 		for (j = 0; j < numOfInputs; j++) {
 			net->connectHToI(i, j, dRand());
 		}
 	}
 	// Connect output to bias
-	net->connectOToB(dRand());
+	net->connectOToB(0, dRand());
 
 	return net;
 }
@@ -51,12 +51,29 @@ double SSEDeriv(double target, double output) {
 	return target - output;
 }
 
+double *SSEDerivs(double *target, double *output, int length) {
+	double *derivs = new double[length];
+	for (int i = 0; i < length; i++) {
+		derivs[i] = target[i] - output[i];
+	}
+	return derivs;
+}
+
 double SSE(double target, double output) {
 	return std::pow(target - output, 2) / 2;
 }
 
-RPropNetwork::RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden) :
-		FFNetwork(numOfInputs, numOfHidden) {
+double *SSEs(double *target, double *output, int length) {
+	double *errors = new double[length];
+	for (int i = 0; i < length; i++) {
+		errors[i] = std::pow(target[i] - output[i], 2) / 2;
+	}
+	return errors;
+}
+
+RPropNetwork::RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
+		unsigned int numOfOutput) :
+		FFNetwork(numOfInputs, numOfHidden, numOfOutput) {
 	maxEpochs = 10000;
 	maxError = 0.0000001;
 	printEpoch = 100;
@@ -70,7 +87,10 @@ void RPropNetwork::initNodes() {
 		this->hiddenNeurons[i] = new RPropNeuron(&hyperbole, &hyperboleDeriv);
 	}
 
-	this->outputNeuron = new RPropNeuron(&sigmoid, &sigmoidDeriv);
+	this->outputNeurons = new Neuron*[this->numOfOutput];
+	for (i = 0; i < this->numOfOutput; i++) {
+		this->outputNeurons[i] = new RPropNeuron(&sigmoid, &sigmoidDeriv);
+	}
 
 	this->bias = new RPropBias;
 }
@@ -99,37 +119,53 @@ void RPropNetwork::setMaxError(double maxError) {
 	this->maxError = maxError;
 }
 
-void RPropNetwork::learn(double **X, double *Y, unsigned int length) {
-	double error = 0, errorDeriv = 0;
+void RPropNetwork::learn(double **X, double **Y, unsigned int length) {
+	double error[numOfOutput];
+	for (int i = 0; i < numOfOutput; i++)
+		error[i] = 0;
+
+	double *outputs = new double[numOfOutput];
+	double deriv = 0;
 	unsigned int epoch = 0;
 
 	int i, n;
 
 	do {
 		if (printEpoch > 0 && epoch % printEpoch == 0)
-			printf("epoch: %d, error: %f\n", epoch, error);
+			printf("epoch: %d, error: %f\n", epoch, error[0]);
 		// Evaluate for each value in input vector
 		for (i = 0; i < (int) length; i++) {
 			// First let all neurons evaluate
-			errorDeriv = SSEDeriv(Y[i], output(X[i]));
-			error = SSE(Y[i], outputNeuron->output());
-			// set error deriv on output node
-			static_cast<RPropNeuron*>(outputNeuron)->addLocalError(errorDeriv);
+			output(X[i], outputs);
+			for (n = 0; n < numOfOutput; n++) {
+				deriv = SSEDeriv(Y[i][n], outputs[n]);
+				error[n] = SSE(Y[i][n], outputs[n]);
+				// set error deriv on output node
+				static_cast<RPropNeuron*>(outputNeurons[n])->addLocalError(
+						deriv);
+				// Calculate local derivatives at output and propagate
+				static_cast<RPropNeuron*>(outputNeurons[n])->calcLocalDerivative(
+						X[i]);
+			}
+
 			// Calculate local derivatives at all neurons
 			// and propagate
-			static_cast<RPropNeuron*>(outputNeuron)->calcLocalDerivative(X[i]);
 			for (n = numOfHidden - 1; n >= 0; n--) {
 				static_cast<RPropNeuron*>(hiddenNeurons[n])->calcLocalDerivative(
 						X[i]);
 			}
 		}
 		// Apply weight updates
-		static_cast<RPropNeuron*>(outputNeuron)->applyWeightUpdates();
+		for (n = 0; n < numOfOutput; n++) {
+			static_cast<RPropNeuron*>(outputNeurons[n])->applyWeightUpdates();
+		}
 		for (n = numOfHidden - 1; n >= 0; n--) {
 			static_cast<RPropNeuron*>(hiddenNeurons[n])->applyWeightUpdates();
 		}
 		epoch += 1;
-	} while (epoch < maxEpochs && error > maxError);
+	} while (epoch < maxEpochs && error[0] > maxError);
+
+	delete[] outputs;
 }
 
 /*

@@ -67,6 +67,10 @@ public:
  */
 class Bias: public Neuron {
 public:
+	Bias() :
+			Neuron() {
+	}
+
 	virtual double output() {
 		return 1;
 	}
