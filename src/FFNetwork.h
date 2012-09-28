@@ -50,6 +50,11 @@ public:
 	 */
 	double *output(double *inputs, double *output);
 
+	/**
+	 * A more user friendly version using vectors. Up to the user to destroy return vector
+	 */
+	//std::vector *output(std::vector *inputs);
+
 	/*
 	 * Connects the first argument to the second argument. Meaning that the following
 	 * will be true: First.output = w * Second.output

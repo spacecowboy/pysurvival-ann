@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 using namespace std;
 
 FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
@@ -65,6 +66,11 @@ double *FFNetwork::output(double *inputs, double *output) {
 
 	return output;
 }
+
+/*
+vector *FFNetwork::output(vector *inputs) {
+	return NULL;
+}*/
 
 Neuron** FFNetwork::getHiddenNeurons() const {
 	return hiddenNeurons;
