@@ -9,6 +9,7 @@
 #ifndef FFNETWORK_H_
 #define FFNETWORK_H_
 
+#include <Python.h>
 #include <vector>
 
 
@@ -27,7 +28,7 @@ class Bias;
  * learn method. A network is defined first by its structure but also by its
  * training algorithm.
  */
-class FFNetwork {
+class FFNetwork : public PyObject {
 protected:
 	unsigned int numOfInputs;
 	unsigned int numOfHidden;

@@ -30,6 +30,7 @@
 									<listOptionValue builtIn="false" value="/usr/include/c++/4.6.3"/>
 									<listOptionValue builtIn="false" value="/usr/include/boost/tr1"/>
 									<listOptionValue builtIn="false" value="/usr/include/boost"/>
+									<listOptionValue builtIn="false" value="/usr/include/python2.7"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.46254128" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__GXX_EXPERIMENTAL_CXX0X__"/>
