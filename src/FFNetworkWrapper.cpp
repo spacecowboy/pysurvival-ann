@@ -7,6 +7,10 @@
 
 #include "FFNetworkWrapper.h"
 #include <numpy/arrayobject.h> // NumPy as seen from C
+#include <stdio.h>
+
+extern "C" {
+
 /*
  * Python constructor
  * ------------------
@@ -29,9 +33,16 @@ PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 				"Arguments should be (all mandatory positive integers): numOfInputs, numOfHidden, numOfOutputs");
 		return NULL;
 	}
+	printf("FFNetwork_new: We are past the if: %d %d %d\n", numOfInputs, numOfHidden, numOfOutputs);
 
 	// Now construct the object
-	FFNetwork *self = new FFNetwork(numOfInputs, numOfHidden, numOfOutputs);
+	FFNetwork *self = (FFNetwork*)type->tp_alloc(type, 0);
+	printf("FFNetwork_new: allocated\n");
+	new(self) FFNetwork(numOfInputs, numOfHidden, numOfOutputs);
+	printf("FFNetwork_new: doing init\n");
+	self->initNodes();
+
+	printf("FFNetwork_new: Past the construction\n");
 	return (PyObject *) self;
 }
 
@@ -49,6 +60,9 @@ int FFNetwork_init(FFNetwork *self, PyObject *args, PyObject *kwds) {
  */
 void FFNetwork_dealloc(FFNetwork *self) {
 	// Not sure if this is calling the destructor of network
+	printf("FFNetwork_dealloc: called\n");
+	self->~FFNetwork();
+	printf("FFNetwork_dealloc: destructed, now tp_free\n");
 	self->ob_type->tp_free((PyObject*) self);
 }
 
@@ -58,12 +72,14 @@ void FFNetwork_dealloc(FFNetwork *self) {
  */
 
 PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs) {
+	printf("FFNetwork_output\n");
 	if (!(PyList_CheckExact(inputs)
 			|| (PyArray_NDIM(inputs) == 1 && PyArray_TYPE(inputs) == NPY_DOUBLE))) {
 		PyErr_Format(PyExc_ValueError,
 				"The input does not seem to be of a suitable list type. This method only accepts a python list or a 1D numpy array of doubles.");
 		return NULL;
 	}
+	printf("FFNetwork_output: past check\n");
 
 	// First convert to normal double array
 
@@ -72,19 +88,23 @@ PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs) {
 	double *ptr = NULL;
 
 	double dInputs[self->getNumOfInputs()];
+	printf("FFNetwork_output: before for loop\n");
 	for (int i = 0; i < self->getNumOfInputs(); i++) {
 		if (pylist) {
+			printf("FFNetwork_output is list\n");
 			// Actual python list
-			PyObject *pyval = PyList_GetItem(inputs, i);
+			pyval = PyList_GetItem(inputs, i);
 			if (pyval == NULL) {
 				PyErr_Format(PyExc_ValueError,
 						"Something went wrong when iterating of input values. Possibly wrong length?");
 				return NULL;
 			}
+			printf("FFNetwork_output before as double\n");
 			dInputs[i] = PyFloat_AsDouble(pyval);
 		} else {
+			printf("FFNetwork_output: is numpy\n");
 			// Numpy array
-			double *ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, i);
+			ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, i);
 			if (ptr == NULL) {
 				PyErr_Format(PyExc_ValueError,
 						"Something went wrong when iterating of input values. Possibly wrong length?");
@@ -94,19 +114,28 @@ PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs) {
 		}
 	}
 
+	printf("FFNetwork_output: compute output\n");
 	// compute output
 	double dResult[self->getNumOfOutputs()];
+	printf("FFNetwork_output: actual output coming\n");
 	self->output(dInputs, dResult);
+	printf("FFNetwork_output: result is %f\n", dResult[0]);
 	// Now convert to numpy array
+	printf("FFNetwork_output: numpy convert\n");
 	npy_intp dims[1] = { self->getNumOfInputs() };
+	printf("FFNetwork_output: before simple new\n");
 	PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+	printf("FFNetwork_output: time for loop\n");
 	for (int i = 0; i < self->getNumOfOutputs(); i++) {
+		printf("FFNetwork_output: in final loop\n");
 		ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, i);
+		printf("FFNetwork_output: got ptr\n");
 		*ptr = dResult[i];
 	}
+	printf("FFNetwork_output: returning\n");
 	return result;
 }
 
 
-
+}
 

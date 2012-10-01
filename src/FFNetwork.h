@@ -38,14 +38,15 @@ public:
 	unsigned int numOfHidden;
 	unsigned int numOfOutput;
 
+	FFNetwork();
 	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 			unsigned int numOfOutput);
-	virtual ~FFNetwork();
+	~FFNetwork();
 
 	/**
 	 * Derived classes must implement this and initialize internal neuron lists
 	 */
-	virtual void initNodes();
+	void initNodes();
 
 	/**
 	 * Returns the pointer given as output, so pay no attention to return object

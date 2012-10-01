@@ -6,6 +6,7 @@
 // Description :
 //============================================================================
 
+#include <Python.h>
 #include "FFNetwork.h"
 #include "FFNeuron.h"
 #include "activationfunctions.h"
@@ -15,14 +16,24 @@
 #include <vector>
 using namespace std;
 
+FFNetwork::FFNetwork() {
+	cout << "FFNetwork constructor1\n";
+		this->numOfInputs = 0;
+		this->numOfHidden = 0;
+		this->numOfOutput = 0;
+}
+
 FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 		unsigned int numOfOutput) {
+	cout << "FFNetwork constructor2\n";
 	this->numOfInputs = numOfInputs;
 	this->numOfHidden = numOfHidden;
 	this->numOfOutput = numOfOutput;
 }
 
 FFNetwork::~FFNetwork() {
+	//printf("FFNetwork destructor\n");
+	cout << "FFNetwork destructor\n";
 	delete this->bias;
 
 	unsigned int i;
@@ -35,9 +46,14 @@ FFNetwork::~FFNetwork() {
 		delete this->outputNeurons[i];
 	}
 	delete[] this->outputNeurons;
+
+	// Final act, clean up python
+	ob_type->tp_free((PyObject*) this);
 }
 
 void FFNetwork::initNodes() {
+	cout << "FFNetwork initNodes\n";
+	cout << "inputs " << numOfInputs << " hidden " << numOfHidden << " outputs " << numOfOutput << "\n";
 	this->hiddenNeurons = new Neuron*[this->numOfHidden];
 	unsigned int i;
 	for (i = 0; i < this->numOfHidden; i++) {
