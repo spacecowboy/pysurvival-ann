@@ -12,7 +12,6 @@
 #include <Python.h>
 #include <vector>
 
-
 // Forward-declare the Neuron class
 class Neuron;
 class Bias;
@@ -28,17 +27,19 @@ class Bias;
  * learn method. A network is defined first by its structure but also by its
  * training algorithm.
  */
-class FFNetwork : public PyObject {
+class FFNetwork: public PyObject {
 protected:
-	unsigned int numOfInputs;
-	unsigned int numOfHidden;
-	unsigned int numOfOutput;
 	Neuron **hiddenNeurons;
 	Neuron **outputNeurons;
 	Neuron *bias;
 
 public:
-	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden, unsigned int numOfOutput);
+	unsigned int numOfInputs;
+	unsigned int numOfHidden;
+	unsigned int numOfOutput;
+
+	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
+			unsigned int numOfOutput);
 	virtual ~FFNetwork();
 
 	/**
@@ -61,12 +62,14 @@ public:
 	 * Connects the first argument to the second argument. Meaning that the following
 	 * will be true: First.output = w * Second.output
 	 */
-	void connectHToH(unsigned int firstIndex, unsigned int secondIndex, double weight);
+	void connectHToH(unsigned int firstIndex, unsigned int secondIndex,
+			double weight);
 	/*
 	 * Connect the hidden neuron (first argument) to the specified input index (second
 	 * argument)
 	 */
-	void connectHToI(unsigned int hiddenIndex, unsigned int inputIndex, double weight);
+	void connectHToI(unsigned int hiddenIndex, unsigned int inputIndex,
+			double weight);
 
 	/*
 	 * Connect the hidden neuront o the bias
@@ -76,12 +79,14 @@ public:
 	/*
 	 * Connects the output neuron to the specified hidden neuron.
 	 */
-	void connectOToH(unsigned int outputIndex, unsigned int hiddenIndex, double weight);
+	void connectOToH(unsigned int outputIndex, unsigned int hiddenIndex,
+			double weight);
 
 	/*
 	 * Connect the output neuron to the specified input index.
 	 */
-	void connectOToI(unsigned int outputIndex, unsigned int inputIndex, double weight);
+	void connectOToI(unsigned int outputIndex, unsigned int inputIndex,
+			double weight);
 
 	/*
 	 * Connect the output neuron to the bias
@@ -106,10 +111,8 @@ public:
  * Save network to file in semi-human-readable format
  */
 //void saveFFNetwork(FFNetwork *ann, std::string filename);
-
 /*
  * Load an exact copy of a network that was saved by saveFFNetwork
  */
 //FFNetwork* loadFFNetwork(std::string filename);
-
 #endif /* FFNETWORK_H_ */
