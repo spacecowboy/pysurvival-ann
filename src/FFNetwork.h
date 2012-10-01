@@ -9,6 +9,7 @@
 #ifndef FFNETWORK_H_
 #define FFNETWORK_H_
 
+#include <vector>
 
 
 // Forward-declare the Neuron class
@@ -53,7 +54,7 @@ public:
 	/**
 	 * A more user friendly version using vectors. Up to the user to destroy return vector
 	 */
-	//std::vector *output(std::vector *inputs);
+	std::vector<double> *outputv(std::vector<double> *inputs);
 
 	/*
 	 * Connects the first argument to the second argument. Meaning that the following

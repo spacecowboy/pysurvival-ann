@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
-#include <stdlib.h>
+#include <vector>
 using namespace std;
 
 FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
@@ -67,10 +67,21 @@ double *FFNetwork::output(double *inputs, double *output) {
 	return output;
 }
 
-/*
-vector *FFNetwork::output(vector *inputs) {
-	return NULL;
-}*/
+std::vector<double> *FFNetwork::outputv(std::vector<double> *inputs) {
+	//double *output = new double[numOfOutput];
+	std::vector<double> *output = new std::vector<double>(numOfOutput);
+	// Iterate over the neurons in order and calculate their outputs.
+	unsigned int i;
+	for (i = 0; i < numOfHidden; i++) {
+		hiddenNeurons[i]->output(inputs->data());
+	}
+	// Finally the output neurons
+	for (i = 0; i < numOfOutput; i++) {
+		output->at(i) = outputNeurons[i]->output(inputs->data());
+	}
+
+	return output;
+}
 
 Neuron** FFNetwork::getHiddenNeurons() const {
 	return hiddenNeurons;
