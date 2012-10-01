@@ -122,7 +122,7 @@ PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs) {
 	printf("FFNetwork_output: result is %f\n", dResult[0]);
 	// Now convert to numpy array
 	printf("FFNetwork_output: numpy convert\n");
-	npy_intp dims[1] = { self->getNumOfInputs() };
+	npy_intp dims[1] = { self->getNumOfOutputs() };
 	printf("FFNetwork_output: before simple new\n");
 	PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 	printf("FFNetwork_output: time for loop\n");
