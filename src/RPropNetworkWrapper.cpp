@@ -10,52 +10,37 @@
 #include "ExtensionHeader.h"
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include <stdio.h>
+#include "RPropNetwork.h"
 
 extern "C" {
-
-/*
- * Python constructor
- * ------------------
- * Responsible for taking the python variables and converting them
- * to numbers the c++ constructor can understand.
- *
- * Constructor is of the form: FFNetwork(inputsize, hiddensize, outputsize)
- */
-PyObject *RPropNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-
-	// parse the arguments
-	static char *kwlist[] =
-			{ "numOfInputs", "numOfHidden", "numOfOutputs", NULL };
-
-	// Unsigned integers, all mandatory
-	unsigned int numOfInputs, numOfHidden, numOfOutputs;
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "III", kwlist, &numOfInputs,
-			&numOfHidden, &numOfOutputs)) {
-		PyErr_Format(PyExc_ValueError,
-				"Arguments should be (all mandatory positive integers): numOfInputs, numOfHidden, numOfOutputs");
-		return NULL;
-	}
-	printf("RPropNetwork_new: We are past the if: %d %d %d\n", numOfInputs, numOfHidden, numOfOutputs);
-
-	// Now construct the object
-	RPropNetwork *self = (RPropNetwork*)type->tp_alloc(type, 0);
-	printf("RPNetwork_new: allocated\n");
-	new(self) RPropNetwork(numOfInputs, numOfHidden, numOfOutputs);
-	//printf("RPNetwork_new: doing init\n");
-	//self->initNodes();
-
-	printf("RPNetwork_new: Past the construction\n");
-	return (PyObject *) self;
-}
 
 /*
  * Python init
  * -----------
  */
-int RPropNetwork_init(RPropNetwork *self, PyObject *args, PyObject *kwds) {
-	printf("RPnetwrok_init: doing init\n");
-	self->initNodes();
-	return 0;
+int RPropNetwork_init(PyRPropNetwork *self, PyObject *args, PyObject *kwds) {
+	 printf("RNetwork_init\n");
+        static char *kwlist[] =
+                        { "numOfInputs", "numOfHidden", "numOfOutputs", NULL };
+
+         unsigned int numOfInputs, numOfHidden, numOfOutputs;
+        if (!PyArg_ParseTupleAndKeywords(args, kwds, "III", kwlist, &numOfInputs,
+                        &numOfHidden, &numOfOutputs)) {
+                PyErr_Format(PyExc_ValueError,
+                                "Arguments should be (all mandatory positive integers): numOfInputs, numOfHidden, numOfOutputs");
+                return -1;
+        }
+        printf("RNetwork_init: We are past the if: %d %d %d\n", numOfInputs, numOfHidden, numOfOutputs);
+
+        self->super.net = new RPropNetwork(numOfInputs, numOfHidden, numOfOutputs);
+
+        printf("RNetwork_init: net is: %d\n", self->super.net);
+        if (self->super.net == NULL)
+                return -1;
+
+        self->super.net->initNodes();
+        return 0;
+
 }
 
 /*
@@ -63,7 +48,7 @@ int RPropNetwork_init(RPropNetwork *self, PyObject *args, PyObject *kwds) {
  * -----------------
  */
 /*
-void RPropNetwork_dealloc(RPropNetwork *self) {	
+void RPropNetwork_dealloc(RPropNetwork *self) {
 	printf("rNetwork_dealloc: called\n");
 	// Yes FFNetwork because children aren't allowed their own destructor
 	self->~FFNetwork();
@@ -77,16 +62,17 @@ void RPropNetwork_dealloc(RPropNetwork *self) {
  * ===============
  */
 
-void RPropNetwork_learn(RPropNetwork *self, PyObject *args, PyObjectd *kwargs) {
+PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwargs) {
 	printf("rNetwork_learn\n");
 
 	PyObject *inputs = NULL;
 	PyObject *targets = NULL;
 	// Check inputs
+    static char *kwlist[] = {"inputs", "targets", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist,
 					&inputs, &targets)) {
 		PyErr_Format(PyExc_ValueError, "Arguments should be: inputs (2d array), targets (2d array)");
-		return;
+		return NULL;
 	}
 
 	// Make sure they conform to required structure
@@ -95,36 +81,39 @@ void RPropNetwork_learn(RPropNetwork *self, PyObject *args, PyObjectd *kwargs) {
 
 	inputArray = (PyArrayObject *) PyArray_ContiguousFromObject(inputs, PyArray_DOUBLE, 2, 2);
 	if (inputArray == NULL)
-		return;
+		return NULL;
 
 	targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets, PyArray_DOUBLE, 2, 2);
 	if (targetArray == NULL)
-		return;
+		return NULL;
 
 	// Objects were converted successfully. But make sure they are the same length!
 	//int inputRows = inputArray->dimensions[0];
 	//int targetRows = targetArray->dimensions[0];
 
-	if (inputArray->dimensions[0] != targetRows->dimensions[0] ||
-		inputArray->dimensions[1] != self->numOfInputs ||
-		targetArray->dimensions[1] != self->numOfOutput) {
+	if (inputArray->dimensions[0] != targetArray->dimensions[0] ||
+		inputArray->dimensions[1] != self->super.net->getNumOfInputs() ||
+		targetArray->dimensions[1] != self->super.net->getNumOfOutputs()) {
 		// Decrement, set error and return
 		PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same number of rows. Also the columns must match number of input/output neurons respectively.");
 		Py_DECREF(inputArray);
 		Py_DECREF(targetArray);
 
-		return;
+		return NULL;
 	}
 
 	// Arguments are valid!
-	
+
 	printf("rNetwork_learn: past check\n");
 
-	self->learn((double *)inputArray->data, (double *)targetArray->data, inputArray->dimensions[0]);
+	((RPropNetwork*)self->super.net)->learn((double *)inputArray->data, (double *)targetArray->data, inputArray->dimensions[0]);
 
 	// Decrement counters for inputArray and targetArray
 	Py_DECREF(inputArray);
 	Py_DECREF(targetArray);
+
+	// Return none
+	return Py_BuildValue("");
 }
 
 

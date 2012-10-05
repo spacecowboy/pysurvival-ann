@@ -5,41 +5,46 @@
  *      Author: jonas
  */
 
-#ifndef PROPNETWORKWRAPPER_H_
-#define RPOPNETWORKWRAPPER_H_
+#ifndef RPROPNETWORKWRAPPER_H_
+#define RPROPNETWORKWRAPPER_H_
 
 #include "Python.h"
 #include "structmember.h" // used to declare member list
-#include "RPropNetwork.h"
+#include "FFNetworkWrapper.h"
+//#include "RPropNetwork.h"
 
 // Necessary for c++ functions to be callable from Python's C
 extern "C" {
+
+typedef struct {
+	PyFFNetwork super; // inherit from FFNetwork
+} PyRPropNetwork;
 
 /*
  * Python constructor
  * ------------------
  */
-PyObject *RPropNetwork_new(PyTypeObject *type, PyObject *args,
-		PyObject *kwds);
+//PyObject *RPropNetwork_new(PyTypeObject *type, PyObject *args,
+//		PyObject *kwds);
 
 /*
  * Python init
  * -----------
  */
-int RPropNetwork_init(RPropNetwork *self, PyObject *args, PyObject *kwds);
+int RPropNetwork_init(PyRPropNetwork *self, PyObject *args, PyObject *kwds);
 
 /*
  * Python destructor
  * -----------------
  */
-void RPropNetwork_dealloc(RPropNetwork *self);
+//void RPropNetwork_dealloc(PyRPropNetwork *self);
 
 /*
  * Wrapper methods
  * ===============
  */
 
-PyObject *RPropNetwork_output(RPropNetwork *self, PyObject *inputs);
+PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwargs);
 
 
 /*
@@ -50,4 +55,5 @@ PyObject *RPropNetwork_output(RPropNetwork *self, PyObject *inputs);
 //PyObject *FFNetwork_getnewargs(FFNetwork *self);
 //PyObject *FFNetwork_reduce(FFNetwork *self);
 
+}
 #endif /* RPROPWRAPPER_H_ */

@@ -10,6 +10,7 @@
 #include "ModuleHeader.h" // Must include this before arrayobject
 #include <numpy/arrayobject.h> // Numpy seen from C
 #include "FFNetworkWrapper.h"
+#include "RPropNetworkWrapper.h"
 
 /*
  * FFNetwork
@@ -93,6 +94,71 @@ static PyTypeObject FFNetworkType = {
 	FFNetwork_new,			 		/* tp_new */
 };
 
+
+/*
+ * RPropNetwork
+ * ============
+ */
+
+/*
+ * Public Python methods
+ * ---------------------
+ */
+static PyMethodDef RPropNetworkMethods[] =
+{
+  {"learn", (PyCFunction) RPropNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using RProp."},
+                        {NULL}, // So that we can iterate safely below
+};
+
+
+/*
+ *  * Python type declaration
+ *   * -----------------------
+ *    */
+static PyTypeObject RPropNetworkType = {
+        PyObject_HEAD_INIT(NULL)
+        0,                                              /* ob_size */
+        "ann.rpropnetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+        sizeof(PyRPropNetwork),                                    /* tp_basicsize */
+        0,                                              /* tp_itemsize */
+        0,                  /* tp_dealloc */
+        0,                                              /* tp_print */
+        0,                                              /* tp_getattr */
+        0,                                              /* tp_setattr */
+        0,                                              /* tp_compare */
+        0,                                              /* tp_repr */
+        0,                                              /* tp_as_number */
+        0,                                              /* tp_as_sequence */
+        0,                                              /* tp_as_mapping */
+        0,                                              /* tp_hash */
+        0,                                              /* tp_call */
+        0,                                              /* tp_str */
+        0,                                              /* tp_getattro */
+        0,                                              /* tp_setattro */
+        0,                                              /* tp_as_buffer */
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+        "A feed forward neural network which can be trained with RProp.",                       /* tp_doc */
+        0,                                              /* tp_traverse */
+        0,                                              /* tp_clear */
+        0,                                              /* tp_richcompare */
+        0,                                              /* tp_weaklistoffset */
+        0,                                              /* tp_iter */
+        0,                                              /* tp_iternext */
+        RPropNetworkMethods,                                       /* tp_methods */
+        0,                                       /* tp_members */
+        0,                                            /* tp_getset */
+        0,                                              /* tp_base */
+        0,                                              /* tp_dict */
+        0,                                              /* tp_descr_get */
+        0,                                              /* tp_descr_set */
+        0,                                              /* tp_dictoffset */
+       (initproc)RPropNetwork_init,                               /* tp_init */
+        0,                                              /* tp_alloc */
+        0,                                  /* tp_new */
+};
+
+
+
 /*
  * Python module declaration
  * =========================
@@ -127,6 +193,17 @@ initann(void)
 	Py_INCREF(&FFNetworkType);
 	PyModule_AddObject(mod, "ffnetwork", (PyObject*)&FFNetworkType);
 
+	/*
+ 	 * RPropNetwork
+ 	 */
+	RPropNetworkType.tp_base = &FFNetworkType;
+	if (PyType_Ready(&RPropNetworkType) < 0) {
+		Py_DECREF(&FFNetworkType);
+		return;
+	}
+
+	Py_INCREF(&RPropNetworkType);
+	PyModule_AddObject(mod, "rpropnetwork", (PyObject*)&RPropNetworkType);
 
 }
 
