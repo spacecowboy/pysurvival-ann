@@ -61,12 +61,9 @@ FFNetwork::~FFNetwork() {
 	delete[] this->outputNeurons;
 	cout << "FFnet all output gone\n";
 
-	// Final act, clean up python
-	ob_type->tp_free((PyObject*) this);
-	cout << "Python bit gone"
 }
 
-/*
+
 void FFNetwork::initNodes() {
 	cout << "FFNetwork initNodes\n";
 	cout << "inputs " << numOfInputs << " hidden " << numOfHidden << " outputs " << numOfOutput << "\n";
@@ -83,7 +80,7 @@ void FFNetwork::initNodes() {
 
 	this->bias = new Bias();
 }
-*/
+
 
 double *FFNetwork::output(double *inputs, double *output) {
 	//double *output = new double[numOfOutput];

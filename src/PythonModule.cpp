@@ -33,10 +33,18 @@ static PyMethodDef FFNetworkMethods[] =
  * ---------------------
  */
 static PyMemberDef FFNetworkMembers[] = {
-	{"numOfInputs", T_INT, offsetof(FFNetwork, numOfInputs), 0, "The number of input values required by the network."},
-	{"numOfHidden", T_INT, offsetof(FFNetwork, numOfHidden), 0, "The number of hidden neurons contained in the network."},
-	{"numOfOutputs", T_INT, offsetof(FFNetwork, numOfOutput), 0, "The number of output values returned by the network."},
 		{NULL} // for safe iteration
+};
+
+/*
+ * Public Python members with get/setters
+ * --------------------------------------
+ */
+static PyGetSetDef FFNetworkGetSetters[] = {
+	{"numOfInputs", (getter)FFNetwork_getNumOfInputs, NULL, "Number of input neurons", NULL},
+	{"numOfHidden", (getter)FFNetwork_getNumOfHidden, NULL, "Number of hidden neurons", NULL},
+	{"numOfOutputs", (getter)FFNetwork_getNumOfOutputs, NULL, "Number of output neurons", NULL},
+	{NULL} // Sentinel
 };
 
 /*
@@ -47,7 +55,7 @@ static PyTypeObject FFNetworkType = {
 	PyObject_HEAD_INIT(NULL)
 	0,						/* ob_size */
 	"ann.ffnetwork",		/* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
-	sizeof(FFNetwork),					/* tp_basicsize */
+	sizeof(PyFFNetwork),					/* tp_basicsize */
 	0,						/* tp_itemsize */
 	(destructor)FFNetwork_dealloc,			/* tp_dealloc */
 	0,						/* tp_print */
@@ -74,7 +82,7 @@ static PyTypeObject FFNetworkType = {
 	0,			 			/* tp_iternext */
 	FFNetworkMethods,					/* tp_methods */
 	FFNetworkMembers,					/* tp_members */
-	0,			 			/* tp_getset */
+	FFNetworkGetSetters,			 			/* tp_getset */
 	0,			 			/* tp_base */
 	0,			 			/* tp_dict */
 	0,			 			/* tp_descr_get */

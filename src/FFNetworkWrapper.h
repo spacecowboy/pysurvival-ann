@@ -14,6 +14,14 @@
 
 // Necessary for c++ functions to be callable from Python's C
 extern "C" {
+/*
+ * Python object
+ */
+typedef struct {
+	PyObject_HEAD // inherit from PyObject
+	FFNetwork *net; // actual network from c++
+} PyFFNetwork;
+
 
 /*
  * Python constructor
@@ -26,21 +34,28 @@ PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args,
  * Python init
  * -----------
  */
-int FFNetwork_init(FFNetwork *self, PyObject *args, PyObject *kwds);
+int FFNetwork_init(PyFFNetwork *self, PyObject *args, PyObject *kwds);
 
 /*
  * Python destructor
  * -----------------
  */
-void FFNetwork_dealloc(FFNetwork *self);
+void FFNetwork_dealloc(PyFFNetwork *self);
 
 /*
  * Wrapper methods
  * ===============
  */
 
-PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs);
+PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs);
 
+
+/*
+ * Getters and Setters
+ */
+PyObject *FFNetwork_getNumOfInputs(PyFFNetwork *self, void *closure);
+PyObject *FFNetwork_getNumOfHidden(PyFFNetwork *self, void *closure);
+PyObject *FFNetwork_getNumOfOutputs(PyFFNetwork *self, void *closure);
 
 /*
  * Pickle methods

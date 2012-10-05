@@ -9,7 +9,6 @@
 #ifndef FFNETWORK_H_
 #define FFNETWORK_H_
 
-#include <Python.h>
 #include <vector>
 
 // Forward-declare the Neuron class
@@ -27,29 +26,27 @@ class Bias;
  * learn method. A network is defined first by its structure but also by its
  * training algorithm.
  */
-class FFNetwork: public PyObject {
+class FFNetwork {
 protected:
 	Neuron **hiddenNeurons;
 	Neuron **outputNeurons;
 	Neuron *bias;
 
-public:
 	unsigned int numOfInputs;
 	unsigned int numOfHidden;
 	unsigned int numOfOutput;
 
+public:
 	FFNetwork();
 	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 			unsigned int numOfOutput);
-	// Because of C-API, can not use virtual destructer.
-	// E.g. derived classes can NOT define additional members that
-	// must be freed
-	~FFNetwork();
+	
+	virtual ~FFNetwork();
 
 	/**
 	 * Derived classes must implement this and initialize internal neuron lists
 	 */
-	//void initNodes();
+	virtual void initNodes();
 
 	/**
 	 * Returns the pointer given as output, so pay no attention to return object

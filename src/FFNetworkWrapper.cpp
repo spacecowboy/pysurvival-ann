@@ -38,13 +38,14 @@ PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 	printf("FFNetwork_new: We are past the if: %d %d %d\n", numOfInputs, numOfHidden, numOfOutputs);
 
 	// Now construct the object
-	FFNetwork *self = (FFNetwork*)type->tp_alloc(type, 0);
+	PyFFNetwork *self = (PyFFNetwork*)type->tp_alloc(type, 0);
 	printf("FFNetwork_new: allocated\n");
-	new(self) FFNetwork(numOfInputs, numOfHidden, numOfOutputs);
+	
+	//new(self) FFNetwork(numOfInputs, numOfHidden, numOfOutputs);
 	//printf("FFNetwork_new: doing init\n");
 	//self->initNodes();
 
-	printf("FFNetwork_new: Past the construction\n");
+	//printf("FFNetwork_new: Past the construction\n");
 	return (PyObject *) self;
 }
 
@@ -52,7 +53,27 @@ PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
  * Python init
  * -----------
  */
-int FFNetwork_init(FFNetwork *self, PyObject *args, PyObject *kwds) {
+int FFNetwork_init(PyFFNetwork *self, PyObject *args, PyObject *kwds) {
+	printf("FFNetwork_init\n");
+	static char *kwlist[] =
+                        { "numOfInputs", "numOfHidden", "numOfOutputs", NULL };
+
+	 unsigned int numOfInputs, numOfHidden, numOfOutputs;
+        if (!PyArg_ParseTupleAndKeywords(args, kwds, "III", kwlist, &numOfInputs,
+                        &numOfHidden, &numOfOutputs)) {
+                PyErr_Format(PyExc_ValueError,
+                                "Arguments should be (all mandatory positive integers): numOfInputs, numOfHidden, numOfOutputs");
+                return -1;
+        }
+        printf("FFNetwork_init: We are past the if: %d %d %d\n", numOfInputs, numOfHidden, numOfOutputs);
+
+	self->net = new FFNetwork(numOfInputs, numOfHidden, numOfOutputs);
+
+	printf("FFNetwork_init: net is: %d\n", self->net);
+	if (self->net == NULL)
+		return -1;
+
+	self->net->initNodes();
 	return 0;
 }
 
@@ -60,11 +81,11 @@ int FFNetwork_init(FFNetwork *self, PyObject *args, PyObject *kwds) {
  * Python destructor
  * -----------------
  */
-void FFNetwork_dealloc(FFNetwork *self) {	
+void FFNetwork_dealloc(PyFFNetwork *self) {	
 	printf("FFNetwork_dealloc: called\n");
-	self->~FFNetwork();
-	printf("FFNetwork_dealloc: destructed, tp_free done inside\n");
-	//self->ob_type->tp_free((PyObject*) self);
+	delete self->net;
+	printf("FFNetwork_dealloc: destructed\n");
+	self->ob_type->tp_free((PyObject*) self);
 }
 
 /*
@@ -72,7 +93,7 @@ void FFNetwork_dealloc(FFNetwork *self) {
  * ===============
  */
 
-PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs) {
+PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
 	printf("FFNetwork_output\n");
 	if (!(PyList_CheckExact(inputs)
 			|| (PyArray_NDIM(inputs) == 1 && PyArray_TYPE(inputs) == NPY_DOUBLE))) {
@@ -88,9 +109,9 @@ PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs) {
 	PyObject *pyval = NULL;
 	double *ptr = NULL;
 
-	double dInputs[self->getNumOfInputs()];
+	double dInputs[self->net->getNumOfInputs()];
 	printf("FFNetwork_output: before for loop\n");
-	for (int i = 0; i < self->getNumOfInputs(); i++) {
+	for (int i = 0; i < self->net->getNumOfInputs(); i++) {
 		if (pylist) {
 			printf("FFNetwork_output is list\n");
 			// Actual python list
@@ -117,17 +138,17 @@ PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs) {
 
 	printf("FFNetwork_output: compute output\n");
 	// compute output
-	double dResult[self->getNumOfOutputs()];
+	double dResult[self->net->getNumOfOutputs()];
 	printf("FFNetwork_output: actual output coming\n");
-	self->output(dInputs, dResult);
+	self->net->output(dInputs, dResult);
 	printf("FFNetwork_output: result is %f\n", dResult[0]);
 	// Now convert to numpy array
 	printf("FFNetwork_output: numpy convert\n");
-	npy_intp dims[1] = { self->getNumOfOutputs() };
+	npy_intp dims[1] = { self->net->getNumOfOutputs() };
 	printf("FFNetwork_output: before simple new\n");
 	PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 	printf("FFNetwork_output: time for loop\n");
-	for (int i = 0; i < self->getNumOfOutputs(); i++) {
+	for (int i = 0; i < self->net->getNumOfOutputs(); i++) {
 		printf("FFNetwork_output: in final loop\n");
 		ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, i);
 		printf("FFNetwork_output: got ptr\n");
@@ -135,6 +156,20 @@ PyObject *FFNetwork_output(FFNetwork *self, PyObject *inputs) {
 	}
 	printf("FFNetwork_output: returning\n");
 	return result;
+}
+
+
+/*
+ * Getters and setters
+ */
+PyObject *FFNetwork_getNumOfInputs(PyFFNetwork *self, void *closure) {
+	return Py_BuildValue("I", self->net->getNumOfInputs());
+}
+PyObject *FFNetwork_getNumOfHidden(PyFFNetwork *self, void *closure) {
+	return Py_BuildValue("I", self->net->getNumOfHidden());
+}
+PyObject *FFNetwork_getNumOfOutputs(PyFFNetwork *self, void *closure) {
+	return Py_BuildValue("I", self->net->getNumOfOutputs());
 }
 
 
