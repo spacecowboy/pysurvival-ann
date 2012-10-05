@@ -85,19 +85,18 @@ public:
 };
 
 class RPropNetwork: public FFNetwork {
-protected:
+public:
 	unsigned int maxEpochs;
 	double maxError;
 	int printEpoch;
 
-public:
 	RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden, unsigned int numOfOutput);
-	virtual void initNodes();
+	void initNodes();
 	/*
 	 * Uses the RProp algorithm to train the network. X is an array of input arrays.
-	 * Y is an array of target outputs.
+	 * Y is an array of target outputs. total length is 'rows * numOfInputs'
 	 */
-	void learn(double **X, double **Y, unsigned int length);
+	void learn(double *X, double *Y, unsigned int rows);
 	unsigned int getMaxEpochs() const;
 	void setMaxEpochs(unsigned int maxEpochs);
 	double getMaxError() const;

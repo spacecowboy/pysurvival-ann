@@ -77,7 +77,7 @@ RPropNetwork::RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 	maxEpochs = 10000;
 	maxError = 0.0000001;
 	printEpoch = 100;
-	initNodes();
+	//initNodes();
 }
 
 void RPropNetwork::initNodes() {
@@ -119,7 +119,7 @@ void RPropNetwork::setMaxError(double maxError) {
 	this->maxError = maxError;
 }
 
-void RPropNetwork::learn(double **X, double **Y, unsigned int length) {
+void RPropNetwork::learn(double *X, double *Y, unsigned int rows) {
 	double error[numOfOutput];
 	for (int i = 0; i < numOfOutput; i++)
 		error[i] = 0;
@@ -134,25 +134,25 @@ void RPropNetwork::learn(double **X, double **Y, unsigned int length) {
 		if (printEpoch > 0 && epoch % printEpoch == 0)
 			printf("epoch: %d, error: %f\n", epoch, error[0]);
 		// Evaluate for each value in input vector
-		for (i = 0; i < (int) length; i++) {
+		for (i = 0; i < (int) rows; i++) {
 			// First let all neurons evaluate
-			output(X[i], outputs);
+			output(X + i*numOfInputs, outputs);
 			for (n = 0; n < numOfOutput; n++) {
-				deriv = SSEDeriv(Y[i][n], outputs[n]);
-				error[n] = SSE(Y[i][n], outputs[n]);
+				deriv = SSEDeriv(Y[i*numOfOutput + n], outputs[n]);
+				error[n] = SSE(Y[i*numOfOutput + n], outputs[n]);
 				// set error deriv on output node
 				static_cast<RPropNeuron*>(outputNeurons[n])->addLocalError(
 						deriv);
 				// Calculate local derivatives at output and propagate
 				static_cast<RPropNeuron*>(outputNeurons[n])->calcLocalDerivative(
-						X[i]);
+						X + i*numOfInputs);
 			}
 
 			// Calculate local derivatives at all neurons
 			// and propagate
 			for (n = numOfHidden - 1; n >= 0; n--) {
 				static_cast<RPropNeuron*>(hiddenNeurons[n])->calcLocalDerivative(
-						X[i]);
+						X + i*numOfInputs);
 			}
 		}
 		// Apply weight updates
