@@ -26,7 +26,7 @@ signed int sign(double x) {
 RPropNetwork* getRPropNetwork(unsigned int numOfInputs,
 		unsigned int numOfHidden) {
 	RPropNetwork *net = new RPropNetwork(numOfInputs, numOfHidden, 1);
-
+	net->initNodes();
 	unsigned int i, j;
 	// Connect hidden to input and bias
 	// Connect output to hidden

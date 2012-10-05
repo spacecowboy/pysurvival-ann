@@ -1,6 +1,6 @@
 import ann
 
-x = ann.ffnetwork(2,4,1)
+x = ann.ffnetwork(2,4,3)
 
 print x.numOfInputs
 print x.numOfHidden

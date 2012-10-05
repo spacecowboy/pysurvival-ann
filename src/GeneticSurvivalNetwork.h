@@ -13,7 +13,7 @@
 #include "boost/random.hpp"
 
 class GeneticSurvivalNetwork: public FFNetwork {
-private:
+public:
 	// Training variables
 	// How many networks should be created/mutated and compared in one generation
 	unsigned int populationSize;
@@ -31,9 +31,9 @@ private:
 	// This calculation is NOT done if this is zero, which it is by default.
 	unsigned int weightMutationHalfPoint;
 
-public:
+	// Methods
 	GeneticSurvivalNetwork(unsigned int numOfInputs, unsigned int numOfHidden);
-	virtual void initNodes();
+	void initNodes();
 	/*
 	 * Expects the X and Y to be of equal number of rows. Y has 2 columns,
 	 * first being survival time, second being event (1 or 0)

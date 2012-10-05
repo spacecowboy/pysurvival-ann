@@ -41,8 +41,8 @@ PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 	FFNetwork *self = (FFNetwork*)type->tp_alloc(type, 0);
 	printf("FFNetwork_new: allocated\n");
 	new(self) FFNetwork(numOfInputs, numOfHidden, numOfOutputs);
-	printf("FFNetwork_new: doing init\n");
-	self->initNodes();
+	//printf("FFNetwork_new: doing init\n");
+	//self->initNodes();
 
 	printf("FFNetwork_new: Past the construction\n");
 	return (PyObject *) self;
@@ -60,12 +60,11 @@ int FFNetwork_init(FFNetwork *self, PyObject *args, PyObject *kwds) {
  * Python destructor
  * -----------------
  */
-void FFNetwork_dealloc(FFNetwork *self) {
-	// Not sure if this is calling the destructor of network
+void FFNetwork_dealloc(FFNetwork *self) {	
 	printf("FFNetwork_dealloc: called\n");
 	self->~FFNetwork();
-	printf("FFNetwork_dealloc: destructed, now tp_free\n");
-	self->ob_type->tp_free((PyObject*) self);
+	printf("FFNetwork_dealloc: destructed, tp_free done inside\n");
+	//self->ob_type->tp_free((PyObject*) self);
 }
 
 /*

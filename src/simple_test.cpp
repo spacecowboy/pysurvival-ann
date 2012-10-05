@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include "FFNeuron.h"
+#include "FFNetwork.h"
 #include "RPropNetwork.h"
 #include "GeneticSurvivalNetwork.h"
 #include <exception>
@@ -79,7 +80,8 @@ void baseTest() {
 	delete o;
 	delete n;
 
-	FFNetwork *ann = new RPropNetwork(2, 0, 1);
+	RPropNetwork *ann = new RPropNetwork(2, 0, 1);
+	ann->initNodes();
 	double *outputs = new double[1];
 
 	printf("Before connect, ann out = %f\n", ann->output(x, outputs)[0]);
@@ -102,36 +104,32 @@ void rPropTest() {
 	printf("Factory network out: %f\n", rprop->output(x, outputs)[0]);
 
 	//double xorIn[4][2] = { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } };
-	double **xorIn = new double*[4];
-	for (int i = 0; i < 4; i++) {
-		xorIn[i] = new double[2];
-	}
-	xorIn[0][0] = 0;
-	xorIn[0][1] = 0;
+	double *xorIn = new double[4*2];
 
-	xorIn[1][0] = 0;
-	xorIn[1][1] = 1;
+	xorIn[0] = 0;
+	xorIn[1] = 0;
 
-	xorIn[2][0] = 1;
-	xorIn[2][1] = 0;
+	xorIn[2] = 0;
+	xorIn[3] = 1;
 
-	xorIn[3][0] = 1;
-	xorIn[3][1] = 1;
+	xorIn[4] = 1;
+	xorIn[5] = 0;
 
-	double** xorOut = new double*[4];
-	for (int i = 0; i < 4; i++) {
-		xorOut[i] = new double[1];
-	}
-	xorOut[0][0] = 0;
-	xorOut[1][0] = 1;
-	xorOut[2][0] = 1;
-	xorOut[3][0] = 0;
+	xorIn[6] = 1;
+	xorIn[7] = 1;
+
+	double* xorOut = new double[4];
+
+	xorOut[0] = 0;
+	xorOut[1] = 1;
+	xorOut[2] = 1;
+	xorOut[3] = 0;
 
 	printf("Before training of XOR\n");
-	printf("%f %f : %f\n", xorIn[0][0], xorIn[0][1], rprop->output(xorIn[0], outputs)[0]);
-	printf("%f %f : %f\n", xorIn[1][0], xorIn[1][1], rprop->output(xorIn[1], outputs)[0]);
-	printf("%f %f : %f\n", xorIn[2][0], xorIn[2][1], rprop->output(xorIn[2], outputs)[0]);
-	printf("%f %f : %f\n", xorIn[3][0], xorIn[3][1], rprop->output(xorIn[3], outputs)[0]);
+	printf("%f %f : %f\n", xorIn[0], xorIn[1], rprop->output(xorIn + 0*2, outputs)[0]);
+	printf("%f %f : %f\n", xorIn[2], xorIn[3], rprop->output(xorIn + 1*2, outputs)[0]);
+	printf("%f %f : %f\n", xorIn[4], xorIn[5], rprop->output(xorIn + 2*2, outputs)[0]);
+	printf("%f %f : %f\n", xorIn[6], xorIn[7], rprop->output(xorIn + 3*2, outputs)[0]);
 
 	rprop->setMaxError(0);
 	rprop->setMaxEpochs(100);
@@ -141,14 +139,14 @@ void rPropTest() {
 		rprop->learn(xorIn, xorOut, 4);
 
 		printf("After training of XOR\n");
-		printf("%f %f : %f\n", xorIn[0][0], xorIn[0][1],
-				rprop->output(xorIn[0], outputs)[0]);
-		printf("%f %f : %f\n", xorIn[1][0], xorIn[1][1],
-				rprop->output(xorIn[1], outputs)[0]);
-		printf("%f %f : %f\n", xorIn[2][0], xorIn[2][1],
-				rprop->output(xorIn[2], outputs)[0]);
-		printf("%f %f : %f\n", xorIn[3][0], xorIn[3][1],
-				rprop->output(xorIn[3], outputs)[0]);
+		printf("%f %f : %f\n", xorIn[0], xorIn[1],
+				rprop->output(xorIn + 0*2, outputs)[0]);
+		printf("%f %f : %f\n", xorIn[2], xorIn[3],
+				rprop->output(xorIn + 1*2, outputs)[0]);
+		printf("%f %f : %f\n", xorIn[4], xorIn[5],
+				rprop->output(xorIn + 2*2, outputs)[0]);
+		printf("%f %f : %f\n", xorIn[6], xorIn[7],
+				rprop->output(xorIn + 3*2, outputs)[0]);
 
 	} catch (std::exception& e) {
 		printf("Exception cast ");
@@ -167,15 +165,7 @@ void rPropTest() {
 	printf("Training takes %f milliseconds per 100 epochs\n", dt);
 
 	delete rprop;
-	delete[] xorOut[0];
-	delete[] xorOut[1];
-	delete[] xorOut[2];
-	delete[] xorOut[3];
 	delete[] xorOut;
-	delete[] xorIn[0];
-	delete[] xorIn[1];
-	delete[] xorIn[2];
-	delete[] xorIn[3];
 	delete[] xorIn;
 
 	delete[] outputs;
@@ -213,7 +203,7 @@ void geneticSurvivalTest() {
 
 int main(int argc, char* argv[]) {
 	//randomTest();
-	baseTest();
+//	baseTest();
 	rPropTest();
-	geneticSurvivalTest();
+	//geneticSurvivalTest();
 }

@@ -41,12 +41,15 @@ public:
 	FFNetwork();
 	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 			unsigned int numOfOutput);
+	// Because of C-API, can not use virtual destructer.
+	// E.g. derived classes can NOT define additional members that
+	// must be freed
 	~FFNetwork();
 
 	/**
 	 * Derived classes must implement this and initialize internal neuron lists
 	 */
-	void initNodes();
+	//void initNodes();
 
 	/**
 	 * Returns the pointer given as output, so pay no attention to return object

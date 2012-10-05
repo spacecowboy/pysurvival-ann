@@ -34,23 +34,39 @@ FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 FFNetwork::~FFNetwork() {
 	//printf("FFNetwork destructor\n");
 	cout << "FFNetwork destructor\n";
+	if (this == NULL)
+		cout << "FFNet this is null\n";
+	else
+		cout << "FFnet this not null\n";
+	if (this->bias == NULL)
+		cout << "FFNet bias is null\n";
+	else
+		cout << "FFNet bias not null\n";
+
 	delete this->bias;
 
+	cout << "FFNetwork bias gone\n";
 	unsigned int i;
 	for (i = 0; i < this->numOfHidden; i++) {
 		delete this->hiddenNeurons[i];
+		cout << "FFNet hidden gone\n";
 	}
 	delete[] this->hiddenNeurons;
+	cout << "FFNet all hidden gone\n";
 
 	for (i = 0; i < this->numOfOutput; i++) {
 		delete this->outputNeurons[i];
+		cout << "FFNet output gone\n";
 	}
 	delete[] this->outputNeurons;
+	cout << "FFnet all output gone\n";
 
 	// Final act, clean up python
 	ob_type->tp_free((PyObject*) this);
+	cout << "Python bit gone"
 }
 
+/*
 void FFNetwork::initNodes() {
 	cout << "FFNetwork initNodes\n";
 	cout << "inputs " << numOfInputs << " hidden " << numOfHidden << " outputs " << numOfOutput << "\n";
@@ -67,6 +83,7 @@ void FFNetwork::initNodes() {
 
 	this->bias = new Bias();
 }
+*/
 
 double *FFNetwork::output(double *inputs, double *output) {
 	//double *output = new double[numOfOutput];
