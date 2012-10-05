@@ -7,6 +7,8 @@
 
 #include "Python.h"
 #include "structmember.h" // used to declare member list
+#include "ModuleHeader.h" // Must include this before arrayobject
+#include <numpy/arrayobject.h> // Numpy seen from C
 #include "FFNetworkWrapper.h"
 
 /*
@@ -93,6 +95,9 @@ void
 initann(void)
 {
 	PyObject* mod;
+
+	// Need to import numpy arrays
+	import_array();
 
 	// Create the module
 	mod = Py_InitModule3("ann", NULL, "C++ implementation of the neural network.");

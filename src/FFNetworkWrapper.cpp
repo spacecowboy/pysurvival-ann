@@ -6,6 +6,8 @@
  */
 
 #include "FFNetworkWrapper.h"
+// Must include this befor arrayobject
+#include "ExtensionHeader.h"
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include <stdio.h>
 
