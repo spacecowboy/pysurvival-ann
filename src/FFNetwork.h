@@ -10,10 +10,13 @@
 #define FFNETWORK_H_
 
 #include <vector>
+//#include "activationfunctions.h"
 
-// Forward-declare the Neuron class
+// Forward-declare
 class Neuron;
 class Bias;
+
+//enum ActivationFuncEnum;
 //#include "FFNeuron.h"
 
 /*
@@ -40,7 +43,7 @@ public:
 	FFNetwork();
 	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 			unsigned int numOfOutput);
-	
+
 	virtual ~FFNetwork();
 
 	/**
@@ -54,10 +57,15 @@ public:
 	 */
 	double *output(double *inputs, double *output);
 
-	/**
-	 * A more user friendly version using vectors. Up to the user to destroy return vector
-	 */
-	std::vector<double> *outputv(std::vector<double> *inputs);
+    /**
+     * Sets the activation function of the output layer
+     */
+    void setOutputActivationFunction(int func);
+
+    /**
+     * Sets the activation function of the hidden layer
+     */
+    void setHiddenActivationFunction(int func);
 
 	/*
 	 * Connects the first argument to the second argument. Meaning that the following

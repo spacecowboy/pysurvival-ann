@@ -11,6 +11,7 @@
 #include <numpy/arrayobject.h> // Numpy seen from C
 #include "FFNetworkWrapper.h"
 #include "RPropNetworkWrapper.h"
+#include "activationfunctions.h"
 
 /*
  * FFNetwork
@@ -30,6 +31,8 @@ static PyMethodDef FFNetworkMethods[] =
     {"connectOToH", (PyCFunction) FFNetwork_connectOToH, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to hidden neuron j with specified weight"},
     {"connectOToI", (PyCFunction) FFNetwork_connectOToI, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to input neuron j with specified weight"},
     {"connectOToB", (PyCFunction) FFNetwork_connectOToB, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to bias neuron with specified weight"},
+    {"setOutputFunction", (PyCFunction) FFNetwork_setOutputActivationFunction, METH_VARARGS | METH_KEYWORDS, "Set the activation function of the output neurons."},
+    {"setHiddenFunction", (PyCFunction) FFNetwork_setHiddenActivationFunction, METH_VARARGS | METH_KEYWORDS, "Set the activation function of the hidden neurons."},
 	//{"__reduce__", (PyCFunction) Node_reduce, METH_NOARGS, "Needed for pickling. Specifices how to reconstruct the object."},
 	//{"__getnewargs__", (PyCFunction) Node_getnewargs, METH_NOARGS, "Needed for pickling. Specifices what args to give new()."},
 	{NULL}, // So that we can iterate safely below
@@ -171,9 +174,7 @@ static PyTypeObject RPropNetworkType = {
  */
 extern "C" {
 
-void
-initann(void)
-{
+  void initann(void) {
 	PyObject* mod;
 
 	// Need to import numpy arrays
@@ -182,7 +183,7 @@ initann(void)
 	// Create the module
 	mod = Py_InitModule3("ann", NULL, "C++ implementation of the neural network.");
 	if (mod == NULL) {
-		return;
+      return;
 	}
 
 	/*
@@ -192,8 +193,14 @@ initann(void)
 
 	// Make it ready
 	if (PyType_Ready(&FFNetworkType) < 0) {
-		return;
+      return;
 	}
+
+    // Add static class variables
+    PyDict_SetItemString(FFNetworkType.tp_dict, "LINEAR", Py_BuildValue("i", LINEAR));
+    PyDict_SetItemString(FFNetworkType.tp_dict, "LOGSIG", Py_BuildValue("i", LOGSIG));
+    PyDict_SetItemString(FFNetworkType.tp_dict, "TANH", Py_BuildValue("i", TANH));
+
 
 	// Add the type to the module.
 	Py_INCREF(&FFNetworkType);
@@ -204,8 +211,8 @@ initann(void)
  	 */
 	RPropNetworkType.tp_base = &FFNetworkType;
 	if (PyType_Ready(&RPropNetworkType) < 0) {
-		Py_DECREF(&FFNetworkType);
-		return;
+      Py_DECREF(&FFNetworkType);
+      return;
 	}
 
 	Py_INCREF(&RPropNetworkType);

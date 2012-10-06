@@ -13,6 +13,7 @@
 #include <exception>
 #include <time.h>
 //#include <random>
+#include "activationfunctions.h"
 #include <math.h>
 #include <iostream>
 #include "boost/random.hpp"
@@ -80,7 +81,7 @@ void baseTest() {
 	delete o;
 	delete n;
 
-	RPropNetwork *ann = new RPropNetwork(2, 0, 1);
+	RPropNetwork *ann = new RPropNetwork(2, 1, 1);
 	ann->initNodes();
 	double *outputs = new double[1];
 
@@ -89,8 +90,52 @@ void baseTest() {
 	printf("Connect to I0, ann out = %f\n", ann->output(x, outputs)[0]);
 	ann->connectOToI(0, 1, 1.0);
 	printf("Connect to I1, ann out = %f\n", ann->output(x, outputs)[0]);
-	ann->connectOToB(0, 1.0);
+	ann->connectOToB(0, -1.0);
 	printf("Connect to Bias, ann out = %f\n", ann->output(x, outputs)[0]);
+    ann->connectOToH(0, 0, 1.0);
+    ann->connectHToI(0, 0, 1.0);
+    ann->connectHToI(0, 1, 1.0);
+    ann->connectHToB(0, -1.0);
+
+    ann->setOutputActivationFunction(LINEAR);
+    printf("output linear, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(LINEAR);
+    printf("hidden linear, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(LOGSIG);
+    printf("hidden logsig, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(TANH);
+    printf("hidden tanh, ann out = %f\n", ann->output(x, outputs)[0]);
+
+
+
+    ann->setOutputActivationFunction(LOGSIG);
+    printf("output logsig, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(LINEAR);
+    printf("hidden linear, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(LOGSIG);
+    printf("hidden logsig, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(TANH);
+    printf("hidden tanh, ann out = %f\n", ann->output(x, outputs)[0]);
+
+
+    ann->setOutputActivationFunction(TANH);
+    printf("output tanh, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(LINEAR);
+    printf("hidden linear, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(LOGSIG);
+    printf("hidden logsig, ann out = %f\n", ann->output(x, outputs)[0]);
+
+    ann->setHiddenActivationFunction(TANH);
+    printf("hidden tanh, ann out = %f\n", ann->output(x, outputs)[0]);
+
 
 	delete ann;
 	delete[] outputs;
@@ -203,7 +248,7 @@ void geneticSurvivalTest() {
 
 int main(int argc, char* argv[]) {
 	//randomTest();
-//	baseTest();
-	rPropTest();
+	baseTest();
+	//rPropTest();
 	//geneticSurvivalTest();
 }

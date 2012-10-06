@@ -8,6 +8,8 @@
 #ifndef ACTIVATIONFUNCTIONS_H_
 #define ACTIVATIONFUNCTIONS_H_
 
+enum ActivationFuncEnum { LINEAR, LOGSIG, TANH };
+
 /*
  * Linear, y = x, derivative = 1
  */

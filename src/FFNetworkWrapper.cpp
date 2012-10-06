@@ -257,14 +257,14 @@ PyObject *FFNetwork_connectOToH(PyFFNetwork *self, PyObject *args, PyObject *kwa
 }
 PyObject *FFNetwork_connectOToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
   unsigned int i, j;
-    double weight;
-    	// Check inputs
-    static char *kwlist[] = {"outputIndex", "inputIndex", "weight", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
-                                     &i, &j, &weight)) {
-		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
-		return NULL;
-	}
+  double weight;
+  // Check inputs
+  static char *kwlist[] = {"outputIndex", "inputIndex", "weight", NULL};
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
+                                   &i, &j, &weight)) {
+    PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+    return NULL;
+  }
     // Make sure they are valid
     if (i >= self->net->getNumOfOutputs() ||
         j >= self->net->getNumOfInputs() ) {
@@ -302,6 +302,39 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
     return Py_BuildValue("");
 
 }
+
+  PyObject *FFNetwork_setOutputActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    int i;
+    // Check inputs
+    static char *kwlist[] = {"activationFunction", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
+                                     &i)) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, check ann.ffnetwork.LINEAR etc");
+      return NULL;
+    }
+
+    self->net->setOutputActivationFunction(i);
+
+    // Return None
+    return Py_BuildValue("");
+  }
+
+  PyObject *FFNetwork_setHiddenActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    int i;
+    // Check inputs
+    static char *kwlist[] = {"activationFunction", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
+                                     &i)) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, check ann.ffnetwork.LINEAR etc");
+      return NULL;
+    }
+
+    self->net->setHiddenActivationFunction(i);
+
+    // Return None
+    return Py_BuildValue("");
+  }
+
 
 /*
  * Getters and setters

@@ -97,22 +97,6 @@ double *FFNetwork::output(double *inputs, double *output) {
 	return output;
 }
 
-std::vector<double> *FFNetwork::outputv(std::vector<double> *inputs) {
-	//double *output = new double[numOfOutput];
-	std::vector<double> *output = new std::vector<double>(numOfOutput);
-	// Iterate over the neurons in order and calculate their outputs.
-	unsigned int i;
-	for (i = 0; i < numOfHidden; i++) {
-		hiddenNeurons[i]->output(inputs->data());
-	}
-	// Finally the output neurons
-	for (i = 0; i < numOfOutput; i++) {
-		output->at(i) = outputNeurons[i]->output(inputs->data());
-	}
-
-	return output;
-}
-
 Neuron** FFNetwork::getHiddenNeurons() const {
 	return hiddenNeurons;
 }
@@ -198,4 +182,40 @@ void FFNetwork::connectHToH(unsigned int firstIndex, unsigned int secondIndex,
 	}
 	hiddenNeurons[firstIndex]->connectToNeuron(hiddenNeurons[secondIndex],
 			weight);
+}
+
+void FFNetwork::setOutputActivationFunction(int func) {
+  unsigned int i;
+  for (i = 0; i < numOfOutput; i++) {
+    switch(func) {
+    case LINEAR:
+      outputNeurons[i]->setActivationFunction(linear, linearDeriv);
+      break;
+    case LOGSIG:
+      outputNeurons[i]->setActivationFunction(sigmoid, sigmoidDeriv);
+    break;
+    case TANH:
+    default:
+      outputNeurons[i]->setActivationFunction(hyperbole, hyperboleDeriv);
+      break;
+    }
+  }
+}
+
+void FFNetwork::setHiddenActivationFunction(int func) {
+  unsigned int i;
+  for (i = 0; i < numOfHidden; i++) {
+    switch(func) {
+    case LINEAR:
+      hiddenNeurons[i]->setActivationFunction(linear, linearDeriv);
+      break;
+    case LOGSIG:
+      hiddenNeurons[i]->setActivationFunction(sigmoid, sigmoidDeriv);
+    break;
+    case TANH:
+    default:
+      hiddenNeurons[i]->setActivationFunction(hyperbole, hyperboleDeriv);
+      break;
+    }
+  }
 }

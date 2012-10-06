@@ -61,6 +61,10 @@ PyObject *FFNetwork_connectHToH(PyFFNetwork *self, PyObject *args, PyObject *kwa
 
   PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
 
+  PyObject *FFNetwork_setOutputActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
+  PyObject *FFNetwork_setHiddenActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
 
 /*
  * Getters and Setters
