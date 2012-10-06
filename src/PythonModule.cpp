@@ -64,7 +64,7 @@ static PyGetSetDef FFNetworkGetSetters[] = {
 static PyTypeObject FFNetworkType = {
 	PyObject_HEAD_INIT(NULL)
 	0,						/* ob_size */
-	"ann.ffnetwork",		/* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+	"_ann.ffnetwork",		/* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
 	sizeof(PyFFNetwork),					/* tp_basicsize */
 	0,						/* tp_itemsize */
 	(destructor)FFNetwork_dealloc,			/* tp_dealloc */
@@ -127,7 +127,7 @@ static PyMethodDef RPropNetworkMethods[] =
 static PyTypeObject RPropNetworkType = {
         PyObject_HEAD_INIT(NULL)
         0,                                              /* ob_size */
-        "ann.rpropnetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+        "_ann.rpropnetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
         sizeof(PyRPropNetwork),                                    /* tp_basicsize */
         0,                                              /* tp_itemsize */
         0,                  /* tp_dealloc */
@@ -174,14 +174,14 @@ static PyTypeObject RPropNetworkType = {
  */
 extern "C" {
 
-  void initann(void) {
+  void init_ann(void) {
 	PyObject* mod;
 
 	// Need to import numpy arrays
 	import_array();
 
 	// Create the module
-	mod = Py_InitModule3("ann", NULL, "C++ implementation of the neural network.");
+	mod = Py_InitModule3("_ann", NULL, "C++ implementation of the neural network.");
 	if (mod == NULL) {
       return;
 	}
