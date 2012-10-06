@@ -49,6 +49,18 @@ void FFNetwork_dealloc(PyFFNetwork *self);
 
 PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs);
 
+PyObject *FFNetwork_connectHToH(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
+  PyObject *FFNetwork_connectHToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
+  PyObject *FFNetwork_connectHToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
+  PyObject *FFNetwork_connectOToH(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
+  PyObject *FFNetwork_connectOToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
+  PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
 
 /*
  * Getters and Setters

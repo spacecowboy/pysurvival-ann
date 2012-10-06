@@ -117,5 +117,6 @@ PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwa
 }
 
 
+
 }
 

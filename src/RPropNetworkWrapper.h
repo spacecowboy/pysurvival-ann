@@ -55,5 +55,6 @@ PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwa
 //PyObject *FFNetwork_getnewargs(FFNetwork *self);
 //PyObject *FFNetwork_reduce(FFNetwork *self);
 
+
 }
 #endif /* RPROPWRAPPER_H_ */

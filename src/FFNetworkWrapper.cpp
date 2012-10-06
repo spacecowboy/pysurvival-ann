@@ -40,7 +40,7 @@ PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 	// Now construct the object
 	PyFFNetwork *self = (PyFFNetwork*)type->tp_alloc(type, 0);
 	printf("FFNetwork_new: allocated\n");
-	
+
 	//new(self) FFNetwork(numOfInputs, numOfHidden, numOfOutputs);
 	//printf("FFNetwork_new: doing init\n");
 	//self->initNodes();
@@ -81,7 +81,7 @@ int FFNetwork_init(PyFFNetwork *self, PyObject *args, PyObject *kwds) {
  * Python destructor
  * -----------------
  */
-void FFNetwork_dealloc(PyFFNetwork *self) {	
+void FFNetwork_dealloc(PyFFNetwork *self) {
 	printf("FFNetwork_dealloc: called\n");
 	delete self->net;
 	printf("FFNetwork_dealloc: destructed\n");
@@ -158,6 +158,150 @@ PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
 	return result;
 }
 
+  PyObject *FFNetwork_connectHToH(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    unsigned int i, j;
+    double weight;
+    	// Check inputs
+    static char *kwlist[] = {"i", "j", "weight", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
+                                     &i, &j, &weight)) {
+		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+		return NULL;
+	}
+    // Make sure they are valid
+    if (i >= self->net->getNumOfHidden() ||
+        j >= self->net->getNumOfHidden() ||
+        j >= i) {
+      PyErr_Format(PyExc_ValueError, "Not valid values for i and j. Valid values are: i, j < numOfHidden, j < i.");
+      return NULL;
+    }
+
+    // They are valid, connect
+    self->net->connectHToH(i, j, weight);
+
+    // return None
+    return Py_BuildValue("");
+  }
+
+PyObject *FFNetwork_connectHToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    unsigned int i, j;
+    double weight;
+    	// Check inputs
+    static char *kwlist[] = {"hiddenIndex", "inputIndex", "weight", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
+                                     &i, &j, &weight)) {
+		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+		return NULL;
+	}
+    // Make sure they are valid
+    if (i >= self->net->getNumOfHidden() ||
+        j >= self->net->getNumOfInputs() ) {
+      PyErr_Format(PyExc_ValueError, "Not valid values for i and j. Valid values are: i < numOfHidden, j < numOfInput");
+      return NULL;
+    }
+
+    // They are valid, connect
+    self->net->connectHToI(i, j, weight);
+
+    // return None
+    return Py_BuildValue("");
+
+}
+PyObject *FFNetwork_connectHToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    unsigned int i;
+    double weight;
+    	// Check inputs
+    static char *kwlist[] = {"hiddenIndex", "weight", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Id", kwlist,
+                                     &i, &weight)) {
+		PyErr_Format(PyExc_ValueError, "Expected integer i and double weight.");
+		return NULL;
+	}
+    // Make sure they are valid
+    if (i >= self->net->getNumOfHidden() ) {
+      PyErr_Format(PyExc_ValueError, "Not valid values for i. Valid values are: i < numOfHidden");
+      return NULL;
+    }
+
+    // They are valid, connect
+    self->net->connectHToB(i, weight);
+
+    // return None
+    return Py_BuildValue("");
+
+}
+
+PyObject *FFNetwork_connectOToH(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    unsigned int i, j;
+    double weight;
+    	// Check inputs
+    static char *kwlist[] = {"outputIndex", "hiddenIndex", "weight", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
+                                     &i, &j, &weight)) {
+		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+		return NULL;
+	}
+    // Make sure they are valid
+    if (i >= self->net->getNumOfOutputs() ||
+        j >= self->net->getNumOfHidden() ) {
+      PyErr_Format(PyExc_ValueError, "Not valid values for i and j. Valid values are: i < numOfOutput, j < numOfHidden.");
+      return NULL;
+    }
+
+    // They are valid, connect
+    self->net->connectOToH(i, j, weight);
+
+    // return None
+    return Py_BuildValue("");
+
+}
+PyObject *FFNetwork_connectOToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+  unsigned int i, j;
+    double weight;
+    	// Check inputs
+    static char *kwlist[] = {"outputIndex", "inputIndex", "weight", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
+                                     &i, &j, &weight)) {
+		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+		return NULL;
+	}
+    // Make sure they are valid
+    if (i >= self->net->getNumOfOutputs() ||
+        j >= self->net->getNumOfInputs() ) {
+      PyErr_Format(PyExc_ValueError, "Not valid values for i and j. Valid values are: i < numOfOutput, j < numOfInput");
+      return NULL;
+    }
+
+    // They are valid, connect
+    self->net->connectOToI(i, j, weight);
+
+    // return None
+    return Py_BuildValue("");
+
+}
+PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+  unsigned int i;
+    double weight;
+    	// Check inputs
+    static char *kwlist[] = {"outputIndex", "weight", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Id", kwlist,
+					&i, &weight)) {
+		PyErr_Format(PyExc_ValueError, "Expected integer i and double weight.");
+		return NULL;
+	}
+    // Make sure they are valid
+    if (i >= self->net->getNumOfOutputs() ) {
+      PyErr_Format(PyExc_ValueError, "Not valid values for i. Valid values are: i < numOfOutputs");
+      return NULL;
+    }
+
+    // They are valid, connect
+    self->net->connectOToB(i, weight);
+
+    // return None
+    return Py_BuildValue("");
+
+}
 
 /*
  * Getters and setters

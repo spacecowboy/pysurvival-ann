@@ -24,6 +24,12 @@
 static PyMethodDef FFNetworkMethods[] =
 {
 	{"output", (PyCFunction) FFNetwork_output, METH_O, "Computes the network's output."},
+    {"connectHToH", (PyCFunction) FFNetwork_connectHToH, METH_VARARGS | METH_KEYWORDS, "Connect hidden neuron i to hidden neuron j with the specified weight."},
+    {"connectHToI", (PyCFunction) FFNetwork_connectHToI, METH_VARARGS | METH_KEYWORDS, "Connect hidden neuron i to input neuron j with the specified weight."},
+    {"connectHToB", (PyCFunction) FFNetwork_connectHToB, METH_VARARGS | METH_KEYWORDS, "Connect hidden neuron i to bias neuron with specified weight"},
+    {"connectOToH", (PyCFunction) FFNetwork_connectOToH, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to hidden neuron j with specified weight"},
+    {"connectOToI", (PyCFunction) FFNetwork_connectOToI, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to input neuron j with specified weight"},
+    {"connectOToB", (PyCFunction) FFNetwork_connectOToB, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to bias neuron with specified weight"},
 	//{"__reduce__", (PyCFunction) Node_reduce, METH_NOARGS, "Needed for pickling. Specifices how to reconstruct the object."},
 	//{"__getnewargs__", (PyCFunction) Node_getnewargs, METH_NOARGS, "Needed for pickling. Specifices what args to give new()."},
 	{NULL}, // So that we can iterate safely below
