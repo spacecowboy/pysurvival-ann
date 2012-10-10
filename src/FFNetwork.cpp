@@ -11,13 +11,12 @@
 #include "FFNeuron.h"
 #include "activationfunctions.h"
 #include <stdexcept>
-#include <iostream>
-#include <fstream>
+//#include <iostream>
+//#include <fstream>
 #include <vector>
 using namespace std;
 
 FFNetwork::FFNetwork() {
-	cout << "FFNetwork constructor1\n";
 		this->numOfInputs = 0;
 		this->numOfHidden = 0;
 		this->numOfOutput = 0;
@@ -25,48 +24,28 @@ FFNetwork::FFNetwork() {
 
 FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 		unsigned int numOfOutput) {
-	cout << "FFNetwork constructor2\n";
 	this->numOfInputs = numOfInputs;
 	this->numOfHidden = numOfHidden;
 	this->numOfOutput = numOfOutput;
 }
 
 FFNetwork::~FFNetwork() {
-	//printf("FFNetwork destructor\n");
-	cout << "FFNetwork destructor\n";
-	if (this == NULL)
-		cout << "FFNet this is null\n";
-	else
-		cout << "FFnet this not null\n";
-	if (this->bias == NULL)
-		cout << "FFNet bias is null\n";
-	else
-		cout << "FFNet bias not null\n";
-
 	delete this->bias;
 
-	cout << "FFNetwork bias gone\n";
 	unsigned int i;
 	for (i = 0; i < this->numOfHidden; i++) {
 		delete this->hiddenNeurons[i];
-		cout << "FFNet hidden gone\n";
 	}
 	delete[] this->hiddenNeurons;
-	cout << "FFNet all hidden gone\n";
 
 	for (i = 0; i < this->numOfOutput; i++) {
 		delete this->outputNeurons[i];
-		cout << "FFNet output gone\n";
 	}
 	delete[] this->outputNeurons;
-	cout << "FFnet all output gone\n";
-
 }
 
 
 void FFNetwork::initNodes() {
-	cout << "FFNetwork initNodes\n";
-	cout << "inputs " << numOfInputs << " hidden " << numOfHidden << " outputs " << numOfOutput << "\n";
 	this->hiddenNeurons = new Neuron*[this->numOfHidden];
 	unsigned int i;
 	for (i = 0; i < this->numOfHidden; i++) {

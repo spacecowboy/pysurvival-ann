@@ -6,7 +6,8 @@ import numpy
 numpy_include = numpy.get_include()
 
 ann = Extension('ann._ann',
-          sources = ['src/PythonModule.cpp', 'src/RPropNetworkWrapper.cpp', 'src/RPropNetwork.cpp', 'src/FFNetworkWrapper.cpp', 'src/FFNeuron.cpp', 'src/FFNetwork.cpp', 'src/drand.cpp', 'src/activationfunctions.cpp'],
+          sources = ['src/PythonModule.cpp', 'src/RPropNetworkWrapper.cpp', 'src/RPropNetwork.cpp', 'src/FFNetworkWrapper.cpp', 'src/FFNeuron.cpp', 'src/FFNetwork.cpp', 
+'src/drand.cpp', 'src/activationfunctions.cpp', 'src/GeneticSurvivalNetwork.cpp', 'src/GeneticSurvivalNetworkWrapper.cpp', 'src/c_index.cpp'],
           include_dirs = [numpy_include],
           extra_compile_args = ['-std=c++0x'])
 

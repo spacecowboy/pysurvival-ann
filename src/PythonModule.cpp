@@ -11,6 +11,7 @@
 #include <numpy/arrayobject.h> // Numpy seen from C
 #include "FFNetworkWrapper.h"
 #include "RPropNetworkWrapper.h"
+#include "GeneticSurvivalNetworkWrapper.h"
 #include "activationfunctions.h"
 
 /*
@@ -180,6 +181,83 @@ static PyTypeObject RPropNetworkType = {
 };
 
 
+/*
+ * Genetic survival network
+ * ========================
+ */
+
+/*
+ * Public Python methods
+ * ---------------------
+ */
+static PyMethodDef GenSurvNetworkMethods[] =
+{
+  {"learn", (PyCFunction) GenSurvNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using a genetic algorithm."},
+  {NULL}, // So that we can iterate safely below
+};
+
+
+/*
+ * Public Python members with get/setters
+ * --------------------------------------
+ */
+static PyGetSetDef GenSurvNetworkGetSetters[] = {
+  {"generations", (getter)GenSurvNetwork_getGenerations, (setter)GenSurvNetwork_setGenerations, "Time to train", NULL},
+  {"populationSize", (getter)GenSurvNetwork_getPopulationSize, (setter)GenSurvNetwork_setPopulationSize, "Number of networks created each generation", NULL},
+  {"weightMutationChance", (getter)GenSurvNetwork_getWeightMutationChance, (setter)GenSurvNetwork_setWeightMutationChance, "The chance of a single weight being changed during cloning", NULL},
+  {"weightMutationHalfPoint", (getter)GenSurvNetwork_getWeightMutationHalfPoint, (setter)GenSurvNetwork_setWeightMutationHalfPoint, "If time dependant mutation is desired, set this to a non-zero value. StdDev will decrease linearly and reach half at specified generation.", NULL},
+  {"weightMutationStdDev", (getter)GenSurvNetwork_getWeightMutationStdDev, (setter)GenSurvNetwork_setWeightMutationStdDev, "Mutations are gaussians with this stddev and added to current weight.", NULL},
+  {NULL} // Sentinel
+};
+
+
+
+/*
+ *  * Python type declaration
+ *   * -----------------------
+ *    */
+static PyTypeObject GenSurvNetworkType = {
+        PyObject_HEAD_INIT(NULL)
+        0,                                              /* ob_size */
+        "_ann.gensurvnetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+        sizeof(PyGenSurvNetwork),                                    /* tp_basicsize */
+        0,                                              /* tp_itemsize */
+        0,                  /* tp_dealloc */
+        0,                                              /* tp_print */
+        0,                                              /* tp_getattr */
+        0,                                              /* tp_setattr */
+        0,                                              /* tp_compare */
+        0,                                              /* tp_repr */
+        0,                                              /* tp_as_number */
+        0,                                              /* tp_as_sequence */
+        0,                                              /* tp_as_mapping */
+        0,                                              /* tp_hash */
+        0,                                              /* tp_call */
+        0,                                              /* tp_str */
+        0,                                              /* tp_getattro */
+        0,                                              /* tp_setattro */
+        0,                                              /* tp_as_buffer */
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+        "A feed forward neural network for survival diagnosis. Trains on the C-index using a genetic algoritm.",                       /* tp_doc */
+        0,                                              /* tp_traverse */
+        0,                                              /* tp_clear */
+        0,                                              /* tp_richcompare */
+        0,                                              /* tp_weaklistoffset */
+        0,                                              /* tp_iter */
+        0,                                              /* tp_iternext */
+        GenSurvNetworkMethods,                                       /* tp_methods */
+        0,                                       /* tp_members */
+        GenSurvNetworkGetSetters,                                            /* tp_getset */
+        0,                                              /* tp_base */
+        0,                                              /* tp_dict */
+        0,                                              /* tp_descr_get */
+        0,                                              /* tp_descr_set */
+        0,                                              /* tp_dictoffset */
+       (initproc)GenSurvNetwork_init,                               /* tp_init */
+        0,                                              /* tp_alloc */
+        0,                                  /* tp_new */
+};
+
 
 /*
  * Python module declaration
@@ -231,6 +309,19 @@ extern "C" {
 	Py_INCREF(&RPropNetworkType);
 	PyModule_AddObject(mod, "rpropnetwork", (PyObject*)&RPropNetworkType);
 
-}
+    /*
+ 	 * GenSurvNetwork
+ 	 */
+	GenSurvNetworkType.tp_base = &FFNetworkType;
+	if (PyType_Ready(&GenSurvNetworkType) < 0) {
+      Py_DECREF(&FFNetworkType);
+      Py_DECREF(&RPropNetworkType);
+      return;
+	}
+
+	Py_INCREF(&GenSurvNetworkType);
+	PyModule_AddObject(mod, "gensurvnetwork", (PyObject*)&GenSurvNetworkType);
+
+  }
 
 }

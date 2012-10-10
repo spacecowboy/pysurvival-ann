@@ -77,7 +77,6 @@ RPropNetwork::RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 	maxEpochs = 10000;
 	maxError = 0.0000001;
 	printEpoch = 100;
-	//initNodes();
 }
 
 void RPropNetwork::initNodes() {
@@ -121,7 +120,7 @@ void RPropNetwork::setMaxError(double maxError) {
 
 void RPropNetwork::learn(double *X, double *Y, unsigned int rows) {
 	double error[numOfOutput];
-	for (int i = 0; i < numOfOutput; i++)
+	for (unsigned int i = 0; i < numOfOutput; i++)
 		error[i] = 0;
 
 	double *outputs = new double[numOfOutput];
@@ -131,13 +130,13 @@ void RPropNetwork::learn(double *X, double *Y, unsigned int rows) {
 	int i, n;
 
 	do {
-		if (printEpoch > 0 && epoch % printEpoch == 0)
+      if (printEpoch > 0 && epoch % (int) printEpoch == 0)
 			printf("epoch: %d, error: %f\n", epoch, error[0]);
 		// Evaluate for each value in input vector
-		for (i = 0; i < (int) rows; i++) {
+      for (i = 0; i < (int) rows; i++) {
 			// First let all neurons evaluate
 			output(X + i*numOfInputs, outputs);
-			for (n = 0; n < numOfOutput; n++) {
+			for (n = 0; n < (int) numOfOutput; n++) {
 				deriv = SSEDeriv(Y[i*numOfOutput + n], outputs[n]);
 				error[n] = SSE(Y[i*numOfOutput + n], outputs[n]);
 				// set error deriv on output node
@@ -156,7 +155,7 @@ void RPropNetwork::learn(double *X, double *Y, unsigned int rows) {
 			}
 		}
 		// Apply weight updates
-		for (n = 0; n < numOfOutput; n++) {
+		for (n = 0; n < (int) numOfOutput; n++) {
 			static_cast<RPropNeuron*>(outputNeurons[n])->applyWeightUpdates();
 		}
 		for (n = numOfHidden - 1; n >= 0; n--) {
