@@ -121,6 +121,19 @@ static PyMethodDef RPropNetworkMethods[] =
 
 
 /*
+ * Public Python members with get/setters
+ * --------------------------------------
+ */
+static PyGetSetDef RPropNetworkGetSetters[] = {
+  {"maxError", (getter)RPropNetwork_getMaxError, (setter)RPropNetwork_setMaxError, "Maximum error allowed for early stopping", NULL},
+  {"maxEpochs", (getter)RPropNetwork_getMaxEpochs, (setter)RPropNetwork_setMaxEpochs, "Maximum number of epochs allowed for training", NULL},
+  {"printEpoch", (getter)RPropNetwork_getPrintEpoch, (setter)RPropNetwork_setPrintEpoch, "How often stats are printed during training. 0 to disable.", NULL},
+  {NULL} // Sentinel
+};
+
+
+
+/*
  *  * Python type declaration
  *   * -----------------------
  *    */
@@ -155,7 +168,7 @@ static PyTypeObject RPropNetworkType = {
         0,                                              /* tp_iternext */
         RPropNetworkMethods,                                       /* tp_methods */
         0,                                       /* tp_members */
-        0,                                            /* tp_getset */
+        RPropNetworkGetSetters,                                            /* tp_getset */
         0,                                              /* tp_base */
         0,                                              /* tp_dict */
         0,                                              /* tp_descr_get */

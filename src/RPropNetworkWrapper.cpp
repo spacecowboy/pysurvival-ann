@@ -117,6 +117,64 @@ PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwa
 }
 
 
+/*
+ * Getters and Setters
+ */
+
+  PyObject *RPropNetwork_getMaxEpochs(PyRPropNetwork *self, void *closure) {
+    return Py_BuildValue("I", ((RPropNetwork*)self->super.net)->getMaxEpochs());
+  }
+
+  int RPropNetwork_setMaxEpochs(PyRPropNetwork *self, PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    long val = PyInt_AsLong(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((RPropNetwork*)self->super.net)->setMaxEpochs((unsigned int) val);
+  }
+
+  PyObject *RPropNetwork_getMaxError(PyRPropNetwork *self, void *closure) {
+    return Py_BuildValue("d", ((RPropNetwork*)self->super.net)->getMaxError());
+  }
+
+  int RPropNetwork_setMaxError(PyRPropNetwork *self, PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((RPropNetwork*)self->super.net)->setMaxError(val);
+  }
+
+  PyObject *RPropNetwork_getPrintEpoch(PyRPropNetwork *self, void *closure) {
+    return Py_BuildValue("i", ((RPropNetwork*)self->super.net)->getPrintEpoch());
+  }
+
+  int RPropNetwork_setPrintEpoch(PyRPropNetwork *self, PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    long val = PyInt_AsLong(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((RPropNetwork*)self->super.net)->setPrintEpoch((int) val);
+  }
+
 
 }
 

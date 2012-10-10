@@ -16,9 +16,9 @@
 // Necessary for c++ functions to be callable from Python's C
 extern "C" {
 
-typedef struct {
+  typedef struct {
 	PyFFNetwork super; // inherit from FFNetwork
-} PyRPropNetwork;
+  } PyRPropNetwork;
 
 /*
  * Python constructor
@@ -31,7 +31,7 @@ typedef struct {
  * Python init
  * -----------
  */
-int RPropNetwork_init(PyRPropNetwork *self, PyObject *args, PyObject *kwds);
+  int RPropNetwork_init(PyRPropNetwork *self, PyObject *args, PyObject *kwds);
 
 /*
  * Python destructor
@@ -44,7 +44,20 @@ int RPropNetwork_init(PyRPropNetwork *self, PyObject *args, PyObject *kwds);
  * ===============
  */
 
-PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwargs);
+  PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwargs);
+
+
+/*
+ * Getters and Setters
+ */
+  PyObject *RPropNetwork_getMaxEpochs(PyRPropNetwork *self, void *closure);
+  int RPropNetwork_setMaxEpochs(PyRPropNetwork *self, PyObject *value, void *closure);
+
+  PyObject *RPropNetwork_getMaxError(PyRPropNetwork *self, void *closure);
+  int RPropNetwork_setMaxError(PyRPropNetwork *self, PyObject *value, void *closure);
+
+  PyObject *RPropNetwork_getPrintEpoch(PyRPropNetwork *self, void *closure);
+  int RPropNetwork_setPrintEpoch(PyRPropNetwork *self, PyObject *value, void *closure);
 
 
 /*
