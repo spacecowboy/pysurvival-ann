@@ -327,6 +327,7 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
       // Save best network
       best = sortedPopulation.front();
     }
+    printf("gen: %d, best: %f\n", curGen, sortedErrors.front());
   }
 
   // When done, make this network into the best network

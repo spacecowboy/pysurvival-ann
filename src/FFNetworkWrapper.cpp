@@ -56,9 +56,7 @@ int FFNetwork_init(PyFFNetwork *self, PyObject *args, PyObject *kwds) {
  * -----------------
  */
 void FFNetwork_dealloc(PyFFNetwork *self) {
-	printf("FFNetwork_dealloc: called\n");
 	delete self->net;
-	printf("FFNetwork_dealloc: destructed\n");
 	self->ob_type->tp_free((PyObject*) self);
 }
 
