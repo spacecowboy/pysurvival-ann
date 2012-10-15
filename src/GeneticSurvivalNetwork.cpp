@@ -332,6 +332,7 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
       // Save best network
       best = sortedPopulation.front();
     }
+    // Add printEpoch check here
     printf("gen: %d, best: %f\n", curGen, sortedErrors.front());
   }
 
