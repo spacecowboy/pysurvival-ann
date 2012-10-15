@@ -116,14 +116,14 @@ void selectParents(
                                             boost::geometric_distribution<int, double> > *geometric,
                    unsigned int maximum, unsigned int *mother, unsigned int *father) {
 
-  *mother = (*geometric)();
+  *mother = (*geometric)() - 1;
   while (*mother >= maximum) {
     *mother = (*geometric)();
   }
   // Make sure they are not the same
   *father = *mother;
   while (*father == *mother || *father >= maximum) {
-    *father = (*geometric)();
+    *father = (*geometric)() - 1;
   }
 }
 
@@ -234,12 +234,14 @@ double evaluateNetwork(GeneticSurvivalNetwork *net, double *X, double *Y, unsign
   // Now calculate c-index
   double ci = get_C_index(outputs, Y, length);
 
+  //printf("ci = %f\n", ci);
+
   // Return the inverse since this returns the error of the network
   // If less than 0.001, return 1000 instead to avoid dividing by zero
-  if (ci < 0.001)
-    return 1000;
+  if (ci < 0.0000001)
+    return 10000000;
   else
-    return 1 / ci;
+    return 1.0 / ci;
 }
 
 
@@ -301,6 +303,7 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
   unsigned int curGen, genChild, mother, father;
   for (curGen = 0; curGen < generations; curGen++) {
     for (genChild = 0; genChild < populationSize; genChild++) {
+      //printf("gen: %d, genchild: %d\n", curGen, genChild);
       // We recycle the worst network
       child = sortedPopulation.back();
       //printf("error at back: %f\n", sortedErrors.back());
@@ -319,7 +322,9 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
                            weightMutationStdDev, weightMutationHalfPoint, curGen);
 
       // evaluate error child
+      //printf("evaluating...\n");
       error = evaluateNetwork(child, X, Y, length, outputs);
+      //printf("evaluated: %d\n", error);
 
       //printf("new child error: %f\n", error);
       // Insert child into the sorted list

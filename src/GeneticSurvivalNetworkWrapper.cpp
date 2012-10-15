@@ -129,7 +129,7 @@ extern "C" {
       return -1;
     }
 
-    ((GeneticSurvivalNetwork*)self->super.net)->setGenerations((unsigned int) val);
+    ((GeneticSurvivalNetwork*)self->super.net)->setPopulationSize((unsigned int) val);
     return 0;
   }
 
