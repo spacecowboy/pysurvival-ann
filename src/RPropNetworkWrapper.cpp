@@ -6,7 +6,9 @@
  */
 
 #include "RPropNetworkWrapper.h"
-// Must include this befor arrayobject
+// For convenience macros in python3
+#include "PythonModule.h"
+// Must include this before arrayobject
 #include "ExtensionHeader.h"
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include "RPropNetwork.h"
@@ -19,7 +21,7 @@ extern "C" {
  */
 int RPropNetwork_init(PyRPropNetwork *self, PyObject *args, PyObject *kwds) {
   static char *kwlist[] =
-    { "numOfInputs", "numOfHidden", "numOfOutputs", NULL };
+    { (char*)"numOfInputs", (char*)"numOfHidden", (char*)"numOfOutputs", NULL };
 
   unsigned int numOfInputs, numOfHidden, numOfOutputs;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "III", kwlist, &numOfInputs,
@@ -47,7 +49,7 @@ PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwa
   PyObject *inputs = NULL;
   PyObject *targets = NULL;
   // Check inputs
-  static char *kwlist[] = {"inputs", "targets", NULL};
+  static char *kwlist[] = {(char*)"inputs", (char*)"targets", NULL};
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist,
                                    &inputs, &targets)) {
     PyErr_Format(PyExc_ValueError, "Arguments should be: inputs (2d array), targets (2d array)");
@@ -69,8 +71,8 @@ PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwa
   // Objects were converted successfully. But make sure they are the same length!
 
   if (inputArray->dimensions[0] != targetArray->dimensions[0] ||
-      inputArray->dimensions[1] != self->super.net->getNumOfInputs() ||
-      targetArray->dimensions[1] != self->super.net->getNumOfOutputs()) {
+      (unsigned int)inputArray->dimensions[1] != self->super.net->getNumOfInputs() ||
+      (unsigned int)targetArray->dimensions[1] != self->super.net->getNumOfOutputs()) {
     // Decrement, set error and return
     PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same number of rows. Also the columns must match number of input/output neurons respectively.");
     Py_DECREF(inputArray);

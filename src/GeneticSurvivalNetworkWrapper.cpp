@@ -6,7 +6,9 @@
  */
 
 #include "GeneticSurvivalNetworkWrapper.h"
-// Must include this befor arrayobject
+// For convenience macros in python3
+#include "PythonModule.h"
+// Must include this before arrayobject
 #include "ExtensionHeader.h"
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include "GeneticSurvivalNetwork.h"
@@ -18,7 +20,8 @@ extern "C" {
  * -----------
  */
   int GenSurvNetwork_init(PyGenSurvNetwork *self, PyObject *args, PyObject *kwds) {
-    static char *kwlist[] = { "numOfInputs", "numOfHidden", NULL };
+    static char *kwlist[] = { (char*)"numOfInputs",  \
+                              (char*)"numOfHidden", NULL };
 
     unsigned int numOfInputs, numOfHidden;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "II", kwlist, &numOfInputs,
@@ -42,12 +45,13 @@ extern "C" {
  * ===============
  */
 
-  PyObject *GenSurvNetwork_learn(PyGenSurvNetwork *self, PyObject *args, PyObject *kwargs) {
-
+  PyObject *GenSurvNetwork_learn(PyGenSurvNetwork *self, PyObject *args, \
+                                 PyObject *kwargs) {
 	PyObject *inputs = NULL;
 	PyObject *targets = NULL;
 	// Check inputs
-    static char *kwlist[] = {"inputs", "targets", NULL};
+    static char *kwlist[] = {(char*)"inputs", \
+                             (char*)"targets", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist,
                                      &inputs, &targets)) {
       PyErr_Format(PyExc_ValueError, "Arguments should be: inputs (2d array), targets (2d array)");
@@ -69,7 +73,7 @@ extern "C" {
 	// Objects were converted successfully. But make sure they are the same length!
 
 	if (inputArray->dimensions[0] != targetArray->dimensions[0] ||
-		inputArray->dimensions[1] != self->super.net->getNumOfInputs() ||
+		(unsigned int)inputArray->dimensions[1] != self->super.net->getNumOfInputs() ||
 		targetArray->dimensions[1] != 2) {
       // Decrement, set error and return
 		PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same number of rows. Also the columns must match number of input neurons and target data must have 2 columns (time, event).");

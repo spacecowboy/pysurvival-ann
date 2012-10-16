@@ -32,7 +32,8 @@ PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
  */
 int FFNetwork_init(PyFFNetwork *self, PyObject *args, PyObject *kwds) {
 	static char *kwlist[] =
-                        { "numOfInputs", "numOfHidden", "numOfOutputs", NULL };
+                        { (char*)"numOfInputs", (char*)"numOfHidden", \
+                          (char*)"numOfOutputs", NULL };
 
 	 unsigned int numOfInputs, numOfHidden, numOfOutputs;
         if (!PyArg_ParseTupleAndKeywords(args, kwds, "III", kwlist, &numOfInputs,
@@ -57,7 +58,7 @@ int FFNetwork_init(PyFFNetwork *self, PyObject *args, PyObject *kwds) {
  */
 void FFNetwork_dealloc(PyFFNetwork *self) {
 	delete self->net;
-	self->ob_type->tp_free((PyObject*) self);
+	Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 /*
@@ -80,7 +81,7 @@ PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
 	double *ptr = NULL;
 
 	double dInputs[self->net->getNumOfInputs()];
-	for (int i = 0; i < self->net->getNumOfInputs(); i++) {
+	for (int i = 0; (unsigned int)i < self->net->getNumOfInputs(); i++) {
 		if (pylist) {
 			// Actual python list
 			pyval = PyList_GetItem(inputs, i);
@@ -107,10 +108,10 @@ PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
 	self->net->output(dInputs, dResult);
 
 	// Now convert to numpy array
-	npy_intp dims[1] = { self->net->getNumOfOutputs() };
+	npy_intp dims[1] = { (int) self->net->getNumOfOutputs() };
 	PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
-	for (int i = 0; i < self->net->getNumOfOutputs(); i++) {
+	for (int i = 0; (unsigned int)i < self->net->getNumOfOutputs(); i++) {
 		ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, i);
 		*ptr = dResult[i];
 	}
@@ -122,7 +123,7 @@ PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
     unsigned int i, j;
     double weight;
     	// Check inputs
-    static char *kwlist[] = {"i", "j", "weight", NULL};
+    static char *kwlist[] = {(char*)"i", (char*)"j", (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
                                      &i, &j, &weight)) {
 		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
@@ -147,7 +148,8 @@ PyObject *FFNetwork_connectHToI(PyFFNetwork *self, PyObject *args, PyObject *kwa
     unsigned int i, j;
     double weight;
     	// Check inputs
-    static char *kwlist[] = {"hiddenIndex", "inputIndex", "weight", NULL};
+    static char *kwlist[] = {(char*)"hiddenIndex", (char*)"inputIndex", \
+                             (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
                                      &i, &j, &weight)) {
 		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
@@ -171,7 +173,7 @@ PyObject *FFNetwork_connectHToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
     unsigned int i;
     double weight;
     	// Check inputs
-    static char *kwlist[] = {"hiddenIndex", "weight", NULL};
+    static char *kwlist[] = {(char*)"hiddenIndex", (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Id", kwlist,
                                      &i, &weight)) {
 		PyErr_Format(PyExc_ValueError, "Expected integer i and double weight.");
@@ -195,7 +197,8 @@ PyObject *FFNetwork_connectOToH(PyFFNetwork *self, PyObject *args, PyObject *kwa
     unsigned int i, j;
     double weight;
     	// Check inputs
-    static char *kwlist[] = {"outputIndex", "hiddenIndex", "weight", NULL};
+    static char *kwlist[] = {(char*)"outputIndex", (char*)"hiddenIndex", \
+                             (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
                                      &i, &j, &weight)) {
 		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
@@ -219,7 +222,8 @@ PyObject *FFNetwork_connectOToI(PyFFNetwork *self, PyObject *args, PyObject *kwa
   unsigned int i, j;
   double weight;
   // Check inputs
-  static char *kwlist[] = {"outputIndex", "inputIndex", "weight", NULL};
+  static char *kwlist[] = {(char*)"outputIndex", (char*)"inputIndex", \
+                           (char*)"weight", NULL};
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
                                    &i, &j, &weight)) {
     PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
@@ -243,7 +247,7 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
   unsigned int i;
     double weight;
     	// Check inputs
-    static char *kwlist[] = {"outputIndex", "weight", NULL};
+    static char *kwlist[] = {(char*)"outputIndex", (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Id", kwlist,
 					&i, &weight)) {
 		PyErr_Format(PyExc_ValueError, "Expected integer i and double weight.");
@@ -266,7 +270,7 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
   PyObject *FFNetwork_setOutputActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
     int i;
     // Check inputs
-    static char *kwlist[] = {"activationFunction", NULL};
+    static char *kwlist[] = {(char*)"activationFunction", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
                                      &i)) {
       PyErr_Format(PyExc_ValueError, "Expected an integer value, check ann.ffnetwork.LINEAR etc");
@@ -282,7 +286,7 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
   PyObject *FFNetwork_setHiddenActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
     int i;
     // Check inputs
-    static char *kwlist[] = {"activationFunction", NULL};
+    static char *kwlist[] = {(char*)"activationFunction", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
                                      &i)) {
       PyErr_Format(PyExc_ValueError, "Expected an integer value, check ann.ffnetwork.LINEAR etc");

@@ -6,6 +6,7 @@
  */
 
 #include "Python.h"
+#include "PythonModule.h"
 #include "structmember.h" // used to declare member list
 #include "ModuleHeader.h" // Must include this before arrayobject
 #include <numpy/arrayobject.h> // Numpy seen from C
@@ -52,10 +53,13 @@ static PyMemberDef FFNetworkMembers[] = {
  * --------------------------------------
  */
 static PyGetSetDef FFNetworkGetSetters[] = {
-	{"numOfInputs", (getter)FFNetwork_getNumOfInputs, NULL, "Number of input neurons", NULL},
-	{"numOfHidden", (getter)FFNetwork_getNumOfHidden, NULL, "Number of hidden neurons", NULL},
-	{"numOfOutputs", (getter)FFNetwork_getNumOfOutputs, NULL, "Number of output neurons", NULL},
-	{NULL} // Sentinel
+  {(char*)"numOfInputs", (getter)FFNetwork_getNumOfInputs, NULL,    \
+   (char*)"Number of input neurons", NULL},
+  {(char*)"numOfHidden", (getter)FFNetwork_getNumOfHidden, NULL,    \
+   (char*)"Number of hidden neurons", NULL},
+  {(char*)"numOfOutputs", (getter)FFNetwork_getNumOfOutputs, NULL,  \
+   (char*)"Number of output neurons", NULL},
+  {NULL} // Sentinel
 };
 
 /*
@@ -63,8 +67,7 @@ static PyGetSetDef FFNetworkGetSetters[] = {
  * -----------------------
  */
 static PyTypeObject FFNetworkType = {
-	PyObject_HEAD_INIT(NULL)
-	0,						/* ob_size */
+  PyVarObject_HEAD_INIT(NULL, 0)
 	"_ann.ffnetwork",		/* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
 	sizeof(PyFFNetwork),					/* tp_basicsize */
 	0,						/* tp_itemsize */
@@ -126,9 +129,15 @@ static PyMethodDef RPropNetworkMethods[] =
  * --------------------------------------
  */
 static PyGetSetDef RPropNetworkGetSetters[] = {
-  {"maxError", (getter)RPropNetwork_getMaxError, (setter)RPropNetwork_setMaxError, "Maximum error allowed for early stopping", NULL},
-  {"maxEpochs", (getter)RPropNetwork_getMaxEpochs, (setter)RPropNetwork_setMaxEpochs, "Maximum number of epochs allowed for training", NULL},
-  {"printEpoch", (getter)RPropNetwork_getPrintEpoch, (setter)RPropNetwork_setPrintEpoch, "How often stats are printed during training. 0 to disable.", NULL},
+  {(char*)"maxError", (getter)RPropNetwork_getMaxError,         \
+   (setter)RPropNetwork_setMaxError,                            \
+   (char*)"Maximum error allowed for early stopping", NULL},
+  {(char*)"maxEpochs", (getter)RPropNetwork_getMaxEpochs,           \
+   (setter)RPropNetwork_setMaxEpochs,                               \
+   (char*)"Maximum number of epochs allowed for training", NULL},
+  {(char*)"printEpoch", (getter)RPropNetwork_getPrintEpoch,             \
+   (setter)RPropNetwork_setPrintEpoch,                                  \
+   (char*)"How often stats are printed during training. 0 to disable.", NULL},
   {NULL} // Sentinel
 };
 
@@ -139,8 +148,7 @@ static PyGetSetDef RPropNetworkGetSetters[] = {
  *   * -----------------------
  *    */
 static PyTypeObject RPropNetworkType = {
-        PyObject_HEAD_INIT(NULL)
-        0,                                              /* ob_size */
+  PyVarObject_HEAD_INIT(NULL, 0)
         "_ann.rpropnetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
         sizeof(PyRPropNetwork),                                    /* tp_basicsize */
         0,                                              /* tp_itemsize */
@@ -202,11 +210,25 @@ static PyMethodDef GenSurvNetworkMethods[] =
  * --------------------------------------
  */
 static PyGetSetDef GenSurvNetworkGetSetters[] = {
-  {"generations", (getter)GenSurvNetwork_getGenerations, (setter)GenSurvNetwork_setGenerations, "Time to train", NULL},
-  {"populationSize", (getter)GenSurvNetwork_getPopulationSize, (setter)GenSurvNetwork_setPopulationSize, "Number of networks created each generation", NULL},
-  {"weightMutationChance", (getter)GenSurvNetwork_getWeightMutationChance, (setter)GenSurvNetwork_setWeightMutationChance, "The chance of a single weight being changed during cloning", NULL},
-  {"weightMutationHalfPoint", (getter)GenSurvNetwork_getWeightMutationHalfPoint, (setter)GenSurvNetwork_setWeightMutationHalfPoint, "If time dependant mutation is desired, set this to a non-zero value. StdDev will decrease linearly and reach half at specified generation.", NULL},
-  {"weightMutationStdDev", (getter)GenSurvNetwork_getWeightMutationStdDev, (setter)GenSurvNetwork_setWeightMutationStdDev, "Mutations are gaussians with this stddev and added to current weight.", NULL},
+  {(char*)"generations", (getter)GenSurvNetwork_getGenerations, \
+   (setter)GenSurvNetwork_setGenerations,                       \
+   (char*)"Time to train", NULL},
+  {(char*)"populationSize", (getter)GenSurvNetwork_getPopulationSize,   \
+   (setter)GenSurvNetwork_setPopulationSize,                            \
+   (char*)"Number of networks created each generation", NULL},
+  {(char*)"weightMutationChance", (getter)GenSurvNetwork_getWeightMutationChance, \
+   (setter)GenSurvNetwork_setWeightMutationChance,                      \
+   (char*)"The chance of a single weight being changed during cloning", NULL},
+  {(char*)"weightMutationHalfPoint",                  \
+   (getter)GenSurvNetwork_getWeightMutationHalfPoint, \
+   (setter)GenSurvNetwork_setWeightMutationHalfPoint,                   \
+   (char*)"If time dependant mutation is desired, set this to a non-zero value.\
+ StdDev will decrease linearly and reach half at specified generation.", NULL},
+  {(char*)"weightMutationStdDev",                  \
+   (getter)GenSurvNetwork_getWeightMutationStdDev, \
+   (setter)GenSurvNetwork_setWeightMutationStdDev,                      \
+   (char*)"Mutations are gaussians with this stddev and added to current\
+ weight.", NULL},
   {NULL} // Sentinel
 };
 
@@ -217,8 +239,7 @@ static PyGetSetDef GenSurvNetworkGetSetters[] = {
  *   * -----------------------
  *    */
 static PyTypeObject GenSurvNetworkType = {
-        PyObject_HEAD_INIT(NULL)
-        0,                                              /* ob_size */
+  PyVarObject_HEAD_INIT(NULL, 0)
         "_ann.gensurvnetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
         sizeof(PyGenSurvNetwork),                                    /* tp_basicsize */
         0,                                              /* tp_itemsize */
@@ -263,29 +284,40 @@ static PyTypeObject GenSurvNetworkType = {
  * Python module declaration
  * =========================
  */
+/*
+Module methods
+*/
+static PyMethodDef annMethods[] = {
+  {NULL, NULL, 0, NULL} /* Sentinel */
+};
+
+/* PyMODINIT_FUNC automatically does extern C in c++
+   However it is not automatic in python2, hence we must
+   include it in that case.
+ */
 extern "C" {
+  MOD_INIT(_ann) {
+    PyObject* mod;
 
-  void init_ann(void) {
-	PyObject* mod;
+    // Need to import numpy arrays before anything is done
+    import_array();
 
-	// Need to import numpy arrays
-	import_array();
+    // Create the module
+    MOD_DEF(mod, "_ann", "C++ implementation of the neural network.", annMethods)
 
-	// Create the module
-	mod = Py_InitModule3("_ann", NULL, "C++ implementation of the neural network.");
-	if (mod == NULL) {
-      return;
-	}
+      if (mod == NULL) {
+        return MOD_ERROR_VAL;
+      }
 
-	/*
-	 * FFNetwork
-	 * ---------
-	 */
+    /*
+     * FFNetwork
+     * ---------
+     */
 
-	// Make it ready
-	if (PyType_Ready(&FFNetworkType) < 0) {
-      return;
-	}
+    // Make it ready
+    if (PyType_Ready(&FFNetworkType) < 0) {
+      return MOD_ERROR_VAL;
+    }
 
     // Add static class variables
     PyDict_SetItemString(FFNetworkType.tp_dict, "LINEAR", Py_BuildValue("i", LINEAR));
@@ -293,35 +325,36 @@ extern "C" {
     PyDict_SetItemString(FFNetworkType.tp_dict, "TANH", Py_BuildValue("i", TANH));
 
 
-	// Add the type to the module.
-	Py_INCREF(&FFNetworkType);
-	PyModule_AddObject(mod, "ffnetwork", (PyObject*)&FFNetworkType);
-
-	/*
- 	 * RPropNetwork
- 	 */
-	RPropNetworkType.tp_base = &FFNetworkType;
-	if (PyType_Ready(&RPropNetworkType) < 0) {
-      Py_DECREF(&FFNetworkType);
-      return;
-	}
-
-	Py_INCREF(&RPropNetworkType);
-	PyModule_AddObject(mod, "rpropnetwork", (PyObject*)&RPropNetworkType);
+    // Add the type to the module.
+    Py_INCREF(&FFNetworkType);
+    PyModule_AddObject(mod, "ffnetwork", (PyObject*)&FFNetworkType);
 
     /*
- 	 * GenSurvNetwork
- 	 */
-	GenSurvNetworkType.tp_base = &FFNetworkType;
-	if (PyType_Ready(&GenSurvNetworkType) < 0) {
+     * RPropNetwork
+     */
+    RPropNetworkType.tp_base = &FFNetworkType;
+    if (PyType_Ready(&RPropNetworkType) < 0) {
+      Py_DECREF(&FFNetworkType);
+      return MOD_ERROR_VAL;
+    }
+
+    Py_INCREF(&RPropNetworkType);
+    PyModule_AddObject(mod, "rpropnetwork", (PyObject*)&RPropNetworkType);
+
+    /*
+     * GenSurvNetwork
+     */
+    GenSurvNetworkType.tp_base = &FFNetworkType;
+    if (PyType_Ready(&GenSurvNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
       Py_DECREF(&RPropNetworkType);
-      return;
-	}
+      return MOD_ERROR_VAL;
+    }
 
-	Py_INCREF(&GenSurvNetworkType);
-	PyModule_AddObject(mod, "gensurvnetwork", (PyObject*)&GenSurvNetworkType);
+    Py_INCREF(&GenSurvNetworkType);
+    PyModule_AddObject(mod, "gensurvnetwork", (PyObject*)&GenSurvNetworkType);
 
+    return MOD_SUCCESS_VAL(mod);
   }
-
 }
+

@@ -1,5 +1,11 @@
 #Expose functionality in c at package level
-from _ann import *
+"""
+A neural network package implemented in c++.
+
+Should write intended usage here...
+"""
+
+from ._ann import *
 from random import uniform
 
 def getSingleLayerRProp(numOfInputs, numOfHidden, numOfOutputs):
