@@ -78,7 +78,7 @@ void GeneticSurvivalNetwork::initNodes() {
                                                        &hyperboleDeriv);
   }
   this->outputNeurons = new Neuron*[1];
-  this->outputNeurons[0] = new GeneticSurvivalNeuron(&sigmoid, &sigmoidDeriv);
+  this->outputNeurons[0] = new GeneticSurvivalNeuron(&linear, &linearDeriv);
   this->bias = new GeneticSurvivalBias;
 }
 
@@ -286,6 +286,9 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
   unsigned int i;
   vector<GeneticSurvivalNetwork*>::iterator netIt;
   vector<double>::iterator errorIt;
+
+  printf("Length: %d\n", length);
+
   for (i = 0; i < populationSize + 1; i++) {
     GeneticSurvivalNetwork *net = getGeneticSurvivalNetwork(numOfInputs,
                                                               numOfHidden, &uniform);
@@ -333,11 +336,13 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
       best = sortedPopulation.front();
     }
     // Add printEpoch check here
-    printf("gen: %d, best: %f\n", curGen, sortedErrors.front());
+    printf("gen: %d, best: %f\n", curGen, 1.0/sortedErrors.front());
   }
 
   // When done, make this network into the best network
+  printf("best eval result: %f\n", 1.0/(evaluateNetwork(best, X, Y, length, outputs)));
   this->cloneNetwork(best);
+  printf("this eval result: %f\n", 1.0/(evaluateNetwork(this, X, Y, length, outputs)));
 
   // And destroy population
   // do this last of all!

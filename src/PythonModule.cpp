@@ -14,6 +14,7 @@
 #include "RPropNetworkWrapper.h"
 #include "GeneticSurvivalNetworkWrapper.h"
 #include "activationfunctions.h"
+#include "CIndexWrapper.h"
 
 /*
  * FFNetwork
@@ -288,6 +289,7 @@ static PyTypeObject GenSurvNetworkType = {
 Module methods
 */
 static PyMethodDef annMethods[] = {
+  {"get_C_index", (PyCFunction) CIndex_getCindex, METH_VARARGS | METH_KEYWORDS, "Calculates the C-index. Note that outputs must be two-dimensional (fine with only one column though)"},
   {NULL, NULL, 0, NULL} /* Sentinel */
 };
 

@@ -1,4 +1,5 @@
 #include "c_index.h"
+#include <stdio.h>
 
 /*
  * C index always operates on A[N][2] targets. So total length is actually
@@ -23,7 +24,10 @@ double get_C_index(double *Y, double *T, unsigned int length)
 			Ty1 = T[county*2 + 1];
 			outputsy0 = Y[county];
 
-			if(Tx1 == 1 && Ty1 == 1) { //Non-censored, compare with all other non-censored
+            //printf("x: %f y: %f\n", Tx0, Ty0);
+
+			if(Tx1 == 1 && Ty1 == 1) {
+              //Non-censored, compare with all other non-censored
 				if (Tx0 < Ty0) {
 					total++;
 					if (outputsx0 < outputsy0) {
@@ -43,8 +47,7 @@ double get_C_index(double *Y, double *T, unsigned int length)
 		}
 	}
 
-	sum /= total;
-    return sum;
+	return sum / total;
 };
 
 /*

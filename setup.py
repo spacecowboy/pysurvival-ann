@@ -12,7 +12,7 @@ _ann = Extension('ann._ann',
                      'src/drand.cpp', 'src/activationfunctions.cpp',
                      'src/GeneticSurvivalNetwork.cpp',
                      'src/GeneticSurvivalNetworkWrapper.cpp',
-                     'src/c_index.cpp'],
+                     'src/c_index.cpp', 'src/CIndexWrapper.cpp'],
           include_dirs = [numpy_include],
           extra_compile_args = ['-std=c++0x'])
 

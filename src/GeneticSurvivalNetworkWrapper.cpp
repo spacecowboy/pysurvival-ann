@@ -12,6 +12,7 @@
 #include "ExtensionHeader.h"
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include "GeneticSurvivalNetwork.h"
+#include <stdio.h>
 
 extern "C" {
 
@@ -67,8 +68,10 @@ extern "C" {
       return NULL;
 
 	targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets, PyArray_DOUBLE, 2, 2);
-	if (targetArray == NULL)
+	if (targetArray == NULL) {
+      Py_DECREF(inputArray);
       return NULL;
+    }
 
 	// Objects were converted successfully. But make sure they are the same length!
 
@@ -84,7 +87,7 @@ extern "C" {
 	}
 
 	// Arguments are valid!
-
+    printf("tN: %d, tM: %d, iN: %d, iM: %d\n", targetArray->dimensions[0], targetArray->dimensions[1], inputArray->dimensions[0], inputArray->dimensions[1]);
 	((GeneticSurvivalNetwork*)self->super.net)->learn((double *)inputArray->data, (double *)targetArray->data, inputArray->dimensions[0]);
 
 	// Decrement counters for inputArray and targetArray
