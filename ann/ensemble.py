@@ -1,5 +1,21 @@
 '''Ensembles of ANNs. Class definition and related functions.'''
 
+import random
+import numpy as np
+
+def sample_wr(population, k):
+    '''Selects k random elements (with replacement) from a population.
+    Returns an array of indices'''
+    n = len(population)
+    _random, _int = random.random, int  # speed hack
+    return [_int(_random() * n) for i in range(k)]
+
+print(sample_wr(range(10), 20))
+
+def bagging(data):
+    '''Samples len elements (with replacement) from data and returns a view of those elements.'''
+    return data[sample_wr(data, len(data))]
+
 class Ensemble(object):
     '''Holds a list of any ANNs. Learn() uses bagging to give each network a unique data set.
     Bagging can be disabled by setting the attribute, then each network is trained on the
