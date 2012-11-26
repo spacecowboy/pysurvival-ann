@@ -16,6 +16,8 @@ double get_C_index(double *Y, double *T, unsigned int length)
 		Tx1 = T[countx*2 + 1];
 		outputsx0 = Y[countx];
 
+        //printf("targ: %f out: %f\n", Tx0, outputsx0);
+
 		for(county = 0; county < length; county++) {
 			if(countx == county)
 			    continue;
@@ -23,8 +25,6 @@ double get_C_index(double *Y, double *T, unsigned int length)
 			Ty0 = T[county*2];
 			Ty1 = T[county*2 + 1];
 			outputsy0 = Y[county];
-
-            //printf("x: %f y: %f\n", Tx0, Ty0);
 
 			if(Tx1 == 1 && Ty1 == 1) {
               //Non-censored, compare with all other non-censored
@@ -47,7 +47,12 @@ double get_C_index(double *Y, double *T, unsigned int length)
 		}
 	}
 
-	return sum / total;
+    if (sum == 0) {
+      //printf("Nothing was in concordance\n");
+      return 0;
+    } else {
+      return sum / total;
+    }
 };
 
 /*

@@ -62,6 +62,6 @@ class Ensemble(object):
             # Create new data using bagging. Combine the data into one array
             baggeddata = bagging(np.column_stack([trndata, targets]))
             tl = len(targets[0])
-            tc = [(-1 -x) for x in range(tl)]
+            tc = list(reversed([(-1 -x) for x in range(tl)]))
             result.append(net.learn(baggeddata[:, :-tl], np.column_stack([baggeddata[:, tc]]), *args, **kwargs))
         return np.array(result)

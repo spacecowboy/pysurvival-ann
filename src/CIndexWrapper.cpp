@@ -22,7 +22,7 @@ extern "C" {
 	PyArrayObject *outputArray = NULL;
 	PyArrayObject *targetArray = NULL;
 
-	outputArray = (PyArrayObject *) PyArray_ContiguousFromObject(outputs, PyArray_DOUBLE, 2, 2);
+	outputArray = (PyArrayObject *) PyArray_ContiguousFromObject(outputs, PyArray_DOUBLE, 1, 1);
 	if (outputArray == NULL)
       return NULL;
 
@@ -45,7 +45,8 @@ extern "C" {
 	}
 
 	// Arguments are valid!
-    printf("tN: %d, tM: %d, iN: %d, iM: %d\n", targetArray->dimensions[0], targetArray->dimensions[1], outputArray->dimensions[0], outputArray->dimensions[1]);
+    printf("tN: %d, tM: %d, oN: %d\n", targetArray->dimensions[0], targetArray->dimensions[1], outputArray->dimensions[0]);
+
 	double cindex = get_C_index((double *)outputArray->data, (double *)targetArray->data, outputArray->dimensions[0]);
 
 	// Decrement counters for inputArray and targetArray
