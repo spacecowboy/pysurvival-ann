@@ -10,8 +10,6 @@ def sample_wr(population, k):
     _random, _int = random.random, int  # speed hack
     return [_int(_random() * n) for i in range(k)]
 
-print(sample_wr(range(10), 20))
-
 def bagging(data):
     '''Samples len elements (with replacement) from data and returns a view of those elements.'''
     return data[sample_wr(data, len(data))]
