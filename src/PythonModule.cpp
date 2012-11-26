@@ -289,7 +289,7 @@ static PyTypeObject GenSurvNetworkType = {
 Module methods
 */
 static PyMethodDef annMethods[] = {
-  {"get_C_index", (PyCFunction) CIndex_getCindex, METH_VARARGS | METH_KEYWORDS, "Calculates the C-index. Note that outputs must be two-dimensional but one column is fine.\n\nInput: Targets, Predictions\nReturns: 0 if no concordance could be found."},
+  {"get_C_index", (PyCFunction) CIndex_getCindex, METH_VARARGS | METH_KEYWORDS, "Calculates the C-index. Note that outputs converted to one dimension. Targets should be (survival time, event)\n\nInput: Targets, Predictions\nReturns: 0 if no concordance could be found."},
   {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
