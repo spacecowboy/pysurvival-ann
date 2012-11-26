@@ -7,6 +7,7 @@ Should write intended usage here...
 
 from ._ann import (ffnetwork, rpropnetwork,
                    gensurvnetwork as _gensurvnetwork, get_C_index)
+from .ensemble import Ensemble
 from random import uniform
 import numpy as np
 
