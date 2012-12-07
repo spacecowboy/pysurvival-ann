@@ -5,6 +5,7 @@ A neural network package implemented in c++.
 Should write intended usage here...
 """
 
+from __future__ import division
 from ._ann import (ffnetwork, rpropnetwork,
                    gensurvnetwork as _gensurvnetwork, get_C_index)
 from .ensemble import Ensemble

@@ -1,5 +1,6 @@
 '''Ensembles of ANNs. Class definition and related functions.'''
 
+from __future__ import division
 import random
 import numpy as np
 

@@ -2,6 +2,7 @@
 Functions related to the testing and validation of ANNs.
 """
 
+from __future__ import division
 import numpy as np
 from numpy.random import shuffle
 from . import get_C_index
