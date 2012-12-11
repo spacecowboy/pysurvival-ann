@@ -65,8 +65,10 @@ PyObject *RPropNetwork_learn(PyRPropNetwork *self, PyObject *args, PyObject *kwa
     return NULL;
 
   targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets, PyArray_DOUBLE, 2, 2);
-  if (targetArray == NULL)
+  if (targetArray == NULL) {
+    Py_DECREF(inputArray);
     return NULL;
+  }
 
   // Objects were converted successfully. But make sure they are the same length!
 
