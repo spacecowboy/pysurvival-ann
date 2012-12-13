@@ -25,8 +25,8 @@ protected:
 	std::vector<double> *prevInputDerivs;
 
 public:
-	RPropNeuron();
-	RPropNeuron(double (*activationFunction)(double),
+	RPropNeuron(int id);
+	RPropNeuron(int id, double (*activationFunction)(double),
 			double (*activationDerivative)(double));
 	virtual ~RPropNeuron();
 
@@ -71,7 +71,7 @@ public:
 class RPropBias: public RPropNeuron {
 public:
 	RPropBias() :
-			RPropNeuron() {
+			RPropNeuron(-1) {
 	}
 	virtual double output() {
 		return 1;

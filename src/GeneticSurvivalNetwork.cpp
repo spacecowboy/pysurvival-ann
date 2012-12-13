@@ -74,11 +74,11 @@ void GeneticSurvivalNetwork::initNodes() {
   this->hiddenNeurons = new Neuron*[this->numOfHidden];
   unsigned int i;
   for (i = 0; i < this->numOfHidden; i++) {
-    this->hiddenNeurons[i] = new GeneticSurvivalNeuron(&hyperbole,
+    this->hiddenNeurons[i] = new GeneticSurvivalNeuron(i, &hyperbole,
                                                        &hyperboleDeriv);
   }
   this->outputNeurons = new Neuron*[1];
-  this->outputNeurons[0] = new GeneticSurvivalNeuron(&linear, &linearDeriv);
+  this->outputNeurons[0] = new GeneticSurvivalNeuron(i, &linear, &linearDeriv);
   this->bias = new GeneticSurvivalBias;
 }
 
@@ -361,15 +361,15 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
  * Neuron definition
  * ------------------------
  */
-GeneticSurvivalNeuron::GeneticSurvivalNeuron() :
-  Neuron() {
+GeneticSurvivalNeuron::GeneticSurvivalNeuron(int id) :
+  Neuron(id) {
 
 }
 
-GeneticSurvivalNeuron::GeneticSurvivalNeuron(
+GeneticSurvivalNeuron::GeneticSurvivalNeuron(int id,
                                              double (*activationFunction)(double),
                                              double (*activationDerivative)(double)) :
-  Neuron(activationFunction, activationDerivative) {
+  Neuron(id, activationFunction, activationDerivative) {
 
 }
 

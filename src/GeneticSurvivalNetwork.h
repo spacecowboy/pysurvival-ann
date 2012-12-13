@@ -64,8 +64,8 @@ class GeneticSurvivalNetwork: public FFNetwork {
 
 class GeneticSurvivalNeuron: public Neuron {
 public:
-	GeneticSurvivalNeuron();
-	GeneticSurvivalNeuron(double (*activationFunction)(double),
+	GeneticSurvivalNeuron(int id);
+	GeneticSurvivalNeuron(int id, double (*activationFunction)(double),
 			double (*activationDerivative)(double));
 	virtual ~GeneticSurvivalNeuron();
 
@@ -83,7 +83,7 @@ public:
 class GeneticSurvivalBias: public GeneticSurvivalNeuron {
 public:
 	GeneticSurvivalBias() :
-			GeneticSurvivalNeuron() {
+			GeneticSurvivalNeuron(-1) {
 	}
 	virtual double output() {
 		return 1;

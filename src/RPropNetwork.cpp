@@ -83,12 +83,12 @@ void RPropNetwork::initNodes() {
 	this->hiddenNeurons = new Neuron*[this->numOfHidden];
 	unsigned int i;
 	for (i = 0; i < this->numOfHidden; i++) {
-		this->hiddenNeurons[i] = new RPropNeuron(&hyperbole, &hyperboleDeriv);
+      this->hiddenNeurons[i] = new RPropNeuron(i, &hyperbole, &hyperboleDeriv);
 	}
 
 	this->outputNeurons = new Neuron*[this->numOfOutput];
 	for (i = 0; i < this->numOfOutput; i++) {
-		this->outputNeurons[i] = new RPropNeuron(&sigmoid, &sigmoidDeriv);
+      this->outputNeurons[i] = new RPropNeuron(i, &sigmoid, &sigmoidDeriv);
 	}
 
 	this->bias = new RPropBias;
@@ -173,8 +173,8 @@ void RPropNetwork::learn(double *X, double *Y, unsigned int rows) {
  * -----------------------
  */
 
-RPropNeuron::RPropNeuron() :
-		Neuron() {
+RPropNeuron::RPropNeuron(int id) :
+		Neuron(id) {
 	localError = 0;
 
 	prevNeuronUpdates = new std::vector<double>;
@@ -186,9 +186,9 @@ RPropNeuron::RPropNeuron() :
 	inputUpdates = new std::vector<double>;
 }
 
-RPropNeuron::RPropNeuron(double (*activationFunction)(double),
+RPropNeuron::RPropNeuron(int id, double (*activationFunction)(double),
 		double (*activationDerivative)(double)) :
-		Neuron(activationFunction, activationDerivative) {
+  Neuron(id, activationFunction, activationDerivative) {
 	localError = 0;
 
 	prevNeuronUpdates = new std::vector<double>;

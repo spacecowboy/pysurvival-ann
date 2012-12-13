@@ -13,11 +13,11 @@
 //#include "activationfunctions.h"
 
 // Forward-declare
-class Neuron;
-class Bias;
+//class Neuron;
+//class Bias;
 
 //enum ActivationFuncEnum;
-//#include "FFNeuron.h"
+#include "FFNeuron.h"
 
 /*
  * The network is the public base class users are intended to work with.
@@ -38,6 +38,9 @@ protected:
 	unsigned int numOfInputs;
 	unsigned int numOfHidden;
 	unsigned int numOfOutput;
+
+    int hiddenActivationFunction;
+    int outputActivationFunction;
 
 public:
 	FFNetwork();
@@ -61,11 +64,13 @@ public:
      * Sets the activation function of the output layer
      */
     void setOutputActivationFunction(int func);
+    int getOutputActivationFunction();
 
     /**
      * Sets the activation function of the hidden layer
      */
     void setHiddenActivationFunction(int func);
+    int getHiddenActivationFunction();
 
 	/*
 	 * Connects the first argument to the second argument. Meaning that the following
@@ -74,7 +79,7 @@ public:
 	void connectHToH(unsigned int firstIndex, unsigned int secondIndex,
 			double weight);
 	/*
-	 * Connect the hidden neuron (first argument) to the specified input index (second
+	 * Connect the hidden neuron with id (first argument) to the specified input index (second
 	 * argument)
 	 */
 	void connectHToI(unsigned int hiddenIndex, unsigned int inputIndex,
@@ -101,7 +106,8 @@ public:
 	 * Connect the output neuron to the bias
 	 */
 	void connectOToB(unsigned int outputIndex, double weight);
-	Neuron** getHiddenNeurons() const;
+
+    Neuron** getHiddenNeurons() const;
 	unsigned int getNumOfHidden() const;
 	unsigned int getNumOfInputs() const;
 	unsigned int getNumOfOutputs() const;
@@ -110,6 +116,16 @@ public:
 	Neuron* getBias() const {
 		return bias;
 	}
+
+    /*
+     * Return the weight that toId is connected to fromId with
+     */
+    bool getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight);
+    bool getInputWeightFromHidden(unsigned int fromId, unsigned int toIndex, double *weight);
+
+    bool getNeuronWeightFromOutput(unsigned int fromId, int toId, double *weight);
+    bool getInputWeightFromOutput(unsigned int fromId, unsigned int toIndex, double *weight);
+
 };
 
 /*

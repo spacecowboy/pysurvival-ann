@@ -34,10 +34,16 @@ static PyMethodDef FFNetworkMethods[] =
     {"connectOToH", (PyCFunction) FFNetwork_connectOToH, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to hidden neuron j with specified weight"},
     {"connectOToI", (PyCFunction) FFNetwork_connectOToI, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to input neuron j with specified weight"},
     {"connectOToB", (PyCFunction) FFNetwork_connectOToB, METH_VARARGS | METH_KEYWORDS, "Connect output neuron i to bias neuron with specified weight"},
-    {"setOutputFunction", (PyCFunction) FFNetwork_setOutputActivationFunction, METH_VARARGS | METH_KEYWORDS, "Set the activation function of the output neurons."},
-    {"setHiddenFunction", (PyCFunction) FFNetwork_setHiddenActivationFunction, METH_VARARGS | METH_KEYWORDS, "Set the activation function of the hidden neurons."},
-	//{"__reduce__", (PyCFunction) Node_reduce, METH_NOARGS, "Needed for pickling. Specifices how to reconstruct the object."},
-	//{"__getnewargs__", (PyCFunction) Node_getnewargs, METH_NOARGS, "Needed for pickling. Specifices what args to give new()."},
+
+    {"getInputWeightsOfOutput", (PyCFunction) FFNetwork_getInputWeightsOfOutput, METH_VARARGS | METH_KEYWORDS, "Returns a dictionary of the input weights for specified output neuron."},
+
+    {"getNeuronWeightsOfOutput", (PyCFunction) FFNetwork_getNeuronWeightsOfOutput, METH_VARARGS | METH_KEYWORDS, "Returns a dictionary of the neuron weights for specified output neuron."},
+
+    {"getInputWeightsOfHidden", (PyCFunction) FFNetwork_getInputWeightsOfHidden, METH_VARARGS | METH_KEYWORDS, "Returns a dictionary of the input weights for specified hidden neuron."},
+
+    {"getNeuronWeightsOfHidden", (PyCFunction) FFNetwork_getNeuronWeightsOfHidden, METH_VARARGS | METH_KEYWORDS, "Returns a dictionary of the neuron weights for specified hidden neuron."},
+
+
 	{NULL}, // So that we can iterate safely below
 };
 
@@ -60,6 +66,10 @@ static PyGetSetDef FFNetworkGetSetters[] = {
    (char*)"Number of hidden neurons", NULL},
   {(char*)"numOfOutputs", (getter)FFNetwork_getNumOfOutputs, NULL,  \
    (char*)"Number of output neurons", NULL},
+
+  {(char*)"outputActivationFunction", (getter)FFNetwork_getOutputActivationFunction, (setter)FFNetwork_setOutputActivationFunction, (char*)"The activation function used by output neurons. For example network.LOGSIG", NULL},
+  {(char*)"hiddenActivationFunction", (getter)FFNetwork_getHiddenActivationFunction, (setter)FFNetwork_setHiddenActivationFunction, (char*)"The activation function used by hidden neurons. For example network.TANH", NULL},
+
   {NULL} // Sentinel
 };
 
@@ -359,4 +369,3 @@ extern "C" {
     return MOD_SUCCESS_VAL(mod);
   }
 }
-

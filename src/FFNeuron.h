@@ -21,6 +21,7 @@ protected:
 	// Function pointers
 	double (*activationFunction)(double);
 	double (*activationDerivative)(double);
+    int neuronId;
 
 public:
 	// Connections is a vector of neuron-weight pairs
@@ -28,8 +29,8 @@ public:
 	// If connected to the input values, index-weight pairs
 	std::vector<std::pair<unsigned int, double> > *inputConnections;
 
-	Neuron();
-	Neuron(double (*activationFunction)(double),
+	Neuron(int id);
+	Neuron(int id, double (*activationFunction)(double),
 			double (*activationDerivative)(double));
 	virtual ~Neuron();
 
@@ -60,6 +61,20 @@ public:
 	void setActivationFunction(double (*activationFunction)(double),
 			double (*activationDerivative)(double));
 
+    /*
+     * Return the id of this neuron. Is only set during construction.
+     * Ideally it equals its place in the iterator.
+     *
+     * -1 is reserved for bias nodes.
+     */
+    virtual int getId();
+
+    /*
+     * Returns true if a connection exists, false otherwise
+     */
+    bool getNeuronWeight(int targetId, double *weight);
+    bool getInputWeight(unsigned int inputIndex, double *weight);
+
 };
 
 /*
@@ -68,7 +83,7 @@ public:
 class Bias: public Neuron {
 public:
 	Bias() :
-			Neuron() {
+			Neuron(-1) {
 	}
 
 	virtual double output() {

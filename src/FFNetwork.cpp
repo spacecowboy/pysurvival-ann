@@ -27,6 +27,9 @@ FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 	this->numOfInputs = numOfInputs;
 	this->numOfHidden = numOfHidden;
 	this->numOfOutput = numOfOutput;
+
+    this->hiddenActivationFunction = TANH;
+    this->outputActivationFunction = LOGSIG;
 }
 
 FFNetwork::~FFNetwork() {
@@ -46,15 +49,17 @@ FFNetwork::~FFNetwork() {
 
 
 void FFNetwork::initNodes() {
+  hiddenActivationFunction = TANH;
 	this->hiddenNeurons = new Neuron*[this->numOfHidden];
 	unsigned int i;
 	for (i = 0; i < this->numOfHidden; i++) {
-		this->hiddenNeurons[i] = new Neuron(&hyperbole, &hyperboleDeriv);
+      this->hiddenNeurons[i] = new Neuron(i, &hyperbole, &hyperboleDeriv);
 	}
 
+    outputActivationFunction = LOGSIG;
 	this->outputNeurons = new Neuron*[this->numOfOutput];
 	for (i = 0; i < this->numOfOutput; i++) {
-		this->outputNeurons[i] = new Neuron(&sigmoid, &sigmoidDeriv);
+      this->outputNeurons[i] = new Neuron(i, &sigmoid, &sigmoidDeriv);
 	}
 
 	this->bias = new Bias();
@@ -163,22 +168,62 @@ void FFNetwork::connectHToH(unsigned int firstIndex, unsigned int secondIndex,
 			weight);
 }
 
+bool FFNetwork::getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight) {
+  if (fromId >= numOfHidden || toId > -1 && (unsigned int) toId >= numOfHidden) {
+    throw invalid_argument("Id was larger than number of nodes");
+  }
+
+  return hiddenNeurons[fromId]->getNeuronWeight(toId, weight);
+}
+
+bool FFNetwork::getInputWeightFromHidden(unsigned int fromId, unsigned int toIndex, double *weight) {
+  if (fromId >= numOfHidden || toIndex >= numOfInputs) {
+    throw invalid_argument("Id was larger than number of nodes or index was greater than number of inputs");
+  }
+
+  return hiddenNeurons[fromId]->getInputWeight(toIndex, weight);
+}
+
+bool FFNetwork::getNeuronWeightFromOutput(unsigned int fromId, int toId, double *weight) {
+  if (fromId >= numOfOutput || toId > -1 && (unsigned int) toId >= numOfHidden) {
+    throw invalid_argument("Id was larger than number of nodes");
+  }
+
+  return outputNeurons[fromId]->getNeuronWeight(toId, weight);
+}
+
+bool FFNetwork::getInputWeightFromOutput(unsigned int fromId, unsigned int toIndex, double *weight) {
+  if (fromId >= numOfOutput || toIndex >= numOfInputs) {
+    throw invalid_argument("Id was larger than number of nodes or index was greater than number of inputs");
+  }
+
+  return outputNeurons[fromId]->getInputWeight(toIndex, weight);
+}
+
+
 void FFNetwork::setOutputActivationFunction(int func) {
   unsigned int i;
   for (i = 0; i < numOfOutput; i++) {
     switch(func) {
     case LINEAR:
+      this->outputActivationFunction = LINEAR;
       outputNeurons[i]->setActivationFunction(linear, linearDeriv);
       break;
     case LOGSIG:
+      this->outputActivationFunction = LOGSIG;
       outputNeurons[i]->setActivationFunction(sigmoid, sigmoidDeriv);
     break;
     case TANH:
     default:
+      outputActivationFunction = TANH;
       outputNeurons[i]->setActivationFunction(hyperbole, hyperboleDeriv);
       break;
     }
   }
+}
+
+int FFNetwork::getOutputActivationFunction() {
+  return outputActivationFunction;
 }
 
 void FFNetwork::setHiddenActivationFunction(int func) {
@@ -186,15 +231,22 @@ void FFNetwork::setHiddenActivationFunction(int func) {
   for (i = 0; i < numOfHidden; i++) {
     switch(func) {
     case LINEAR:
+      hiddenActivationFunction = LINEAR;
       hiddenNeurons[i]->setActivationFunction(linear, linearDeriv);
       break;
     case LOGSIG:
+      hiddenActivationFunction = LOGSIG;
       hiddenNeurons[i]->setActivationFunction(sigmoid, sigmoidDeriv);
     break;
     case TANH:
     default:
+      hiddenActivationFunction = TANH;
       hiddenNeurons[i]->setActivationFunction(hyperbole, hyperboleDeriv);
       break;
     }
   }
+}
+
+int FFNetwork::getHiddenActivationFunction() {
+  return hiddenActivationFunction;
 }

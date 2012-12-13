@@ -61,17 +61,27 @@ PyObject *FFNetwork_connectHToH(PyFFNetwork *self, PyObject *args, PyObject *kwa
 
   PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
 
-  PyObject *FFNetwork_setOutputActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+  PyObject *FFNetwork_getNeuronWeightsOfHidden(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
 
-  PyObject *FFNetwork_setHiddenActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+  PyObject *FFNetwork_getInputWeightsOfHidden(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
+  PyObject *FFNetwork_getNeuronWeightsOfOutput(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
+
+  PyObject *FFNetwork_getInputWeightsOfOutput(PyFFNetwork *self, PyObject *args, PyObject *kwargs);
 
 
 /*
  * Getters and Setters
  */
-PyObject *FFNetwork_getNumOfInputs(PyFFNetwork *self, void *closure);
-PyObject *FFNetwork_getNumOfHidden(PyFFNetwork *self, void *closure);
-PyObject *FFNetwork_getNumOfOutputs(PyFFNetwork *self, void *closure);
+  PyObject *FFNetwork_getNumOfInputs(PyFFNetwork *self, void *closure);
+  PyObject *FFNetwork_getNumOfHidden(PyFFNetwork *self, void *closure);
+  PyObject *FFNetwork_getNumOfOutputs(PyFFNetwork *self, void *closure);
+
+
+  PyObject *FFNetwork_getOutputActivationFunction(PyFFNetwork *self, void *closure);
+  PyObject *FFNetwork_getHiddenActivationFunction(PyFFNetwork *self, void *closure);
+  int FFNetwork_setOutputActivationFunction(PyFFNetwork *self, PyObject *value, void *closure);
+  int FFNetwork_setHiddenActivationFunction(PyFFNetwork *self, PyObject *value, void *closure);
 
 /*
  * Pickle methods

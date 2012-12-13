@@ -267,52 +267,192 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
 
 }
 
-  PyObject *FFNetwork_setOutputActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
-    int i;
+  PyObject *FFNetwork_getNeuronWeightsOfHidden(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    int id;
     // Check inputs
-    static char *kwlist[] = {(char*)"activationFunction", NULL};
+    static char *kwlist[] = {(char*)"hiddenId", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
-                                     &i)) {
-      PyErr_Format(PyExc_ValueError, "Expected an integer value, check ann.ffnetwork.LINEAR etc");
+                                     &id)) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes");
       return NULL;
     }
 
-    self->net->setOutputActivationFunction(i);
-
-    // Return None
-    return Py_BuildValue("");
-  }
-
-  PyObject *FFNetwork_setHiddenActivationFunction(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
-    int i;
-    // Check inputs
-    static char *kwlist[] = {(char*)"activationFunction", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
-                                     &i)) {
-      PyErr_Format(PyExc_ValueError, "Expected an integer value, check ann.ffnetwork.LINEAR etc");
+    if (id < 0 || (unsigned int) id >= self->net->getNumOfHidden()) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
       return NULL;
     }
 
-    self->net->setHiddenActivationFunction(i);
+    try {
+      PyObject *d = PyDict_New();
+      unsigned int i;
+      for (i = 0;
+           i < self->net->getHiddenNeurons()[id]->neuronConnections->size();
+            i++) {
+         PyDict_SetItem(d,
+                        Py_BuildValue("i", self->net->getHiddenNeurons()[id]->neuronConnections->at(i).first->getId()),
+                        Py_BuildValue("d", self->net->getHiddenNeurons()[id]->neuronConnections->at(i).second));
+       }
 
-    // Return None
-    return Py_BuildValue("");
+       return d;
+     } catch (...) {
+       PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
+       return NULL;
+     }
+   }
+
+   PyObject *FFNetwork_getInputWeightsOfHidden(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+     int id;
+     // Check inputs
+     static char *kwlist[] = {(char*)"hiddenId", NULL};
+     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
+                                      &id)) {
+       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes");
+       return NULL;
+     }
+
+     if (id < 0 || (unsigned int) id >= self->net->getNumOfHidden()) {
+       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
+       return NULL;
+     }
+
+     try {
+       PyObject *d = PyDict_New();
+       unsigned int i;
+       for (i = 0;
+            i < self->net->getHiddenNeurons()[id]->inputConnections->size();
+            i++) {
+         PyDict_SetItem(d,
+                        Py_BuildValue("i", self->net->getHiddenNeurons()[id]->inputConnections->at(i).first),
+                        Py_BuildValue("d", self->net->getHiddenNeurons()[id]->inputConnections->at(i).second));
+       }
+
+       return d;
+     } catch (...) {
+       PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
+       return NULL;
+     }
+   }
+
+   PyObject *FFNetwork_getNeuronWeightsOfOutput(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+     int id;
+     // Check inputs
+     static char *kwlist[] = {(char*)"outputId", NULL};
+     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
+                                      &id)) {
+       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of output neurons");
+       return NULL;
+     }
+
+     if (id < 0 || (unsigned int) id >= self->net->getNumOfOutputs()) {
+       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
+       return NULL;
+     }
+
+     try {
+       PyObject *d = PyDict_New();
+       unsigned int i;
+       for (i = 0;
+            i < self->net->getOutputNeurons()[id]->neuronConnections->size();
+            i++) {
+         PyDict_SetItem(d,
+                        Py_BuildValue("i", self->net->getOutputNeurons()[id]->neuronConnections->at(i).first->getId()),
+                        Py_BuildValue("d", self->net->getOutputNeurons()[id]->neuronConnections->at(i).second));
+       }
+
+       return d;
+     } catch (...) {
+       PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
+       return NULL;
+     }
+   }
+
+   PyObject *FFNetwork_getInputWeightsOfOutput(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+     int id;
+    // Check inputs
+    static char *kwlist[] = {(char*)"outputId", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
+                                     &id)) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of output neurons.");
+      return NULL;
+    }
+
+    if (id < 0 || (unsigned int) id >= self->net->getNumOfOutputs()) {
+       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
+       return NULL;
+     }
+
+    try {
+      PyObject *d = PyDict_New();
+      unsigned int i;
+      for (i = 0;
+           i < self->net->getOutputNeurons()[id]->inputConnections->size();
+           i++) {
+        PyDict_SetItem(d,
+                       Py_BuildValue("i", self->net->getOutputNeurons()[id]->inputConnections->at(i).first),
+                       Py_BuildValue("d", self->net->getOutputNeurons()[id]->inputConnections->at(i).second));
+      }
+
+      return d;
+    } catch (...) {
+      PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
+      return NULL;
+    }
   }
 
 
 /*
  * Getters and setters
  */
-PyObject *FFNetwork_getNumOfInputs(PyFFNetwork *self, void *closure) {
+  PyObject *FFNetwork_getNumOfInputs(PyFFNetwork *self, void *closure) {
 	return Py_BuildValue("I", self->net->getNumOfInputs());
-}
-PyObject *FFNetwork_getNumOfHidden(PyFFNetwork *self, void *closure) {
+  }
+  PyObject *FFNetwork_getNumOfHidden(PyFFNetwork *self, void *closure) {
 	return Py_BuildValue("I", self->net->getNumOfHidden());
-}
-PyObject *FFNetwork_getNumOfOutputs(PyFFNetwork *self, void *closure) {
+  }
+  PyObject *FFNetwork_getNumOfOutputs(PyFFNetwork *self, void *closure) {
 	return Py_BuildValue("I", self->net->getNumOfOutputs());
+  }
+
+  PyObject *FFNetwork_getOutputActivationFunction(PyFFNetwork *self, void *closure) {
+	return Py_BuildValue("i", self->net->getOutputActivationFunction());
+  }
+  int FFNetwork_setOutputActivationFunction(PyFFNetwork *self, PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete this you bonehead");
+      return -1;
+    }
+
+    if (! PyInt_Check(value)) {
+      PyErr_SetString(PyExc_TypeError, "Function must be an integer. For example net.LOGSIG");
+      return 1;
+    }
+
+    long i = PyInt_AsLong(value);
+
+    self->net->setOutputActivationFunction((int)i);
+
+    return 0;
+  }
+
+  PyObject *FFNetwork_getHiddenActivationFunction(PyFFNetwork *self, void *closure) {
+	return Py_BuildValue("i", self->net->getHiddenActivationFunction());
+  }
+  int FFNetwork_setHiddenActivationFunction(PyFFNetwork *self, PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete this you bonehead");
+      return -1;
+    }
+
+    if (! PyInt_Check(value)) {
+      PyErr_SetString(PyExc_TypeError, "Function must be an integer. For example net.LOGSIG");
+      return 1;
+    }
+
+    long i = PyInt_AsLong(value);
+
+    self->net->setHiddenActivationFunction((int) i);
+
+    return 0;
+  }
+
 }
-
-
-}
-
