@@ -12,66 +12,66 @@
 
 extern "C" {
 
-/*
- * Python constructor
- * ------------------
- * Responsible for taking the python variables and converting them
- * to numbers the c++ constructor can understand.
- *
- * Constructor is of the form: FFNetwork(inputsize, hiddensize, outputsize)
- */
-PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
+  /*
+   * Python constructor
+   * ------------------
+   * Responsible for taking the python variables and converting them
+   * to numbers the c++ constructor can understand.
+   *
+   * Constructor is of the form: FFNetwork(inputsize, hiddensize, outputsize)
+   */
+  PyObject *FFNetwork_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 	PyFFNetwork *self = (PyFFNetwork*)type->tp_alloc(type, 0);
 
 	return (PyObject *) self;
-}
+  }
 
-/*
- * Python init
- * -----------
- */
-int FFNetwork_init(PyFFNetwork *self, PyObject *args, PyObject *kwds) {
+  /*
+   * Python init
+   * -----------
+   */
+  int FFNetwork_init(PyFFNetwork *self, PyObject *args, PyObject *kwds) {
 	static char *kwlist[] =
-                        { (char*)"numOfInputs", (char*)"numOfHidden", \
-                          (char*)"numOfOutputs", NULL };
+      { (char*)"numOfInputs", (char*)"numOfHidden",         \
+        (char*)"numOfOutputs", NULL };
 
-	 unsigned int numOfInputs, numOfHidden, numOfOutputs;
-        if (!PyArg_ParseTupleAndKeywords(args, kwds, "III", kwlist, &numOfInputs,
-                        &numOfHidden, &numOfOutputs)) {
-                PyErr_Format(PyExc_ValueError,
-                                "Arguments should be (all mandatory positive integers): numOfInputs, numOfHidden, numOfOutputs");
-                return -1;
-        }
+    unsigned int numOfInputs, numOfHidden, numOfOutputs;
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "III", kwlist, &numOfInputs,
+                                     &numOfHidden, &numOfOutputs)) {
+      PyErr_Format(PyExc_ValueError,
+                   "Arguments should be (all mandatory positive integers): numOfInputs, numOfHidden, numOfOutputs");
+      return -1;
+    }
 
 	self->net = new FFNetwork(numOfInputs, numOfHidden, numOfOutputs);
 
 	if (self->net == NULL)
-		return -1;
+      return -1;
 
 	self->net->initNodes();
 	return 0;
-}
+  }
 
-/*
- * Python destructor
- * -----------------
- */
-void FFNetwork_dealloc(PyFFNetwork *self) {
+  /*
+   * Python destructor
+   * -----------------
+   */
+  void FFNetwork_dealloc(PyFFNetwork *self) {
 	delete self->net;
 	Py_TYPE(self)->tp_free((PyObject*) self);
-}
+  }
 
-/*
- * Wrapper methods
- * ===============
- */
+  /*
+   * Wrapper methods
+   * ===============
+   */
 
-PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
+  PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
 	if (!(PyList_CheckExact(inputs)
-			|| (PyArray_NDIM(inputs) == 1 && PyArray_TYPE(inputs) == NPY_DOUBLE))) {
-		PyErr_Format(PyExc_ValueError,
-				"The input does not seem to be of a suitable list type. This method only accepts a python list or a 1D numpy array of doubles.");
-		return NULL;
+          || (PyArray_NDIM(inputs) == 1 && PyArray_TYPE(inputs) == NPY_DOUBLE))) {
+      PyErr_Format(PyExc_ValueError,
+                   "The input does not seem to be of a suitable list type. This method only accepts a python list or a 1D numpy array of doubles.");
+      return NULL;
 	}
 
 	// First convert to normal double array
@@ -82,25 +82,25 @@ PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
 
 	double dInputs[self->net->getNumOfInputs()];
 	for (int i = 0; (unsigned int)i < self->net->getNumOfInputs(); i++) {
-		if (pylist) {
-			// Actual python list
-			pyval = PyList_GetItem(inputs, i);
-			if (pyval == NULL) {
-				PyErr_Format(PyExc_ValueError,
-						"Something went wrong when iterating of input values. Possibly wrong length?");
-				return NULL;
-			}
-			dInputs[i] = PyFloat_AsDouble(pyval);
-		} else {
-			// Numpy array
-			ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, i);
-			if (ptr == NULL) {
-				PyErr_Format(PyExc_ValueError,
-						"Something went wrong when iterating of input values. Possibly wrong length?");
-				return NULL;
-			}
-			dInputs[i] = *ptr;
-		}
+      if (pylist) {
+        // Actual python list
+        pyval = PyList_GetItem(inputs, i);
+        if (pyval == NULL) {
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input values. Possibly wrong length?");
+          return NULL;
+        }
+        dInputs[i] = PyFloat_AsDouble(pyval);
+      } else {
+        // Numpy array
+        ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, i);
+        if (ptr == NULL) {
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input values. Possibly wrong length?");
+          return NULL;
+        }
+        dInputs[i] = *ptr;
+      }
 	}
 
 	// compute output
@@ -112,22 +112,22 @@ PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
 	PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
 	for (int i = 0; (unsigned int)i < self->net->getNumOfOutputs(); i++) {
-		ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, i);
-		*ptr = dResult[i];
+      ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, i);
+      *ptr = dResult[i];
 	}
 
 	return result;
-}
+  }
 
   PyObject *FFNetwork_connectHToH(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
     unsigned int i, j;
     double weight;
-    	// Check inputs
+    // Check inputs
     static char *kwlist[] = {(char*)"i", (char*)"j", (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
                                      &i, &j, &weight)) {
-		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
-		return NULL;
+      PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+      return NULL;
 	}
     // Make sure they are valid
     if (i >= self->net->getNumOfHidden() ||
@@ -144,16 +144,16 @@ PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
     return Py_BuildValue("");
   }
 
-PyObject *FFNetwork_connectHToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+  PyObject *FFNetwork_connectHToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
     unsigned int i, j;
     double weight;
-    	// Check inputs
+    // Check inputs
     static char *kwlist[] = {(char*)"hiddenIndex", (char*)"inputIndex", \
                              (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
                                      &i, &j, &weight)) {
-		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
-		return NULL;
+      PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+      return NULL;
 	}
     // Make sure they are valid
     if (i >= self->net->getNumOfHidden() ||
@@ -168,16 +168,16 @@ PyObject *FFNetwork_connectHToI(PyFFNetwork *self, PyObject *args, PyObject *kwa
     // return None
     return Py_BuildValue("");
 
-}
-PyObject *FFNetwork_connectHToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+  }
+  PyObject *FFNetwork_connectHToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
     unsigned int i;
     double weight;
-    	// Check inputs
+    // Check inputs
     static char *kwlist[] = {(char*)"hiddenIndex", (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Id", kwlist,
                                      &i, &weight)) {
-		PyErr_Format(PyExc_ValueError, "Expected integer i and double weight.");
-		return NULL;
+      PyErr_Format(PyExc_ValueError, "Expected integer i and double weight.");
+      return NULL;
 	}
     // Make sure they are valid
     if (i >= self->net->getNumOfHidden() ) {
@@ -191,18 +191,18 @@ PyObject *FFNetwork_connectHToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
     // return None
     return Py_BuildValue("");
 
-}
+  }
 
-PyObject *FFNetwork_connectOToH(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+  PyObject *FFNetwork_connectOToH(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
     unsigned int i, j;
     double weight;
-    	// Check inputs
+    // Check inputs
     static char *kwlist[] = {(char*)"outputIndex", (char*)"hiddenIndex", \
                              (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
                                      &i, &j, &weight)) {
-		PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
-		return NULL;
+      PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+      return NULL;
 	}
     // Make sure they are valid
     if (i >= self->net->getNumOfOutputs() ||
@@ -217,18 +217,18 @@ PyObject *FFNetwork_connectOToH(PyFFNetwork *self, PyObject *args, PyObject *kwa
     // return None
     return Py_BuildValue("");
 
-}
-PyObject *FFNetwork_connectOToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
-  unsigned int i, j;
-  double weight;
-  // Check inputs
-  static char *kwlist[] = {(char*)"outputIndex", (char*)"inputIndex", \
-                           (char*)"weight", NULL};
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
-                                   &i, &j, &weight)) {
-    PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
-    return NULL;
   }
+  PyObject *FFNetwork_connectOToI(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    unsigned int i, j;
+    double weight;
+    // Check inputs
+    static char *kwlist[] = {(char*)"outputIndex", (char*)"inputIndex", \
+                             (char*)"weight", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IId", kwlist,
+                                     &i, &j, &weight)) {
+      PyErr_Format(PyExc_ValueError, "Expected integers i, j and double weight.");
+      return NULL;
+    }
     // Make sure they are valid
     if (i >= self->net->getNumOfOutputs() ||
         j >= self->net->getNumOfInputs() ) {
@@ -242,16 +242,16 @@ PyObject *FFNetwork_connectOToI(PyFFNetwork *self, PyObject *args, PyObject *kwa
     // return None
     return Py_BuildValue("");
 
-}
-PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
-  unsigned int i;
+  }
+  PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    unsigned int i;
     double weight;
-    	// Check inputs
+    // Check inputs
     static char *kwlist[] = {(char*)"outputIndex", (char*)"weight", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Id", kwlist,
-					&i, &weight)) {
-		PyErr_Format(PyExc_ValueError, "Expected integer i and double weight.");
-		return NULL;
+                                     &i, &weight)) {
+      PyErr_Format(PyExc_ValueError, "Expected integer i and double weight.");
+      return NULL;
 	}
     // Make sure they are valid
     if (i >= self->net->getNumOfOutputs() ) {
@@ -265,7 +265,7 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
     // return None
     return Py_BuildValue("");
 
-}
+  }
 
   PyObject *FFNetwork_getNeuronWeightsOfHidden(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
     int id;
@@ -287,33 +287,33 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
       unsigned int i;
       for (i = 0;
            i < self->net->getHiddenNeurons()[id]->neuronConnections->size();
-            i++) {
-         PyDict_SetItem(d,
-                        Py_BuildValue("i", self->net->getHiddenNeurons()[id]->neuronConnections->at(i).first->getId()),
-                        Py_BuildValue("d", self->net->getHiddenNeurons()[id]->neuronConnections->at(i).second));
-       }
+           i++) {
+        PyDict_SetItem(d,
+                       Py_BuildValue("i", self->net->getHiddenNeurons()[id]->neuronConnections->at(i).first->getId()),
+                       Py_BuildValue("d", self->net->getHiddenNeurons()[id]->neuronConnections->at(i).second));
+      }
 
-       return d;
-     } catch (...) {
-       PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
-       return NULL;
-     }
-   }
+      return d;
+    } catch (...) {
+      PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
+      return NULL;
+    }
+  }
 
-   PyObject *FFNetwork_getInputWeightsOfHidden(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
-     int id;
-     // Check inputs
-     static char *kwlist[] = {(char*)"hiddenId", NULL};
-     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
-                                      &id)) {
-       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes");
-       return NULL;
-     }
+  PyObject *FFNetwork_getInputWeightsOfHidden(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    int id;
+    // Check inputs
+    static char *kwlist[] = {(char*)"hiddenId", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
+                                     &id)) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes");
+      return NULL;
+    }
 
-     if (id < 0 || (unsigned int) id >= self->net->getNumOfHidden()) {
-       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
-       return NULL;
-     }
+    if (id < 0 || (unsigned int) id >= self->net->getNumOfHidden()) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
+      return NULL;
+    }
 
      try {
        PyObject *d = PyDict_New();
@@ -331,43 +331,43 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
        PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
        return NULL;
      }
-   }
+  }
 
-   PyObject *FFNetwork_getNeuronWeightsOfOutput(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
-     int id;
-     // Check inputs
-     static char *kwlist[] = {(char*)"outputId", NULL};
-     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
-                                      &id)) {
-       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of output neurons");
-       return NULL;
-     }
+  PyObject *FFNetwork_getNeuronWeightsOfOutput(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    int id;
+    // Check inputs
+    static char *kwlist[] = {(char*)"outputId", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
+                                     &id)) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of output neurons");
+      return NULL;
+    }
 
-     if (id < 0 || (unsigned int) id >= self->net->getNumOfOutputs()) {
-       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
-       return NULL;
-     }
+    if (id < 0 || (unsigned int) id >= self->net->getNumOfOutputs()) {
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
+      return NULL;
+    }
 
-     try {
-       PyObject *d = PyDict_New();
-       unsigned int i;
-       for (i = 0;
-            i < self->net->getOutputNeurons()[id]->neuronConnections->size();
-            i++) {
-         PyDict_SetItem(d,
-                        Py_BuildValue("i", self->net->getOutputNeurons()[id]->neuronConnections->at(i).first->getId()),
-                        Py_BuildValue("d", self->net->getOutputNeurons()[id]->neuronConnections->at(i).second));
-       }
+    try {
+      PyObject *d = PyDict_New();
+      unsigned int i;
+      for (i = 0;
+           i < self->net->getOutputNeurons()[id]->neuronConnections->size();
+           i++) {
+        PyDict_SetItem(d,
+                       Py_BuildValue("i", self->net->getOutputNeurons()[id]->neuronConnections->at(i).first->getId()),
+                       Py_BuildValue("d", self->net->getOutputNeurons()[id]->neuronConnections->at(i).second));
+      }
 
-       return d;
-     } catch (...) {
-       PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
-       return NULL;
-     }
-   }
+      return d;
+    } catch (...) {
+      PyErr_Format(PyExc_ValueError, "A C++ exception was raised");
+      return NULL;
+    }
+  }
 
-   PyObject *FFNetwork_getInputWeightsOfOutput(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
-     int id;
+  PyObject *FFNetwork_getInputWeightsOfOutput(PyFFNetwork *self, PyObject *args, PyObject *kwargs) {
+    int id;
     // Check inputs
     static char *kwlist[] = {(char*)"outputId", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist,
@@ -377,9 +377,9 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
     }
 
     if (id < 0 || (unsigned int) id >= self->net->getNumOfOutputs()) {
-       PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
-       return NULL;
-     }
+      PyErr_Format(PyExc_ValueError, "Expected an integer value, less than number of hidden nodes and positive");
+      return NULL;
+    }
 
     try {
       PyObject *d = PyDict_New();
@@ -400,9 +400,9 @@ PyObject *FFNetwork_connectOToB(PyFFNetwork *self, PyObject *args, PyObject *kwa
   }
 
 
-/*
- * Getters and setters
- */
+  /*
+   * Getters and setters
+   */
   PyObject *FFNetwork_getNumOfInputs(PyFFNetwork *self, void *closure) {
 	return Py_BuildValue("I", self->net->getNumOfInputs());
   }

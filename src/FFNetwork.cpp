@@ -33,7 +33,11 @@ FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 }
 
 FFNetwork::~FFNetwork() {
-	delete this->bias;
+  deleteNeurons();
+}
+
+void FFNetwork::deleteNeurons() {
+  	delete this->bias;
 
 	unsigned int i;
 	for (i = 0; i < this->numOfHidden; i++) {
@@ -47,6 +51,10 @@ FFNetwork::~FFNetwork() {
 	delete[] this->outputNeurons;
 }
 
+void FFNetwork::resetNodes() {
+  deleteNeurons();
+  initNodes();
+}
 
 void FFNetwork::initNodes() {
   hiddenActivationFunction = TANH;
@@ -106,7 +114,13 @@ void FFNetwork::connectOToB(unsigned int outputIndex, double weight) {
 		throw invalid_argument(
 				"Can not connect to outputIndex which is greater than number of outputs!\n");
 	}
-	outputNeurons[outputIndex]->connectToNeuron(bias, weight);
+    unsigned int i;
+    for (i = 0; i < numOfOutput; i++) {
+      if ((unsigned int)outputNeurons[i]->getId() == outputIndex) {
+        outputNeurons[i]->connectToNeuron(bias, weight);
+        break;
+      }
+    }
 }
 
 void FFNetwork::connectOToI(unsigned int outputIndex, unsigned int inputIndex,
@@ -119,7 +133,14 @@ void FFNetwork::connectOToI(unsigned int outputIndex, unsigned int inputIndex,
 		throw invalid_argument(
 				"Can not connect to outputIndex which is greater than number of outputs!\n");
 	}
-	outputNeurons[outputIndex]->connectToInput(inputIndex, weight);
+
+    unsigned int i;
+    for (i = 0; i < numOfOutput; i++) {
+      if ((unsigned int)outputNeurons[i]->getId() == outputIndex) {
+        outputNeurons[i]->connectToInput(inputIndex, weight);
+        break;
+      }
+    }
 }
 
 void FFNetwork::connectOToH(unsigned int outputIndex, unsigned int hiddenIndex,
@@ -132,8 +153,29 @@ void FFNetwork::connectOToH(unsigned int outputIndex, unsigned int hiddenIndex,
 		throw invalid_argument(
 				"Can not connect to outputIndex which is greater than number of outputs!\n");
 	}
-	outputNeurons[outputIndex]->connectToNeuron(hiddenNeurons[hiddenIndex],
-			weight);
+
+    unsigned int i;
+    Neuron *from, *to;
+    for (i = 0; i < numOfOutput; i++) {
+      if ((unsigned int)outputNeurons[i]->getId() == outputIndex) {
+        from = outputNeurons[i];
+        break;
+      }
+    }
+    for (i = 0; i < numOfHidden; i++) {
+      if ((unsigned int)hiddenNeurons[i]->getId() == hiddenIndex) {
+        to = hiddenNeurons[i];
+        break;
+      }
+    }
+
+    if (from == NULL || to == NULL) {
+      throw invalid_argument(
+                             "Could not locate neurons with specified ids\n");
+    } else {
+      from->connectToNeuron(to,
+                            weight);
+    }
 }
 
 void FFNetwork::connectHToB(unsigned int hiddenIndex, double weight) {
@@ -141,8 +183,13 @@ void FFNetwork::connectHToB(unsigned int hiddenIndex, double weight) {
 		throw invalid_argument(
 				"Can not connect iddenIndex which is greater than number of hidden!\n");
 	}
-
-	hiddenNeurons[hiddenIndex]->connectToNeuron(bias, weight);
+    unsigned int i;
+    for (i = 0; i < numOfHidden; i++) {
+      if ((unsigned int)hiddenNeurons[i]->getId() == hiddenIndex) {
+        hiddenNeurons[i]->connectToNeuron(bias, weight);
+        break;
+      }
+    }
 }
 
 void FFNetwork::connectHToI(unsigned int hiddenIndex, unsigned int inputIndex,
@@ -155,7 +202,13 @@ void FFNetwork::connectHToI(unsigned int hiddenIndex, unsigned int inputIndex,
 		throw invalid_argument(
 				"Can not connect to inputIndex which is greater than number of inputs!\n");
 	}
-	hiddenNeurons[hiddenIndex]->connectToInput(inputIndex, weight);
+    unsigned int i;
+    for (i = 0; i < numOfHidden; i++) {
+      if ((unsigned int)hiddenNeurons[i]->getId() == hiddenIndex) {
+        hiddenNeurons[i]->connectToInput(inputIndex, weight);
+        break;
+      }
+    }
 }
 
 void FFNetwork::connectHToH(unsigned int firstIndex, unsigned int secondIndex,
@@ -164,8 +217,29 @@ void FFNetwork::connectHToH(unsigned int firstIndex, unsigned int secondIndex,
 		throw invalid_argument(
 				"Can not connect hiddenIndex which is greater than number of hidden!\n");
 	}
-	hiddenNeurons[firstIndex]->connectToNeuron(hiddenNeurons[secondIndex],
-			weight);
+    unsigned int i;
+    Neuron *from, *to;
+    for (i = 0; i < numOfHidden; i++) {
+      if ((unsigned int)hiddenNeurons[i]->getId() == firstIndex) {
+        from = hiddenNeurons[i];
+        break;
+      }
+    }
+    for (i = 0; i < numOfHidden; i++) {
+      if ((unsigned int)hiddenNeurons[i]->getId() == secondIndex) {
+        to = hiddenNeurons[i];
+        break;
+      }
+    }
+
+    if (from == NULL || to == NULL) {
+      throw invalid_argument(
+                             "Could not locate neurons with specified ids\n");
+    } else {
+      from->connectToNeuron(to,
+                            weight);
+    }
+
 }
 
 bool FFNetwork::getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight) {

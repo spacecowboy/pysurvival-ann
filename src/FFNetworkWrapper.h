@@ -8,7 +8,7 @@
 #ifndef FFNETWORKWRAPPER_H_
 #define FFNETWORKWRAPPER_H_
 
-#include "Python.h"
+#include "PythonModule.h"
 #include "structmember.h" // used to declare member list
 #include "FFNetwork.h"
 

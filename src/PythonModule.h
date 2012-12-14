@@ -22,6 +22,7 @@
 
   #define PyInt_FromLong PyLong_FromLong
   #define PyInt_AsLong  PyLong_AsLong
+  #define PyInt_Check PyLong_Check
 
 #else
   #define MOD_ERROR_VAL

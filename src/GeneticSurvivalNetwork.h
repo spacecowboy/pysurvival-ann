@@ -48,8 +48,10 @@ class GeneticSurvivalNetwork: public FFNetwork {
                      double mutationChance, double stdDev,
                      int deviationHalfPoint, int epoch);
 
-  // Makes this network into a clone of the original. Assumes equal structure.
+  // Makes this network into a clone of the original. Assumes equal iteration.
   void cloneNetwork(GeneticSurvivalNetwork *original);
+  // Makes this network into a clone of the original. Does NOT assume same order.
+  void cloneNetworkSlow(GeneticSurvivalNetwork *original);
   unsigned int getGenerations() const;
   void setGenerations(unsigned int generations);
   unsigned int getPopulationSize() const;
@@ -72,6 +74,8 @@ public:
 	// Makes this neuron into a copy of the original. Assumes equal structure
 	// Only copies the weights for the connections with equal number
 	void cloneNeuron(Neuron *original);
+    // Does not assume equal iteration order
+    void cloneNeuronSlow(Neuron *original);
 	// With some probability will change the weights (not replace them!)
 	void mutateWeights(
 			boost::variate_generator<boost::mt19937&,

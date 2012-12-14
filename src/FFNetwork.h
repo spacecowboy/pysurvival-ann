@@ -54,6 +54,15 @@ public:
 	 */
 	virtual void initNodes();
 
+    /**
+     * Re-creates all neurons to reset connections
+     */
+    virtual void resetNodes();
+    /**
+     * Deletes all neurons from memory.
+     */
+    virtual void deleteNeurons();
+
 	/**
 	 * Returns the pointer given as output, so pay no attention to return object
 	 * if not wanted.
