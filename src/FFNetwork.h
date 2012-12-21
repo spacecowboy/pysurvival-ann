@@ -67,7 +67,7 @@ public:
 	 * Returns the pointer given as output, so pay no attention to return object
 	 * if not wanted.
 	 */
-	double *output(double *inputs, double *output);
+	virtual double *output(double *inputs, double *output);
 
     /**
      * Sets the activation function of the output layer
@@ -116,11 +116,11 @@ public:
 	 */
 	void connectOToB(unsigned int outputIndex, double weight);
 
-    Neuron** getHiddenNeurons() const;
-	unsigned int getNumOfHidden() const;
-	unsigned int getNumOfInputs() const;
-	unsigned int getNumOfOutputs() const;
-	Neuron** getOutputNeurons() const;
+    virtual Neuron* getHiddenNeuron(unsigned int id) const;
+	virtual unsigned int getNumOfHidden() const;
+	virtual unsigned int getNumOfInputs() const;
+	virtual unsigned int getNumOfOutputs() const;
+	virtual Neuron* getOutputNeuron(unsigned int id) const;
 
 	Neuron* getBias() const {
 		return bias;
@@ -129,8 +129,8 @@ public:
     /*
      * Return the weight that toId is connected to fromId with
      */
-    bool getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight);
-    bool getInputWeightFromHidden(unsigned int fromId, unsigned int toIndex, double *weight);
+    virtual bool getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight);
+    virtual bool getInputWeightFromHidden(unsigned int fromId, unsigned int toIndex, double *weight);
 
     bool getNeuronWeightFromOutput(unsigned int fromId, int toId, double *weight);
     bool getInputWeightFromOutput(unsigned int fromId, unsigned int toIndex, double *weight);

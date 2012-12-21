@@ -15,6 +15,7 @@
 #include "GeneticSurvivalNetworkWrapper.h"
 #include "activationfunctions.h"
 #include "CIndexWrapper.h"
+#include "CascadeNetworkWrapper.h"
 
 /*
  * FFNetwork
@@ -292,6 +293,80 @@ static PyTypeObject GenSurvNetworkType = {
 
 
 /*
+ * Cascade network
+ * ========================
+ */
+
+/*
+ * Public Python methods
+ * ---------------------
+ */
+static PyMethodDef CascadeNetworkMethods[] =
+{
+  {NULL}, // So that we can iterate safely below
+};
+
+/*
+ * Public Python members with get/setters
+ * --------------------------------------
+ */
+static PyGetSetDef CascadeNetworkGetSetters[] = {
+  {(char*)"maxHidden", (getter)CascadeNetwork_getMaxHidden, \
+   (setter)CascadeNetwork_setMaxHidden,                       \
+   (char*)"Maximum allowed number of hidden neurons to create", NULL},
+  {(char*)"maxHiddenEpochs", (getter)CascadeNetwork_getMaxHiddenEpochs,   \
+   (setter)CascadeNetwork_setMaxHiddenEpochs,                            \
+   (char*)"Maximum allowed epochs to train each hidden neuron with", NULL},
+  {NULL} // Sentinel
+};
+
+/*
+ *  * Python type declaration
+ *   * -----------------------
+ *    */
+static PyTypeObject CascadeNetworkType = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+        "_ann.cascadenetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+        sizeof(PyCascadeNetwork),                                    /* tp_basicsize */
+        0,                                              /* tp_itemsize */
+        0,                  /* tp_dealloc */
+        0,                                              /* tp_print */
+        0,                                              /* tp_getattr */
+        0,                                              /* tp_setattr */
+        0,                                              /* tp_compare */
+        0,                                              /* tp_repr */
+        0,                                              /* tp_as_number */
+        0,                                              /* tp_as_sequence */
+        0,                                              /* tp_as_mapping */
+        0,                                              /* tp_hash */
+        0,                                              /* tp_call */
+        0,                                              /* tp_str */
+        0,                                              /* tp_getattro */
+        0,                                              /* tp_setattro */
+        0,                                              /* tp_as_buffer */
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+        "An implementation of the Cascade correlation algorithm. Layers are trained with RProp.",                       /* tp_doc */
+        0,                                              /* tp_traverse */
+        0,                                              /* tp_clear */
+        0,                                              /* tp_richcompare */
+        0,                                              /* tp_weaklistoffset */
+        0,                                              /* tp_iter */
+        0,                                              /* tp_iternext */
+        CascadeNetworkMethods,                                       /* tp_methods */
+        0,                                       /* tp_members */
+        CascadeNetworkGetSetters,                                            /* tp_getset */
+        0,                                              /* tp_base */
+        0,                                              /* tp_dict */
+        0,                                              /* tp_descr_get */
+        0,                                              /* tp_descr_set */
+        0,                                              /* tp_dictoffset */
+       (initproc)CascadeNetwork_init,                               /* tp_init */
+        0,                                              /* tp_alloc */
+        0,                                  /* tp_new */
+};
+
+
+/*
  * Python module declaration
  * =========================
  */
@@ -365,6 +440,20 @@ extern "C" {
 
     Py_INCREF(&GenSurvNetworkType);
     PyModule_AddObject(mod, "gensurvnetwork", (PyObject*)&GenSurvNetworkType);
+
+    /*
+     * CascadeNetwork
+     */
+    CascadeNetworkType.tp_base = &RPropNetworkType;
+    if (PyType_Ready(&CascadeNetworkType) < 0) {
+      Py_DECREF(&FFNetworkType);
+      Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&GenSurvNetworkType);
+      return MOD_ERROR_VAL;
+    }
+
+    Py_INCREF(&CascadeNetworkType);
+    PyModule_AddObject(mod, "cascadenetwork", (PyObject*)&CascadeNetworkType);
 
     return MOD_SUCCESS_VAL(mod);
   }

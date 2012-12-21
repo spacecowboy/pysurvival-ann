@@ -89,8 +89,8 @@ double *FFNetwork::output(double *inputs, double *output) {
 	return output;
 }
 
-Neuron** FFNetwork::getHiddenNeurons() const {
-	return hiddenNeurons;
+Neuron* FFNetwork::getHiddenNeuron(unsigned int id) const {
+	return hiddenNeurons[id];
 }
 
 unsigned int FFNetwork::getNumOfHidden() const {
@@ -105,8 +105,8 @@ unsigned int FFNetwork::getNumOfOutputs() const {
 	return numOfOutput;
 }
 
-Neuron** FFNetwork::getOutputNeurons() const {
-	return outputNeurons;
+Neuron* FFNetwork::getOutputNeuron(unsigned int id) const {
+	return outputNeurons[id];
 }
 
 void FFNetwork::connectOToB(unsigned int outputIndex, double weight) {

@@ -46,7 +46,7 @@ public:
 	 *
 	 * Or called directly with network error derivative if this is an output node.
 	 */
-	void addLocalError(double error);
+	virtual void addLocalError(double error);
 
 	/*
 	 * Once the sum is completed by all calls to addLocalError, this method
@@ -58,14 +58,14 @@ public:
 	 *
 	 * This method calls addLocalError on connected nodes.
 	 */
-	void calcLocalDerivative(double *inputs);
+	virtual void calcLocalDerivative(double *inputs);
 
 	/*
 	 * Once you've calculated the derivative sum for the batch in question, call
 	 * this to apply the weight update. Will clear private variables afterward except
 	 * for previousValues which are given the values calculated this round.
 	 */
-	void applyWeightUpdates();
+	virtual void applyWeightUpdates();
 };
 
 class RPropBias: public RPropNeuron {
@@ -91,12 +91,12 @@ public:
 	int printEpoch;
 
 	RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden, unsigned int numOfOutput);
-	void initNodes();
+	virtual void initNodes();
 	/*
 	 * Uses the RProp algorithm to train the network. X is an array of input arrays.
 	 * Y is an array of target outputs. total length is 'rows * numOfInputs'
 	 */
-	void learn(double *X, double *Y, unsigned int rows);
+	virtual void learn(double *X, double *Y, unsigned int rows);
 	unsigned int getMaxEpochs() const;
 	void setMaxEpochs(unsigned int maxEpochs);
 	double getMaxError() const;
@@ -112,5 +112,9 @@ public:
  */
 RPropNetwork* getRPropNetwork(unsigned int numOfInputs,
 		unsigned int numOfHidden);
+
+double SSE(double target, double output);
+double *SSEs(double *target, double *output, int length);
+signed int sign(double x);
 
 #endif /* RPROPNETWORK_H_ */

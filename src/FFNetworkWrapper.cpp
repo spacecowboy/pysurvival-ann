@@ -286,11 +286,11 @@ extern "C" {
       PyObject *d = PyDict_New();
       unsigned int i;
       for (i = 0;
-           i < self->net->getHiddenNeurons()[id]->neuronConnections->size();
+           i < self->net->getHiddenNeuron(id)->neuronConnections->size();
            i++) {
         PyDict_SetItem(d,
-                       Py_BuildValue("i", self->net->getHiddenNeurons()[id]->neuronConnections->at(i).first->getId()),
-                       Py_BuildValue("d", self->net->getHiddenNeurons()[id]->neuronConnections->at(i).second));
+                       Py_BuildValue("i", self->net->getHiddenNeuron(id)->neuronConnections->at(i).first->getId()),
+                       Py_BuildValue("d", self->net->getHiddenNeuron(id)->neuronConnections->at(i).second));
       }
 
       return d;
@@ -319,11 +319,11 @@ extern "C" {
        PyObject *d = PyDict_New();
        unsigned int i;
        for (i = 0;
-            i < self->net->getHiddenNeurons()[id]->inputConnections->size();
+            i < self->net->getHiddenNeuron(id)->inputConnections->size();
             i++) {
          PyDict_SetItem(d,
-                        Py_BuildValue("i", self->net->getHiddenNeurons()[id]->inputConnections->at(i).first),
-                        Py_BuildValue("d", self->net->getHiddenNeurons()[id]->inputConnections->at(i).second));
+                        Py_BuildValue("i", self->net->getHiddenNeuron(id)->inputConnections->at(i).first),
+                        Py_BuildValue("d", self->net->getHiddenNeuron(id)->inputConnections->at(i).second));
        }
 
        return d;
@@ -352,11 +352,11 @@ extern "C" {
       PyObject *d = PyDict_New();
       unsigned int i;
       for (i = 0;
-           i < self->net->getOutputNeurons()[id]->neuronConnections->size();
+           i < self->net->getOutputNeuron(id)->neuronConnections->size();
            i++) {
         PyDict_SetItem(d,
-                       Py_BuildValue("i", self->net->getOutputNeurons()[id]->neuronConnections->at(i).first->getId()),
-                       Py_BuildValue("d", self->net->getOutputNeurons()[id]->neuronConnections->at(i).second));
+                       Py_BuildValue("i", self->net->getOutputNeuron(id)->neuronConnections->at(i).first->getId()),
+                       Py_BuildValue("d", self->net->getOutputNeuron(id)->neuronConnections->at(i).second));
       }
 
       return d;
@@ -385,11 +385,11 @@ extern "C" {
       PyObject *d = PyDict_New();
       unsigned int i;
       for (i = 0;
-           i < self->net->getOutputNeurons()[id]->inputConnections->size();
+           i < self->net->getOutputNeuron(id)->inputConnections->size();
            i++) {
         PyDict_SetItem(d,
-                       Py_BuildValue("i", self->net->getOutputNeurons()[id]->inputConnections->at(i).first),
-                       Py_BuildValue("d", self->net->getOutputNeurons()[id]->inputConnections->at(i).second));
+                       Py_BuildValue("i", self->net->getOutputNeuron(id)->inputConnections->at(i).first),
+                       Py_BuildValue("d", self->net->getOutputNeuron(id)->inputConnections->at(i).second));
       }
 
       return d;

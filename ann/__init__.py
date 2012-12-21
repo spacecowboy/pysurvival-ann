@@ -7,7 +7,8 @@ Should write intended usage here...
 
 from __future__ import division
 from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
-                   gensurvnetwork as _gensurvnetwork, get_C_index)
+                   gensurvnetwork as _gensurvnetwork, get_C_index,
+                   cascadenetwork as _cascadenetwork)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
@@ -52,6 +53,13 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden):
 
     return net
 
+def getCascadeNetwork(numOfInputs):
+    '''Returns a connected cascade network with the specified
+    amount of input neurons, ready to be trained.
+    '''
+    net = cascadenetwork(numOfInputs)
+    connectAsShortcutNLayer(net, [])
+    return net
 
 def connectAsSingleLayer(net):
     '''Given an unconnected network, will connect it as a single layer'''
@@ -100,6 +108,48 @@ def connectAsNLayer(net, layers):
         for h in prev_layer:
             net.connectOToH(o, h, uniform(-0.5, 0.5))
 
+def connectAsShortcutNLayer(net, layers):
+    '''
+    All neurons are connected to all previous neurons/inputs.
+    Second argument describes hidden layer structure. Each layer
+    is fully connected to all previous layers.
+
+    E.g. layers = [4, 2].
+    '''
+    net.outputActivationFunction = net.LOGSIG
+    net.hiddenActivationFunction = net.TANH
+
+    if sum(layers) != net.numOfHidden:
+        raise ValueError("Sum of layers do not match numOfHidden!")
+
+    prev_layer = []
+    prev_layers = []
+    total_count = 0
+    for l, layer_count in enumerate(layers):
+        current_layer = range(total_count, total_count + layer_count)
+        for h in current_layer:
+            net.connectHToB(h, uniform(-0.5, 0.5))
+
+            for i in range(net.numOfInputs):
+                net.connectHToI(h, i, uniform(-0.5, 0.5))
+
+            # Only previous layers
+            for i in prev_layer[:i]:
+                net.connectHToH(h, i, uniform(-0.5, 0.5))
+
+        total_count += layer_count
+        prev_layer = current_layer
+        prev_layers.append(prev_layer)
+
+    for o in range(net.numOfOutputs):
+        net.connectOToB(o, uniform(-0.5, 0.5))
+        for i in range(net.numOfInputs):
+            net.connectOToI(o, i, uniform(-0.5, 0.5))
+
+        for neurons in prev_layers:
+            for h in neurons:
+                net.connectOToH(o, h, uniform(-0.5, 0.5))
+
 
 def getWeights(net):
     '''Returns a 2d-array of the weights in this network.
@@ -124,7 +174,7 @@ def getWeights(net):
                 row[0] = weight
             else:
                 #Hidden neuron
-                row[1 + numOfInputs + id] = weight
+                row[1 + net.numOfInputs + id] = weight
 
         if rows is None:
             #This is total array so far
@@ -250,6 +300,10 @@ class ffnetwork(_ffnetwork):
 
 @UtilFuncs
 class rpropnetwork(_rpropnetwork):
+    pass
+
+@UtilFuncs
+class cascadenetwork(_cascadenetwork):
     pass
 
 @UtilFuncs
