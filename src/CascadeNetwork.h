@@ -39,6 +39,8 @@ class CascadeNetwork : public RPropNetwork {
 
  public:
   CascadeNetwork(unsigned int numOfInputs, unsigned int numOfOutput);
+  // delete hiddenRCascadeNeurons!
+  virtual ~CascadeNetwork();
   virtual void initNodes();
   /*
    * X is an array of input arrays.

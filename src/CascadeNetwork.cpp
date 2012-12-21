@@ -1,7 +1,7 @@
 /*
-  A network which trains by use of the cascade correlation algorithm.
-  RProp is used to train both output layer and hidden layers.
-*/
+ * A network which trains by use of the cascade correlation algorithm.
+ * RProp is used to train both output layer and hidden layers.
+ */
 
 #include "CascadeNetwork.h"
 #include "RPropNetwork.h"
@@ -16,9 +16,22 @@ using namespace std;
 
 CascadeNetwork::CascadeNetwork(unsigned int numOfInputs,
                                  unsigned int numOfOutput) :
-  RPropNetwork(numOfInputs, 0, numOfOutput) {
+  RPropNetwork(numOfInputs, 0, numOfOutput)
+{
   maxHidden = 30;
   maxHiddenEpochs = 1000;
+}
+
+CascadeNetwork::~CascadeNetwork() {
+  if (hiddenRCascadeNeurons != NULL) {
+    RCascadeNeuron *neuron;
+    while (hiddenRCascadeNeurons->size() > 0) {
+      neuron = hiddenRCascadeNeurons->back();
+      delete neuron;
+      hiddenRCascadeNeurons->pop_back();
+    }
+    delete hiddenRCascadeNeurons;
+  }
 }
 
 void CascadeNetwork::initNodes() {
