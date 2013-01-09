@@ -55,6 +55,87 @@ double get_C_index(double *Y, double *T, unsigned int length)
     }
 };
 
+
+
+/*
+  Same as normal C-index, but also returns the values for the individual
+patients (e.g. what fraction of comparisons were correct for each patient).
+Result is also (1 - C), to conform to ANN training where the error is of
+interest, not the performance.
+
+Used in CoxCascadeCorrelation.
+
+C index always operates on A[N][2] targets. So total length is actually
+length*2. Length is the number of rows. The 2 is implicit.
+The Y vector on the other hand is an A[N] array! Be wary of this.
+ */
+double getPatError(double *Y, double *T, unsigned int length, double *patError)
+{
+	double total = 0, sum = 0, Tx1, Ty1, Tx0, Ty0, outputsx0, outputsy0;
+	unsigned int countx,county;
+
+    unsigned int patTotal, patSum;
+
+	for(countx = 0; countx < length; countx++) {
+      // x is the patient
+      patTotal = 0;
+      patSum = 0;
+
+		Tx0 = T[countx*2];
+		Tx1 = T[countx*2 + 1];
+		outputsx0 = Y[countx];
+
+        //printf("targ: %f out: %f\n", Tx0, outputsx0);
+
+		for(county = 0; county < length; county++) {
+			if(countx == county)
+			    continue;
+
+			Ty0 = T[county*2];
+			Ty1 = T[county*2 + 1];
+			outputsy0 = Y[county];
+
+			if(Tx1 == 1 && Ty1 == 1) {
+              //Non-censored, compare with all other non-censored
+				if (Tx0 < Ty0) {
+					total++;
+                    patTotal++;
+					if (outputsx0 < outputsy0) {
+						sum++;
+                        patSum++;
+					}
+				}
+			}
+			else if(Tx1 == 1) { //Non-censored and censored. Compare if
+				// Compare noncensored with later censored
+				// X noncensored
+				if(Tx0 < Ty0) {
+					total++;
+                    patTotal++;
+					if(outputsx0 < outputsy0) {
+						sum++;
+                        patSum++;
+                    }
+				}
+			}
+		}
+        // Set value for this patient
+        if (patSum == 0)
+          patError[countx] = 1;
+        else
+          patError[countx] = 1 - patSum / patTotal;
+	}
+
+    if (sum == 0) {
+      //printf("Nothing was in concordance\n");
+      return 1;
+    } else {
+      return 1 - sum / total;
+    }
+};
+
+
+
 /*
 static PyMethodDef methods[] = {
 	{"derivative_beta", // Function name, as seen from python
