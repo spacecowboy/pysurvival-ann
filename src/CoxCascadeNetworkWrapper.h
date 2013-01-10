@@ -17,6 +17,14 @@ extern "C" {
  */
   int CoxCascadeNetwork_init(PyCoxCascadeNetwork *self, PyObject *args, PyObject *kwds);
 
+/*
+ * Wrapper methods
+ * ===============
+ */
+
+  PyObject *CoxCascadeNetwork_learn(PyCoxCascadeNetwork *self, PyObject *args, PyObject *kwargs);
+
+
 }
 
 #endif /* _COXCASCADENETWORKWRAPPER_H_ */

@@ -47,6 +47,7 @@ void CoxCascadeNetwork::initNodes() {
 void CoxCascadeNetwork::trainOutputs(double *X, double *Y, unsigned int rows) {
   unsigned int i;
   for (i = 0; i < this->numOfOutput; i++) {
+    cout << "Calling fit\n";
     ((CoxNeuron*) this->outputNeurons[i])->fit(X, Y, rows);
   }
 }
@@ -58,11 +59,14 @@ void CoxCascadeNetwork::trainOutputs(double *X, double *Y, unsigned int rows) {
 void CoxCascadeNetwork::calcErrors(double *X, double *Y, unsigned int rows,
                                 double *patError, double *error,
                                 double *outputs) {
+  cout << "calcErrors\n";
   // Zero error array first
   memset(error, 0, numOfOutput * sizeof(double));
 
   // There is only one output neuron...
+  cout << "calling output\n";
   ((CoxNeuron*) this->outputNeurons[0])->output(X, rows, outputs);
+  cout << "calling getPatError\n";
   error[0] = getPatError(outputs, Y, rows, patError);
 }
 
@@ -74,10 +78,12 @@ CoxNeuron::CoxNeuron(int id) :
   Neuron(id) {
   // Create R environment
   R = new RInside(0, NULL);
+  R->parseEval("library(survival)");
 }
 
 CoxNeuron::~CoxNeuron() {
   // Destroy R environment
+  R->parseEval("warnings()");
   delete R;
 }
 
@@ -90,6 +96,7 @@ void CoxNeuron::convertToRColumns(double *X, double *Y, unsigned int rows,
                                   Rcpp::CharacterVector *colNames,
                                   vector<vector<double>*>
                                   *listOfColumns) {
+  cout << "convertToRColumns\n";
   // Number of hidden neurons
   unsigned int nsize = this->neuronConnections->size();
 
@@ -100,9 +107,11 @@ void CoxNeuron::convertToRColumns(double *X, double *Y, unsigned int rows,
     if (col == 0) {
       // Time column
       colNames->push_back("time");
+      cout << "time, ";
     } else if (col == 1) {
       // Event column
       colNames->push_back("event");
+      cout << "event, ";
     } else if (col < 2 + this->inputConnections->size()) {
       // Input columns
       stringstream sstm;
@@ -110,6 +119,7 @@ void CoxNeuron::convertToRColumns(double *X, double *Y, unsigned int rows,
       i++;
       // Add name
       colNames->push_back(sstm.str());
+      cout << sstm.str() << ", ";
     } else {
       // Neuron connections
       stringstream sstm;
@@ -117,27 +127,33 @@ void CoxNeuron::convertToRColumns(double *X, double *Y, unsigned int rows,
       j++;
       // Add name
      colNames->push_back(sstm.str());
+     cout << sstm.str() << ", ";
     }
   }
+  cout << "\n";
 
   // Construct the actual matrix of the data frame
   for (unsigned int row = 0; row < rows; row++) {
+    cout << "\n";
     int col = 0;
     // time column
     if (Y == NULL)
       listOfColumns->at(col)->push_back(0);
     else
       listOfColumns->at(col)->push_back(Y[2*row]);
+    cout << listOfColumns->at(col)->back() << ", ";
     col++;
     // event column
     if (Y == NULL)
       listOfColumns->at(col)->push_back(0);
     else
       listOfColumns->at(col)->push_back(Y[2*row + 1]);
+    cout << listOfColumns->at(col)->back() << ", ";
     col++;
     // input columns
     for (i = 0; i < this->inputConnections->size(); i++) {
       listOfColumns->at(col)->push_back(X[i + row*this->inputConnections->size()]);
+      cout << listOfColumns->at(col)->back() << ", ";
       col++;
     }
     // neuron columns
@@ -146,9 +162,11 @@ void CoxNeuron::convertToRColumns(double *X, double *Y, unsigned int rows,
     for (j = 0; j < nsize; j++) {
       listOfColumns->at(col)->push_back(neuronConnections->at(j)
                                         .first->output(X + row*this->inputConnections->size()));
+      cout << listOfColumns->at(col)->back() << ", ";
       col++;
     }
   }
+  cout << "\n";
 }
 
 string getCoxCmd(Rcpp::CharacterVector *colNames) {
@@ -172,33 +190,38 @@ string getCoxCmd(Rcpp::CharacterVector *colNames) {
     coxfit <- coxph(Surv(time, event) ~ X0+X1+X2+N0+N1+N2, data, model=TRUE)
     s <- summary(coxfit)
   */
+  cout << "coxCmd: " << sstm.str() << "\n";
   return sstm.str();
 }
 
 void CoxNeuron::fit(double *X, double *Y, unsigned int rows) {
+  cout << "fit\n";
   // Create a cox model for the data and connected neurons
   // Cox model is stored as variable in R-environment
-
+  cout << "doing names\n";
   // First convert the data to R-compatible data frame
   vector<vector<double>*> colList;
   for (unsigned int i = 0; i < getCoxNumOfCols(); i++) {
     colList.push_back(new vector<double>);
   }
   Rcpp::CharacterVector colNames;
-
+  cout << "doing convertToRMatrix\n";
   convertToRColumns(X, Y, rows, &colNames, &colList);
   Rcpp::DataFrame dd = getDataFrameWithNames(&colNames, &colList);
-
+  cout << "setting data in R\n";
   (*R)["data"] = dd;
-
+  cout << "Get and execute cox cmd\n";
   // Create and fit the cox model
   R->parseEval(getCoxCmd(&colNames));
 
+  cout << "Destroy data\n";
   // destroy data
   for (unsigned int i = 0; i < getCoxNumOfCols(); i++) {
     delete colList.back();
     colList.pop_back();
   }
+  cout << "Data destroyed\n";
+  R->parseEval("warnings()");
 }
 
 double CoxNeuron::output(double *inputs) {
@@ -206,6 +229,7 @@ double CoxNeuron::output(double *inputs) {
 }
 
 double CoxNeuron::output(double *inputs, unsigned int rows, double *outputs) {
+  cout << "output\n";
   // Ask the cox model to predict from the input data and connected neurons
 
   // First convert the data to R-compatible data frame
@@ -214,21 +238,21 @@ double CoxNeuron::output(double *inputs, unsigned int rows, double *outputs) {
     colList.push_back(new vector<double>);
   }
   Rcpp::CharacterVector colNames;
-
+  cout << "convertToMatrix\n";
   convertToRColumns(inputs, NULL, rows, &colNames, &colList);
   Rcpp::DataFrame dd = getDataFrameWithNames(&colNames, &colList);
-
+  cout << "set data\n";
   (*R)["pred_data"] = dd;
-
+  cout << "call predict\n";
   // Predict outcomes
   Rcpp::NumericVector v = R->parseEval("predict(coxfit, newdata=pred_data, type=\"lp\")");
-
+  cout << "set result\n";
   if (outputs != NULL) {
     for (unsigned int i = 0; i < rows; i++) {
       outputs[i] = v[i];
     }
   }
-
+  cout << "destroy data\n";
   // destroy data
   for (unsigned int i = 0; i < getCoxNumOfCols(); i++) {
     delete colList.back();

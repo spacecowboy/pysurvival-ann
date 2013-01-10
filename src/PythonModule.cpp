@@ -378,6 +378,9 @@ static PyTypeObject CascadeNetworkType = {
  */
 static PyMethodDef CoxCascadeNetworkMethods[] =
 {
+  {"learn", (PyCFunction) CoxCascadeNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using the Cascade algorithm. \
+Takes arguments: X (inputs), Y (time, event)."},
+
   {NULL}, // So that we can iterate safely below
 };
 
