@@ -60,7 +60,7 @@ double get_C_index(double *Y, double *T, unsigned int length)
 /*
   Same as normal C-index, but also returns the values for the individual
 patients (e.g. what fraction of comparisons were correct for each patient).
-Result is also (1 - C), to conform to ANN training where the error is of
+Result is also (1/C), to conform to ANN training where the error is of
 interest, not the performance.
 
 Used in CoxCascadeCorrelation.
@@ -75,11 +75,13 @@ double getPatError(double *Y, double *T, unsigned int length, double *patError)
 	unsigned int countx,county;
 
     unsigned int patTotal, patSum;
+    double patResult;
 
 	for(countx = 0; countx < length; countx++) {
       // x is the patient
       patTotal = 0;
       patSum = 0;
+      patResult = 0;
 
 		Tx0 = T[countx*2];
 		Tx1 = T[countx*2 + 1];
@@ -120,18 +122,24 @@ double getPatError(double *Y, double *T, unsigned int length, double *patError)
 			}
 		}
         // Set value for this patient
-        if (patSum == 0)
-          patError[countx] = 1;
-        else
-          patError[countx] = 1 - patSum / patTotal;
-	}
+        if (patSum != 0)
+          patResult = patSum / patTotal;
 
-    if (sum == 0) {
-      //printf("Nothing was in concordance\n");
-      return 1;
-    } else {
-      return 1 - sum / total;
+        if (patResult < 0.0000001)
+          patError[countx] = 10000000;
+        else
+          patError[countx] = 1.0 / patResult;
     }
+
+    double ci = 0;
+    if (sum != 0) {
+      ci = sum / total;
+    }
+
+    if (ci < 0.0000001)
+      return 10000000;
+    else
+      return 1.0 / ci;
 };
 
 
