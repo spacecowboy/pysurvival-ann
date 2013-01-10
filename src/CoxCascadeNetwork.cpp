@@ -17,9 +17,8 @@
 #include "rutil.h"
 using namespace std;
 
-CoxCascadeNetwork::CoxCascadeNetwork(unsigned int numOfInputs,
-                                 unsigned int numOfOutput) :
-  CascadeNetwork(numOfInputs, numOfOutput)
+CoxCascadeNetwork::CoxCascadeNetwork(unsigned int numOfInputs) :
+  CascadeNetwork(numOfInputs, 1)
 {
 
 }

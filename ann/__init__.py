@@ -8,7 +8,8 @@ Should write intended usage here...
 from __future__ import division
 from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
                    gensurvnetwork as _gensurvnetwork, get_C_index,
-                   cascadenetwork as _cascadenetwork)
+                   cascadenetwork as _cascadenetwork,
+                   coxcascadenetwork as _coxcascadenetwork)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
@@ -58,6 +59,14 @@ def getCascadeNetwork(numOfInputs):
     amount of input neurons, ready to be trained.
     '''
     net = cascadenetwork(numOfInputs)
+    connectAsShortcutNLayer(net, [])
+    return net
+
+def getCoxCascadeNetwork(numOfInputs):
+    '''Returns a connected cox cascade network with the specified
+    amount of input neurons, ready to be trained.
+    '''
+    net = coxcascadenetwork(numOfInputs)
     connectAsShortcutNLayer(net, [])
     return net
 
@@ -304,6 +313,10 @@ class rpropnetwork(_rpropnetwork):
 
 @UtilFuncs
 class cascadenetwork(_cascadenetwork):
+    pass
+
+@UtilFuncs
+class coxcascadenetwork(_coxcascadenetwork):
     pass
 
 @UtilFuncs

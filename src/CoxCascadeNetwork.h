@@ -49,7 +49,7 @@ public:
 
 class CoxCascadeNetwork : public CascadeNetwork {
  public:
-  CoxCascadeNetwork(unsigned int numOfInputs, unsigned int numOfOutput);
+  CoxCascadeNetwork(unsigned int numOfInputs);
   virtual ~CoxCascadeNetwork();
   virtual void initNodes();
 
