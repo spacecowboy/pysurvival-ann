@@ -17,6 +17,7 @@
 #include "CIndexWrapper.h"
 #include "CascadeNetworkWrapper.h"
 #include "CoxCascadeNetworkWrapper.h"
+#include "GeneticCascadeNetworkWrapper.h"
 
 /*
  * FFNetwork
@@ -439,6 +440,77 @@ static PyTypeObject CoxCascadeNetworkType = {
 
 
 /*
+ * Genetic Cascade network
+ * ========================
+ */
+
+/*
+ * Public Python methods
+ * ---------------------
+ */
+static PyMethodDef GeneticCascadeNetworkMethods[] =
+{
+  {"learn", (PyCFunction) GeneticCascadeNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using the Cascade algorithm. \
+Takes arguments: X (inputs), Y (time, event)."},
+
+  {NULL}, // So that we can iterate safely below
+};
+
+/*
+ * Public Python members with get/setters
+ * --------------------------------------
+ */
+static PyGetSetDef GeneticCascadeNetworkGetSetters[] = {
+  {NULL} // Sentinel
+};
+
+/*
+ *  * Python type declaration
+ *   * -----------------------
+ *    */
+static PyTypeObject GeneticCascadeNetworkType = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+        "_ann.geneticcascadenetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+        sizeof(PyGeneticCascadeNetwork),                                    /* tp_basicsize */
+        0,                                              /* tp_itemsize */
+        0,                  /* tp_dealloc */
+        0,                                              /* tp_print */
+        0,                                              /* tp_getattr */
+        0,                                              /* tp_setattr */
+        0,                                              /* tp_compare */
+        0,                                              /* tp_repr */
+        0,                                              /* tp_as_number */
+        0,                                              /* tp_as_sequence */
+        0,                                              /* tp_as_mapping */
+        0,                                              /* tp_hash */
+        0,                                              /* tp_call */
+        0,                                              /* tp_str */
+        0,                                              /* tp_getattro */
+        0,                                              /* tp_setattro */
+        0,                                              /* tp_as_buffer */
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+        "An implementation of the Cascade correlation algorithm. Hidden Layers are trained with RProp, while the output neuron is trained genetically.",                       /* tp_doc */
+        0,                                              /* tp_traverse */
+        0,                                              /* tp_clear */
+        0,                                              /* tp_richcompare */
+        0,                                              /* tp_weaklistoffset */
+        0,                                              /* tp_iter */
+        0,                                              /* tp_iternext */
+        GeneticCascadeNetworkMethods,                                       /* tp_methods */
+        0,                                       /* tp_members */
+        GeneticCascadeNetworkGetSetters,                                            /* tp_getset */
+        0,                                              /* tp_base */
+        0,                                              /* tp_dict */
+        0,                                              /* tp_descr_get */
+        0,                                              /* tp_descr_set */
+        0,                                              /* tp_dictoffset */
+       (initproc)GeneticCascadeNetwork_init,                               /* tp_init */
+        0,                                              /* tp_alloc */
+        0,                                  /* tp_new */
+};
+
+
+/*
  * Python module declaration
  * =========================
  */
@@ -541,6 +613,24 @@ extern "C" {
 
     Py_INCREF(&CoxCascadeNetworkType);
     PyModule_AddObject(mod, "coxcascadenetwork", (PyObject*)&CoxCascadeNetworkType);
+
+
+    /*
+     * GeneticCascadeNetwork
+     */
+    GeneticCascadeNetworkType.tp_base = &CascadeNetworkType;
+    if (PyType_Ready(&GeneticCascadeNetworkType) < 0) {
+      Py_DECREF(&FFNetworkType);
+      Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&GenSurvNetworkType);
+      Py_DECREF(&CascadeNetworkType);
+      Py_DECREF(&CoxCascadeNetworkType);
+      return MOD_ERROR_VAL;
+    }
+
+    Py_INCREF(&GeneticCascadeNetworkType);
+    PyModule_AddObject(mod, "geneticcascadenetwork", (PyObject*)&GeneticCascadeNetworkType);
+
 
 
     return MOD_SUCCESS_VAL(mod);

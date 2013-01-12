@@ -41,12 +41,26 @@ void GeneticCascadeNetwork::initNodes() {
 }
 
 void GeneticCascadeNetwork::trainOutputs(double *X, double *Y, unsigned int rows) {
+  unsigned int i;
+  for (i = 0; i < numOfOutput; i++)
+    ((GeneticNeuron*) outputNeurons[i])->learn(X, Y, rows);
 }
 
 void GeneticCascadeNetwork::calcErrors(double *X, double *Y, unsigned int rows,
                                 double *patError, double *error,
                                 double *outputs) {
+  // Zero error array first
+  memset(error, 0, numOfOutput * sizeof(double));
 
+  for (unsigned int i = 0; i < rows; i++)
+    {
+      // Save outputs for covariance calculation
+      output(X + i*numOfInputs, outputs + i*numOfOutput);
+    }
+
+  // Calc C-index
+  // There's only one output neuron
+  error[0] = getPatError(outputs, Y, rows, patError);
 }
 
 
@@ -77,8 +91,8 @@ GeneticNeuron::GeneticNeuron(int id, double (*activationFunction)(double),
 }
 
 void GeneticNeuron::setup() {
-  populationSize = 50;
-  generations = 50;
+  populationSize = 30;
+  generations = 10;
   weightMutationChance = 0.8;
   weightMutationStdDev = 0.3;
   weightMutationHalfPoint = 0;
@@ -144,6 +158,7 @@ void GeneticNeuron::setAllWeights(vector<double> *weights) {
     if (i < inputConnections->size())
       inputConnections->at(i).second = weights->at(i);
     else {
+      printf("Setting neuron weights\n");
       // Add neuron weights
       j = i - inputConnections->size();
       neuronConnections->at(j).second = weights->at(i);
@@ -190,6 +205,7 @@ double GeneticNeuron::outputWithVector(vector<double> *weights,
     }
   }
 
+  //printf("output using inputsum: %f and result: %f\n", inputSum, activationFunction(inputSum));
   // return activationFunction result
   return activationFunction(inputSum);
 }
@@ -206,14 +222,14 @@ double GeneticNeuron::evaluateWithVector(vector<double> *weights,
   // Now calculate c-index
   double ci = get_C_index(outputs, Y, length);
 
-  //printf("ci = %f\n", ci);
+  printf("ci = %f\n", ci);
 
   // Return the inverse since this returns the error of the network
   // If less than 0.001, return 1000 instead to avoid dividing by zero
   if (ci < 0.0000001)
-    return 10000000;
+    return 1;
   else
-    return 1.0 / ci;
+    return 1 - ci;
 }
 
 void insertSorted(vector<vector<double>*> * const sortedPopulation,
@@ -252,6 +268,7 @@ void insertSorted(vector<vector<double>*> * const sortedPopulation,
  */
 void GeneticNeuron::learn(double *X, double *Y,
                                    unsigned int length) {
+  printf("Neuron Learn\n");
   // Create necessary vectors
   // population
   vector<vector<double>*> sortedPopulation;
@@ -282,26 +299,32 @@ void GeneticNeuron::learn(double *X, double *Y,
   vector<double> *best = sortedPopulation.front();
   vector<double> *child;
 
+  //vector<int>::iterator it;
   // Loop over generations
   unsigned int curGen, genChild;
   for (curGen = 0; curGen < generations; curGen++) {
     // For child in range(populationSize)
     for (genChild = 0; genChild < populationSize; genChild++) {
+      printf("gen: %d, child: %d\n", curGen, genChild);
       // Recycle worst vector
       child = sortedPopulation.back();
       // Remove it from the list
       sortedPopulation.pop_back();
       sortedErrors.pop_back();
+      // Copy best vector
+      //it = best->begin();
+      child->assign(best->begin(), best->end());
       // Create a new mutation
       mutateVector(child, &gaussian, &uniform,
                  weightMutationChance, weightMutationStdDev);
       // Evaluate and Insert sorted
       error = evaluateWithVector(child, X, Y, length, outputs);
-      printf("new child error: %f\n", error);
+      //printf("new child error: %f\n", error);
       insertSorted(&sortedPopulation, &sortedErrors, error, child);
 
       // Update best
       best = sortedPopulation.front();
+      printf("best error: %f\n", sortedErrors.front());
     }
     // End for
   }

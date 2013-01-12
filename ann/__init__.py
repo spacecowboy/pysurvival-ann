@@ -9,7 +9,8 @@ from __future__ import division
 from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
                    gensurvnetwork as _gensurvnetwork, get_C_index,
                    cascadenetwork as _cascadenetwork,
-                   coxcascadenetwork as _coxcascadenetwork)
+                   coxcascadenetwork as _coxcascadenetwork,
+                   geneticcascadenetwork as _geneticcascadenetwork)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
@@ -67,6 +68,17 @@ def getCoxCascadeNetwork(numOfInputs):
     amount of input neurons, ready to be trained.
     '''
     net = coxcascadenetwork(numOfInputs)
+    connectAsShortcutNLayer(net, [])
+    return net
+
+
+def getGeneticCascadeNetwork(numOfInputs):
+    '''Returns a connected genetic cascade network with the specified
+    amount of input neurons, ready to be trained.
+    '''
+    net = geneticcascadenetwork(numOfInputs)
+    net.hiddenActivationFunction = net.TANH
+    net.outputActivationFunction = net.LINEAR
     connectAsShortcutNLayer(net, [])
     return net
 
@@ -317,6 +329,10 @@ class cascadenetwork(_cascadenetwork):
 
 @UtilFuncs
 class coxcascadenetwork(_coxcascadenetwork):
+    pass
+
+@UtilFuncs
+class geneticcascadenetwork(_geneticcascadenetwork):
     pass
 
 @UtilFuncs

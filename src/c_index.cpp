@@ -74,8 +74,8 @@ double getPatError(double *Y, double *T, unsigned int length, double *patError)
 	double total = 0, sum = 0, Tx1, Ty1, Tx0, Ty0, outputsx0, outputsy0;
 	unsigned int countx,county;
 
-    unsigned int patTotal, patSum;
-    double patResult;
+    double patTotal, patSum;
+    double patResult, patAvg = 0;
 
 	for(countx = 0; countx < length; countx++) {
       // x is the patient
@@ -122,15 +122,22 @@ double getPatError(double *Y, double *T, unsigned int length, double *patError)
 			}
 		}
         // Set value for this patient
-        if (patSum != 0)
-          patResult = patSum / patTotal;
+        patResult = 1.0;
+        if (patSum > 0)
+          patResult = 1.0 - patSum / patTotal;
 
-        if (patResult < 0.0000001)
-          patError[countx] = 10000000;
-        else
-          patError[countx] = 1.0 / patResult;
+        //        if (patResult > 0 && patTotal == 0 && patSum == 0)
+        //  printf("R %f, T %d, S %d\n", patResult, patTotal, patSum);
+
+        patError[countx] = patResult;
+
+        patAvg += patError[countx] / length;
+        //printf("patAvg so far: %f\n", patAvg);
     }
 
+    return patAvg;
+
+    /*
     double ci = 0;
     if (sum != 0) {
       ci = sum / total;
@@ -139,7 +146,7 @@ double getPatError(double *Y, double *T, unsigned int length, double *patError)
     if (ci < 0.0000001)
       return 10000000;
     else
-      return 1.0 / ci;
+    return 1.0 / ci;*/
 };
 
 
