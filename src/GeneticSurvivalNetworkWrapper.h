@@ -53,6 +53,27 @@ extern "C" {
   PyObject *GenSurvNetwork_getWeightMutationStdDev(PyGenSurvNetwork *self, void *closure);
   int GenSurvNetwork_setWeightMutationStdDev(PyGenSurvNetwork *self, PyObject *value, void *closure);
 
+	 PyObject *GenSurvNetwork_getDecayL1(PyGenSurvNetwork *self,
+										 void *closure);
+	 int GenSurvNetwork_setDecayL1(PyGenSurvNetwork *self,
+								   PyObject *value, void *closure);
+	 PyObject *GenSurvNetwork_getDecayL2(PyGenSurvNetwork *self,
+										 void *closure);
+	 int GenSurvNetwork_setDecayL2(PyGenSurvNetwork *self,
+								   PyObject *value, void *closure);
+
+
+	 PyObject *GenSurvNetwork_getWeightElimination(PyGenSurvNetwork *self,
+												   void *closure);
+	 int GenSurvNetwork_setWeightElimination(PyGenSurvNetwork *self,
+											 PyObject *value, void *closure);
+	 PyObject *GenSurvNetwork_getWeightEliminationLambda(PyGenSurvNetwork *self,
+														 void *closure);
+	 int GenSurvNetwork_setWeightEliminationLambda(PyGenSurvNetwork *self,
+												   PyObject *value,
+												   void *closure);
+
+
 /*
  * Pickle methods
  * ==============

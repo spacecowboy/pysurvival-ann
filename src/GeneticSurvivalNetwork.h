@@ -24,9 +24,25 @@ class GeneticSurvivalNetwork: public FFNetwork {
   // This calculation is NOT done if this is zero, which it is by default.
   unsigned int weightMutationHalfPoint;
 
+  // Simple weight decay factor for the L2 norm: lambda * Sum(W^2)
+  double decayL2;
+  // Weight decay factor for the L1 norm: lambda * Sum(abs(W))
+  double decayL1;
+
+  // Preceding factor (g) in P = g * sum()
+  double weightElimination;
+  // Factor (l) for soft weight elimination: P = sum( w^2 / (l^2 + w^2) )
+  double weightEliminationLambda;
+
   // Methods
   GeneticSurvivalNetwork(unsigned int numOfInputs, unsigned int numOfHidden);
   void initNodes();
+
+  /*
+   * Evaluates a network, including possible weight decays
+   */
+  double evaluateNetwork(GeneticSurvivalNetwork *net, double *X, double *Y,
+                         unsigned int length, double *outputs);
 
   /*
    * Expects the X and Y to be of equal number of rows. Y has 2 columns,
@@ -62,6 +78,17 @@ class GeneticSurvivalNetwork: public FFNetwork {
   void setWeightMutationHalfPoint(unsigned int weightMutationHalfPoint);
   double getWeightMutationStdDev() const;
   void setWeightMutationStdDev(double weightMutationStdDev);
+
+  double getDecayL1() const;
+  void setDecayL1(double val);
+  double getDecayL2() const;
+  void setDecayL2(double val);
+
+  double getWeightElimination() const;
+  void setWeightElimination(double val);
+  double getWeightEliminationLambda() const;
+  void setWeightEliminationLambda(double val);
+
 };
 
 class GeneticSurvivalNeuron: public Neuron {

@@ -197,5 +197,94 @@ extern "C" {
     return 0;
   }
 
+
+PyObject *GenSurvNetwork_getDecayL1(PyGenSurvNetwork *self, void *closure) {
+	 return Py_BuildValue("d",
+						  ((GeneticSurvivalNetwork*)self->super.net)->getDecayL1());
 }
 
+int GenSurvNetwork_setDecayL1(PyGenSurvNetwork *self,
+							  PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticSurvivalNetwork*)self->super.net)->setDecayL1(val);
+    return 0;
+}
+
+PyObject *GenSurvNetwork_getDecayL2(PyGenSurvNetwork *self, void *closure) {
+	 return Py_BuildValue("d",
+						  ((GeneticSurvivalNetwork*)self->super.net)->getDecayL2());
+}
+
+int GenSurvNetwork_setDecayL2(PyGenSurvNetwork *self,
+							  PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticSurvivalNetwork*)self->super.net)->setDecayL2(val);
+    return 0;
+  }
+
+PyObject *GenSurvNetwork_getWeightElimination(PyGenSurvNetwork *self,
+											  void *closure) {
+	 return Py_BuildValue("d",
+						  ((GeneticSurvivalNetwork*)self->super.net)->
+						  getWeightElimination());
+}
+
+int GenSurvNetwork_setWeightElimination(PyGenSurvNetwork *self,
+										PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticSurvivalNetwork*)self->super.net)->setWeightElimination(val);
+    return 0;
+}
+
+PyObject *GenSurvNetwork_getWeightEliminationLambda(PyGenSurvNetwork *self,
+													void *closure) {
+	 return Py_BuildValue("d",
+						  ((GeneticSurvivalNetwork*)self->super.net)->
+						  getWeightEliminationLambda());
+}
+
+int GenSurvNetwork_setWeightEliminationLambda(PyGenSurvNetwork *self,
+											  PyObject *value, void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticSurvivalNetwork*)self->super.net)->setWeightEliminationLambda(val);
+    return 0;
+}
+
+
+}
