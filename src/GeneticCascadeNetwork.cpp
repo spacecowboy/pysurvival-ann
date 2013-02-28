@@ -92,7 +92,7 @@ GeneticNeuron::GeneticNeuron(int id, double (*activationFunction)(double),
 
 void GeneticNeuron::setup() {
   populationSize = 30;
-  generations = 10;
+  generations = 20;
   weightMutationChance = 0.8;
   weightMutationStdDev = 0.3;
   weightMutationHalfPoint = 0;
@@ -340,4 +340,160 @@ void GeneticNeuron::learn(double *X, double *Y,
     delete sortedPopulation.back();
     sortedPopulation.pop_back();
   }
+}
+
+
+/*
+------------------
+GeneticLadder definitions
+------------------
+*/
+
+GeneticLadderNetwork::GeneticLadderNetwork(unsigned int numOfInputs):
+  GeneticCascadeNetwork(numOfInputs) {
+
+}
+
+GeneticLadderNetwork::~GeneticLadderNetwork() {
+  while (hiddenGeneticNeurons->size() > 0) {
+    delete hiddenGeneticNeurons->back();
+    hiddenGeneticNeurons->pop_back();
+  }
+  delete hiddenGeneticNeurons;
+}
+
+void GeneticLadderNetwork::initNodes() {
+  hiddenRCascadeNeurons = new vector<RCascadeNeuron*>;
+  hiddenGeneticNeurons = new vector<GeneticNeuron*>;
+
+  this->hiddenNeurons = new Neuron*[0];
+  unsigned int i;
+
+  this->outputNeurons = new Neuron*[this->numOfOutput];
+  for (i = 0; i < this->numOfOutput; i++) {
+    this->outputNeurons[i] = new GeneticNeuron(i);
+  }
+
+  this->bias = new RPropBias;
+}
+
+void GeneticLadderNetwork::learn(double *X, double *Y, unsigned int rows) {
+
+  // Init random number stuff
+  boost::mt19937 eng; // a core engine class
+  eng.seed(time(NULL));
+
+  // Uniform distribution 0 to 1 (inclusive)
+  boost::uniform_int<> uni_dist(0, 1);
+  boost::variate_generator<boost::mt19937&,
+                           boost::uniform_int<> > uniform(eng, uni_dist);
+
+
+  // Init error[numOfOutput]
+  double *error = new double[numOfOutput];
+  // Init pError[numOfOutput * rows]
+  double *patError = new double[numOfOutput * rows];
+  // Init outputs
+  double *outputs = new double[numOfOutput * rows];
+
+  unsigned int i;
+  // Step 1, train the output neuron (has its own virtual error function)
+  trainOutputs(X, Y, rows);
+
+  // Calculate C-index and p-specific C-sums (must be virtual function)
+  // Also saves outputs
+  calcErrors(X, Y, rows, patError, error, outputs);
+  printf("Error so far: %f\n", error[0]);
+  printf("maxError: %f\n", maxError);
+  // While some condition
+  unsigned int neuronCount = 0;
+  while (neuronCount < maxHidden && error[0] > maxError) {
+    printf("Moving output to hidden layer\n");
+    // Set id
+    outputNeurons[0]->setId((int) neuronCount);
+    // Move from outputs to hiddenGeneticNeurons
+    hiddenGeneticNeurons->push_back(static_cast<GeneticNeuron*>(outputNeurons[0]));
+
+    printf("Creating new output\n");
+    // Create new output
+    outputNeurons[0] = new GeneticNeuron(0);
+    setOutputActivationFunction(outputActivationFunction);
+    // Connect it to previous layers
+    outputNeurons[0]->connectToNeuron(bias,
+                               (uniform() - 0.5));
+    for (i = 0; i < numOfInputs; i++) {
+      // random weight
+      outputNeurons[0]->connectToInput(i,
+                                (uniform() - 0.5));
+    }
+    for (i = 0; i < hiddenGeneticNeurons->size(); i++) {
+      outputNeurons[0]->connectToNeuron(hiddenGeneticNeurons->at(i),
+                                 (uniform() - 0.5));
+    }
+    // Train output
+    trainOutputs(X, Y, rows);
+
+    // Error calculation
+    // Calculate C-index and p-specific C-sums (must be virtual function)
+    // Also saves outputs
+    calcErrors(X, Y, rows, patError, error, outputs);
+    printf("Error so far: %f\n", error[0]);
+
+    // Remember to increment
+    neuronCount++;
+  }
+  // END While
+  delete[] outputs;
+  delete[] patError;
+  delete[] error;
+}
+
+void GeneticLadderNetwork::calcErrors(double *X, double *Y, unsigned int rows,
+                                double *patError, double *error,
+                                double *outputs) {
+  // Zero error array first
+  memset(error, 0, numOfOutput * sizeof(double));
+  // Dont use paterror here
+  // memset(patError, 0, numOfOutput * sizeof(double));
+
+  for (unsigned int i = 0; i < rows; i++)
+    {
+      output(X + i*numOfInputs, outputs + i*numOfOutput);
+    }
+
+  // Calc C-index
+  // There's only one output neuron
+  double ci = get_C_index(outputs, Y, rows);
+  error[0] = 1.0 - ci;
+}
+
+
+unsigned int GeneticLadderNetwork::getNumOfHidden() const {
+  unsigned int retval = 0;
+  if (this->hiddenGeneticNeurons != NULL) {
+    retval = this->hiddenGeneticNeurons->size();
+  }
+  return retval;
+}
+
+Neuron* GeneticLadderNetwork::getHiddenNeuron(unsigned int id) const {
+  return hiddenGeneticNeurons->at(id);
+}
+
+bool GeneticLadderNetwork::getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight) {
+  if (fromId >= getNumOfHidden() ||
+      (toId > -1 && (unsigned int) toId >= getNumOfHidden())) {
+    throw invalid_argument("Id was larger than number of nodes");
+  }
+
+  return hiddenGeneticNeurons->at(fromId)->getNeuronWeight(toId, weight);
+}
+
+bool GeneticLadderNetwork::getInputWeightFromHidden(unsigned int fromId, unsigned int toIndex, double *weight) {
+  if (fromId >= getNumOfHidden() || toIndex >= numOfInputs) {
+    throw invalid_argument("Id was larger than number of nodes or \
+index was greater than number of inputs");
+  }
+
+  return hiddenGeneticNeurons->at(fromId)->getInputWeight(toIndex, weight);
 }

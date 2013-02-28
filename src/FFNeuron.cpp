@@ -8,6 +8,7 @@
 
 #include "FFNeuron.h"
 #include "activationfunctions.h"
+#include <math.h> /* pow, fabs */
 
 // -------------------
 // Neuron definitions
@@ -82,6 +83,11 @@ int Neuron::getId() {
   return neuronId;
 }
 
+void Neuron::setId(int id) {
+  if (id >= 0)
+    neuronId = id;
+}
+
 /*
  * Returns true if a connection exists, false otherwise
  */
@@ -112,4 +118,55 @@ bool Neuron::getInputWeight(unsigned int targetIndex, double *weight) {
         }
 	}
   return retval;
+}
+
+unsigned int Neuron::getNumOfConnections() {
+	 return neuronConnections->size() + inputConnections->size();
+}
+
+double Neuron::getWeightsSquaredSum() {
+	 double sum = 0;
+	 unsigned int i;
+	 for (i = 0; i < neuronConnections->size(); i++) {
+		  sum += pow(neuronConnections->at(i).second, 2);
+	 }
+	 for (i = 0; i < inputConnections->size(); i++) {
+		  sum += pow(inputConnections->at(i).second, 2);
+	 }
+
+	 return sum;
+}
+
+double Neuron::getWeightsAbsoluteSum() {
+	 double sum = 0;
+	 unsigned int i;
+	 for (i = 0; i < neuronConnections->size(); i++) {
+		  sum += fabs(neuronConnections->at(i).second);
+	 }
+	 for (i = 0; i < inputConnections->size(); i++) {
+		  sum += fabs(inputConnections->at(i).second);
+	 }
+
+	 return sum;
+}
+
+double Neuron::getWeightEliminationSum(double lambda) {
+     double sum = 0, w2 = 0;
+     unsigned int i;
+     if (lambda == 0) {
+          return 1.0;
+     }
+	 else {
+		  double l2 = pow(lambda, 2);
+		  for (i = 0; i < neuronConnections->size(); i++) {
+			   w2 = pow(neuronConnections->at(i).second, 2);
+			   sum += w2 / (l2 + w2);
+		  }
+		  for (i = 0; i < inputConnections->size(); i++) {
+			   w2 = pow(inputConnections->at(i).second, 2);
+			   sum += w2 / (l2 + w2);
+		  }
+	 }
+
+	 return sum;
 }

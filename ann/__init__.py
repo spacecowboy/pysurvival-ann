@@ -10,7 +10,8 @@ from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
                    gensurvnetwork as _gensurvnetwork, get_C_index,
                    cascadenetwork as _cascadenetwork,
                    coxcascadenetwork as _coxcascadenetwork,
-                   geneticcascadenetwork as _geneticcascadenetwork)
+                   geneticcascadenetwork as _geneticcascadenetwork,
+                   geneticladdernetwork as _geneticladdernetwork)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
@@ -81,6 +82,17 @@ def getGeneticCascadeNetwork(numOfInputs):
     net.outputActivationFunction = net.LINEAR
     connectAsShortcutNLayer(net, [])
     return net
+
+def getGeneticLadderNetwork(numOfInputs):
+    '''Returns a connected genetic ladder network with the specified
+    amount of input neurons, ready to be trained.
+    '''
+    net = geneticladdernetwork(numOfInputs)
+    connectAsShortcutNLayer(net, [])
+    net.hiddenActivationFunction = net.TANH
+    net.outputActivationFunction = net.TANH
+    return net
+
 
 def connectAsSingleLayer(net):
     '''Given an unconnected network, will connect it as a single layer'''
@@ -333,6 +345,10 @@ class coxcascadenetwork(_coxcascadenetwork):
 
 @UtilFuncs
 class geneticcascadenetwork(_geneticcascadenetwork):
+    pass
+
+@UtilFuncs
+class geneticladdernetwork(_geneticladdernetwork):
     pass
 
 @UtilFuncs

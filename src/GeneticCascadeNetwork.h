@@ -87,4 +87,23 @@ class GeneticCascadeNetwork : public CascadeNetwork {
                             double *patError, double *error, double *outputs);
 };
 
+class GeneticLadderNetwork : public GeneticCascadeNetwork {
+ protected:
+  std::vector<GeneticNeuron*> *hiddenGeneticNeurons;
+ public:
+  GeneticLadderNetwork(unsigned int numOfInputs);
+  virtual ~GeneticLadderNetwork();
+  virtual void initNodes();
+  virtual void learn(double *X, double *Y, unsigned int rows);
+  virtual void calcErrors(double *X, double *Y, unsigned int rows,
+                          double *patError, double *error, double *outputs);
+
+  virtual unsigned int getNumOfHidden() const;
+  virtual Neuron* getHiddenNeuron(unsigned int id) const;
+  virtual bool getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight);
+  virtual bool getInputWeightFromHidden(unsigned int fromId, unsigned int toIndex, double *weight);
+
+};
+
+
 #endif /* _COXGENETICCASCADENETWORK_H_ */

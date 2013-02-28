@@ -243,6 +243,25 @@ static PyGetSetDef GenSurvNetworkGetSetters[] = {
    (setter)GenSurvNetwork_setWeightMutationStdDev,                      \
    (char*)"Mutations are gaussians with this stddev and added to current\
  weight.", NULL},
+
+  {(char*)"weightDecayL1",                  \
+   (getter)GenSurvNetwork_getDecayL1, \
+   (setter)GenSurvNetwork_setDecayL1,                      \
+   (char*)"Coefficient for L1 weight decay. Zero by default.", NULL},
+  {(char*)"weightDecayL2",                  \
+   (getter)GenSurvNetwork_getDecayL2, \
+   (setter)GenSurvNetwork_setDecayL2,                      \
+   (char*)"Coefficient for L2 weight decay. Zero by default.", NULL},
+  {(char*)"weightElimination",                  \
+   (getter)GenSurvNetwork_getWeightElimination, \
+   (setter)GenSurvNetwork_setWeightElimination,                      \
+   (char*)"Coefficient (g) for soft weight elimination: P = g * sum(). Zero by default.", NULL},
+  {(char*)"weightEliminationLambda",                  \
+   (getter)GenSurvNetwork_getWeightEliminationLambda, \
+   (setter)GenSurvNetwork_setWeightEliminationLambda,                      \
+   (char*)"Coefficient (l) for soft weight elimination: P = sum( w^2 / [l^2 + w^2] ). Zero by default.", NULL},
+
+
   {NULL} // Sentinel
 };
 
@@ -511,6 +530,78 @@ static PyTypeObject GeneticCascadeNetworkType = {
 
 
 /*
+ * Genetic Ladder network
+ * ========================
+ */
+
+/*
+ * Public Python methods
+ * ---------------------
+ */
+static PyMethodDef GeneticLadderNetworkMethods[] =
+{
+  {"learn", (PyCFunction) GeneticLadderNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using a modified genetic Cascade algorithm. \
+Takes arguments: X (inputs), Y (time, event)."},
+
+  {NULL}, // So that we can iterate safely below
+};
+
+/*
+ * Public Python members with get/setters
+ * --------------------------------------
+ */
+static PyGetSetDef GeneticLadderNetworkGetSetters[] = {
+  {NULL} // Sentinel
+};
+
+/*
+ *  * Python type declaration
+ *   * -----------------------
+ *    */
+static PyTypeObject GeneticLadderNetworkType = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+        "_ann.geneticladdernetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+        sizeof(PyGeneticLadderNetwork),                                    /* tp_basicsize */
+        0,                                              /* tp_itemsize */
+        0,                  /* tp_dealloc */
+        0,                                              /* tp_print */
+        0,                                              /* tp_getattr */
+        0,                                              /* tp_setattr */
+        0,                                              /* tp_compare */
+        0,                                              /* tp_repr */
+        0,                                              /* tp_as_number */
+        0,                                              /* tp_as_sequence */
+        0,                                              /* tp_as_mapping */
+        0,                                              /* tp_hash */
+        0,                                              /* tp_call */
+        0,                                              /* tp_str */
+        0,                                              /* tp_getattro */
+        0,                                              /* tp_setattro */
+        0,                                              /* tp_as_buffer */
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+        "A modified cascade algorithm. Neurons are trained as output neurons and then moved to the hidden layer as new output neurons are added. The final structure is fully shortcut connected as for cascade, but neurons are trained as output neurons on the full error function genetically.",                       /* tp_doc */
+        0,                                              /* tp_traverse */
+        0,                                              /* tp_clear */
+        0,                                              /* tp_richcompare */
+        0,                                              /* tp_weaklistoffset */
+        0,                                              /* tp_iter */
+        0,                                              /* tp_iternext */
+        GeneticLadderNetworkMethods,                                       /* tp_methods */
+        0,                                       /* tp_members */
+        GeneticLadderNetworkGetSetters,                                            /* tp_getset */
+        0,                                              /* tp_base */
+        0,                                              /* tp_dict */
+        0,                                              /* tp_descr_get */
+        0,                                              /* tp_descr_set */
+        0,                                              /* tp_dictoffset */
+       (initproc)GeneticLadderNetwork_init,                               /* tp_init */
+        0,                                              /* tp_alloc */
+        0,                                  /* tp_new */
+};
+
+
+
+/*
  * Python module declaration
  * =========================
  */
@@ -631,6 +722,22 @@ extern "C" {
     Py_INCREF(&GeneticCascadeNetworkType);
     PyModule_AddObject(mod, "geneticcascadenetwork", (PyObject*)&GeneticCascadeNetworkType);
 
+    /*
+     * GeneticLadderNetwork
+     */
+    GeneticLadderNetworkType.tp_base = &GeneticCascadeNetworkType;
+    if (PyType_Ready(&GeneticLadderNetworkType) < 0) {
+      Py_DECREF(&FFNetworkType);
+      Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&GenSurvNetworkType);
+      Py_DECREF(&CascadeNetworkType);
+      Py_DECREF(&CoxCascadeNetworkType);
+      Py_DECREF(&GeneticCascadeNetworkType);
+      return MOD_ERROR_VAL;
+    }
+
+    Py_INCREF(&GeneticLadderNetworkType);
+    PyModule_AddObject(mod, "geneticladdernetwork", (PyObject*)&GeneticLadderNetworkType);
 
 
     return MOD_SUCCESS_VAL(mod);

@@ -142,6 +142,19 @@ public:
  */
 
 /*
+ * Common functions for use with weight elimination functions
+ * if inheriting networks want to implement that in their training.
+ */
+
+// Calculate the sum of all weights squared (L2 norm)
+double weightSquaredSum(FFNetwork *net);
+// Calculate the sum of absolute values of weights (L1 norm)
+double weightAbsoluteSum(FFNetwork *net);
+// Calculate the sum of soft weight elimination terms
+double weightEliminationSum(FFNetwork *net, double lambda);
+
+
+/*
  * Save network to file in semi-human-readable format
  */
 //void saveFFNetwork(FFNetwork *ann, std::string filename);

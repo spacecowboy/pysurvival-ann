@@ -68,6 +68,7 @@ public:
      * -1 is reserved for bias nodes.
      */
     virtual int getId();
+    virtual void setId(int id);
 
     /*
      * Returns true if a connection exists, false otherwise
@@ -75,6 +76,23 @@ public:
     bool getNeuronWeight(int targetId, double *weight);
     bool getInputWeight(unsigned int inputIndex, double *weight);
 
+    /*
+     * Number of connections from this neuron.
+     * Sum of neuron connections and input connections
+     */
+    unsigned int getNumOfConnections();
+
+    /*
+     * Sum of weights
+     */
+    double getWeightsSquaredSum();
+    double getWeightsAbsoluteSum();
+    /*
+     * Soft weight elimination
+     * P = sum( w^2 / [lambda^2 + w^2])
+     * Returns zero if lambda is zero.
+     */
+    double getWeightEliminationSum(double lambda);
 };
 
 /*

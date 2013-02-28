@@ -25,6 +25,29 @@ extern "C" {
   PyObject *GeneticCascadeNetwork_learn(PyGeneticCascadeNetwork *self, PyObject *args, PyObject *kwargs);
 
 
+  /*
+    -------------
+    LadderNetwork
+    -------------
+  */
+    typedef struct {
+	PyGeneticCascadeNetwork super; // inherit from RPropNetwork
+  } PyGeneticLadderNetwork;
+
+/*
+ * Python init
+ * -----------
+ */
+  int GeneticLadderNetwork_init(PyGeneticLadderNetwork *self, PyObject *args, PyObject *kwds);
+
+/*
+ * Wrapper methods
+ * ===============
+ */
+
+  PyObject *GeneticLadderNetwork_learn(PyGeneticLadderNetwork *self, PyObject *args, PyObject *kwargs);
+
+
 }
 
 #endif /* _GENETICCASCADENETWORKWRAPPER_H_ */
