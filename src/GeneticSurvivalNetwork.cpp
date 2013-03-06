@@ -20,65 +20,20 @@ using namespace std;
 
 GeneticSurvivalNetwork* getGeneticSurvivalNetwork(GeneticSurvivalNetwork *cloner,
                                                   boost::variate_generator<boost::mt19937&,
-                                                  boost::uniform_int<> >* uniform) {
+                                                  boost::normal_distribution<double> >* gaussian,
+                                                  boost::variate_generator<boost::mt19937&, boost::uniform_int<> > *uniform)
+{
 
   GeneticSurvivalNetwork *net = new GeneticSurvivalNetwork(cloner->getNumOfInputs(),
                                                            cloner->getNumOfHidden());
   net->initNodes();
 
-  unsigned int i, j;
-  int neuronId, targetId;
-  double weight;
-  // Connect hidden to input, bias and hidden
-  // Connect output to hidden and input
-  for (i = 0; i < cloner->getNumOfHidden(); i++) {
-    neuronId = cloner->getHiddenNeuron(i)->getId();
-    // Bias
-    if (cloner->getHiddenNeuron(i)->getNeuronWeight(-1, &weight)) {
-      net->connectHToB((unsigned int) neuronId,
-                       ((*uniform)() - 0.5) * cloner->getWeightMutationStdDev());
-    }
+  // First clone all the weights as initial values
+  net->cloneNetworkSlow(cloner);
 
-    // Output to hidden
-    if (cloner->getOutputNeuron(0)->getNeuronWeight(neuronId, &weight)) {
-      net->connectOToH(0, (unsigned int) neuronId,
-                       ((*uniform)() - 0.5) * cloner->getWeightMutationStdDev());
-    }
-
-    // Inputs
-    for (j = 0; j < cloner->getNumOfInputs(); j++) {
-      if (cloner->getHiddenNeuron(i)->getInputWeight(j, &weight)) {
-        net->connectHToI(neuronId, j,
-                         ((*uniform)() - 0.5) * cloner->getWeightMutationStdDev());
-      }
-    }
-
-    // Hidden
-    for (j = 0; j < cloner->getNumOfHidden(); j++) {
-      targetId = cloner->getHiddenNeuron(j)->getId();
-      if (cloner->getHiddenNeuron(i)->getNeuronWeight(targetId, &weight)) {
-        net->connectHToH((unsigned int) neuronId, (unsigned int) targetId,
-                         ((*uniform)() - 0.5) * cloner->getWeightMutationStdDev());
-      }
-    }
-  }
-  // Connect output to bias
-  if (cloner->getOutputNeuron(0)->getNeuronWeight(-1, &weight)) {
-    net->connectOToB(0, ((*uniform)() - 0.5) * cloner->getWeightMutationStdDev());
-  }
-
-  // Output to input
-  // Inputs
-  for (j = 0; j < cloner->getNumOfInputs(); j++) {
-    if(cloner->getOutputNeuron(0)->getInputWeight(j, &weight)) {
-      net->connectOToI(0, j,
-                       ((*uniform)() - 0.5) * cloner->getWeightMutationStdDev());
-    }
-  }
-
-  // Set functions
-  net->setHiddenActivationFunction(cloner->getHiddenActivationFunction());
-  net->setOutputActivationFunction(cloner->getOutputActivationFunction());
+  // Then mutate the weights. Set halfpoint to irrelevant values
+  net->mutateWeights(gaussian, uniform, cloner->weightMutationChance,
+                     cloner->weightMutationStdDev, 1, 0);
 
   return net;
 }
@@ -534,7 +489,8 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
   printf("Length: %d\n", length);
 
   for (i = 0; i < populationSize + 1; i++) {
-    GeneticSurvivalNetwork *net = getGeneticSurvivalNetwork(this, &uniform);
+       GeneticSurvivalNetwork *net = getGeneticSurvivalNetwork(this, &gaussian,
+                                                               &uniform);
     // evaluate error here
     error = evaluateNetwork(net, X, Y, length, outputs);
 
