@@ -1,0 +1,13 @@
+# You might want to enable global site-packages for your virtualenv
+# If that's where numpy is located
+#toggleglobalsitepackages
+
+# Need boost for random numbers
+sudo apt-get install libboost-random1.50.0 libboost-random1.50-dev
+
+# R dependencies are:
+sudo apt-get install r-cran-cpp r-cran-survival
+
+# Install RInside within R from CRAN with:
+sudo R
+install.packages("RInside", dependencies = TRUE)
