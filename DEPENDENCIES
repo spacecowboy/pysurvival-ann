@@ -11,3 +11,4 @@ sudo apt-get install r-cran-cpp r-cran-survival
 # Install RInside within R from CRAN with:
 sudo R
 install.packages("RInside", dependencies = TRUE)
+
