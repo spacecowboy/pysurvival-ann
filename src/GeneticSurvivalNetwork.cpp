@@ -387,12 +387,14 @@ double weightSquaredSum(GeneticSurvivalNetwork *net) {
 		  sum += net->getHiddenNeuron(n)->getWeightsSquaredSum();
 		  numOfCons += net->getHiddenNeuron(n)->getNumOfConnections();
 	 }
+     /*
 	 for (n = 0; n < net->getNumOfOutputs(); n++) {
 		  // Input weights
 		  sum += net->getOutputNeuron(n)->getWeightsSquaredSum();
 		  numOfCons += net->getOutputNeuron(n)->getNumOfConnections();
 	 }
-	 printf("Weight squared sum: %f\n", sum / (double) numOfCons);
+     */
+	 //printf("Weight squared sum: %f\n", sum / (double) numOfCons);
 	 return sum / (double) numOfCons;
 }
 
@@ -405,12 +407,13 @@ double weightAbsoluteSum(GeneticSurvivalNetwork *net) {
 		  sum += net->getHiddenNeuron(n)->getWeightsAbsoluteSum();
 		  numOfCons += net->getHiddenNeuron(n)->getNumOfConnections();
 	 }
+     /*
 	 for (n = 0; n < net->getNumOfOutputs(); n++) {
 		  // Input weights
 		  sum += net->getOutputNeuron(n)->getWeightsAbsoluteSum();
 		  numOfCons += net->getOutputNeuron(n)->getNumOfConnections();
-	 }
-	 printf("Weight absolute sum: %f\n", sum / (double) numOfCons);
+	 }*/
+	 //printf("Weight absolute sum: %f\n", sum / (double) numOfCons);
 	 return sum / (double) numOfCons;
 }
 
@@ -424,13 +427,14 @@ double weightEliminationSum(GeneticSurvivalNetwork *net, double lambda) {
 			   getWeightEliminationSum(lambda);
 		  numOfCons += net->getHiddenNeuron(n)->getNumOfConnections();
 	 }
+     /*
 	 for (n = 0; n < net->getNumOfOutputs(); n++) {
 		  // Input weights
 		  sum += net->getOutputNeuron(n)->
 			   getWeightEliminationSum(lambda);
 		  numOfCons += net->getOutputNeuron(n)->getNumOfConnections();
-	 }
-	 printf("Weight elimination sum: %f\n", sum / (double) numOfCons);
+          }*/
+	 //printf("Weight elimination sum: %f\n", sum / (double) numOfCons);
 	 return sum / (double) numOfCons;
 }
 
@@ -445,7 +449,7 @@ evaluateNetwork(GeneticSurvivalNetwork *net, double *X, double *Y,
 	 // Now calculate c-index
 	 double ci = get_C_index(outputs, Y, length);
 
-	 //printf("ci = %f\n", ci);
+     //printf("ci = %f\n", ci);
 
 	 // Return the inverse since this returns the error of the network
 	 // If less than 0.001, return 1000 instead to avoid dividing by zero
@@ -454,6 +458,8 @@ evaluateNetwork(GeneticSurvivalNetwork *net, double *X, double *Y,
 	 else
 		  ci = 1.0 / ci;
 
+     //printf("1.0 / ci = %f\n", ci);
+
 	 // Weight decay terms
 	 // Up to the user to (not) mix these
 	 // L2 weight decay
@@ -461,10 +467,14 @@ evaluateNetwork(GeneticSurvivalNetwork *net, double *X, double *Y,
 		  ci += decayL2 * weightSquaredSum(net);
 	 }
 
+     //printf("dec ci = %f\n", ci);
+
 	 // L1 weight decay
 	 if (decayL1 != 0) {
 		  ci += decayL1 * weightAbsoluteSum(net);
 	 }
+
+     //printf("dec ci = %f\n", ci);
 
 	 // Weight elimination
 	 if (weightElimination != 0 &&
@@ -472,6 +482,8 @@ evaluateNetwork(GeneticSurvivalNetwork *net, double *X, double *Y,
 		  ci += weightElimination *
 			   weightEliminationSum(net, weightEliminationLambda);
 	 }
+
+     //printf("dec ci = %f\n", ci);
 
 	 return ci;
 }
@@ -567,13 +579,30 @@ void GeneticSurvivalNetwork::learn(double *X, double *Y,
       best = sortedPopulation.front();
     }
     // Add printEpoch check here
-    printf("gen: %d, best: %f\n", curGen, 1.0/sortedErrors.front());
+    printf("gen: %d, best: %f\n", curGen, sortedErrors.front());
+    //evaluateNetwork(best, X, Y, length, outputs);
+    if (decayL2 != 0) {
+         printf("L2term = %f * %f\n", decayL2, weightSquaredSum(best));
+    }
+
+    // L1 weight decay
+    if (decayL1 != 0) {
+         printf("L1term = %f * %f\n", decayL1, weightAbsoluteSum(best));
+    }
+
+	 // Weight elimination
+	 if (weightElimination != 0 &&
+		  weightEliminationLambda != 0) {
+          printf("L1term(%f) = %f * %f\n",weightEliminationLambda,
+                 weightElimination,
+                 weightEliminationSum(best, weightEliminationLambda));
+     }
   }
 
   // When done, make this network into the best network
-  printf("best eval result: %f\n", 1.0/(evaluateNetwork(best, X, Y, length, outputs)));
+  printf("best eval error: %f\n", (evaluateNetwork(best, X, Y, length, outputs)));
   this->cloneNetworkSlow(best);
-  printf("this eval result: %f\n", 1.0/(evaluateNetwork(this, X, Y, length, outputs)));
+  printf("this eval error: %f\n", (evaluateNetwork(this, X, Y, length, outputs)));
 
   // And destroy population
   // do this last of all!
