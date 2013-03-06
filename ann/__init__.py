@@ -34,24 +34,29 @@ def getRProp(numOfInputs, hiddenlayers, numOfOutputs):
     connectAsNLayer(net, hiddenlayers)
     return net
 
-def getSingleLayerGenSurv(numOfInputs, numOfHidden):
+def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=0.5):
     ''' Constructs and connects a neural network with a single layer
     of hidden neurons which can be trained with a genetic algorithm
     for censored survival data.
+
+    Keyword arguments:
+    numOfInputs - Number of input neurons
+    numOfHidden - Number of hidden neurons
+    variance=0.5 - Uniform variance of initial weights
 
     ORDER MATTERS!
     '''
     net = gensurvnetwork(numOfInputs, numOfHidden)
 
     for h in range(net.numOfHidden):
-        net.connectHToB(h, uniform(-0.5, 0.5))
-        net.connectOToH(0, h, uniform(-0.5, 0.5))
+        net.connectHToB(h, uniform(-variance, variance))
+        net.connectOToH(0, h, uniform(-variance, variance))
         for i in range(net.numOfInputs):
-            net.connectHToI(h, i, uniform(-0.5, 0.5))
+            net.connectHToI(h, i, uniform(-variance, variance))
 
-    net.connectOToB(0, uniform(-0.5, 0.5))
+    net.connectOToB(0, uniform(-variance, variance))
 
-    net.hiddenActivationFunction = net.TANH
+    net.hiddenActivationFunction = net.LOGSIG
     net.outputActivationFunction = net.LINEAR
 
     return net
