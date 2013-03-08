@@ -37,7 +37,8 @@ def getRProp(numOfInputs, hiddenlayers, numOfOutputs):
 def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=0.5):
     ''' Constructs and connects a neural network with a single layer
     of hidden neurons which can be trained with a genetic algorithm
-    for censored survival data.
+    for censored survival data. Weights are scaled so that each
+    vector of weights connected to a neuron will have L2-norm = 1.
 
     Keyword arguments:
     numOfInputs - Number of input neurons
@@ -47,17 +48,23 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=0.5):
     ORDER MATTERS!
     '''
     net = gensurvnetwork(numOfInputs, numOfHidden)
+    
+    outputweights = np.random.normal(size = numOfHidden + 1)
+    outputweights /= np.linalg.norm(outputweights)
 
     for h in range(net.numOfHidden):
-        net.connectHToB(h, uniform(-variance, variance))
-        net.connectOToH(0, h, uniform(-variance, variance))
+        hiddenweights = np.random.normal(size = numOfInputs + 1)
+        hiddenweights /= np.linalg.norm(hiddenweights)
+          
+        net.connectHToB(h, hiddenweights[-1])
+        net.connectOToH(0, h, outputweights[h])
         for i in range(net.numOfInputs):
-            net.connectHToI(h, i, uniform(-variance, variance))
+            net.connectHToI(h, i, hiddenweights[i])
 
-    net.connectOToB(0, uniform(-variance, variance))
+    net.connectOToB(0, outputweights[-1])
 
     net.hiddenActivationFunction = net.LOGSIG
-    net.outputActivationFunction = net.LINEAR
+    net.outputActivationFunction = net.LOGSIG
 
     return net
 
@@ -83,8 +90,8 @@ def getGeneticCascadeNetwork(numOfInputs):
     amount of input neurons, ready to be trained.
     '''
     net = geneticcascadenetwork(numOfInputs)
-    net.hiddenActivationFunction = net.TANH
-    net.outputActivationFunction = net.LINEAR
+    net.hiddenActivationFunction = net.LOGSIG
+    net.outputActivationFunction = net.LOGSIG
     connectAsShortcutNLayer(net, [])
     return net
 
@@ -94,32 +101,37 @@ def getGeneticLadderNetwork(numOfInputs):
     '''
     net = geneticladdernetwork(numOfInputs)
     connectAsShortcutNLayer(net, [])
-    net.hiddenActivationFunction = net.TANH
-    net.outputActivationFunction = net.TANH
+    net.hiddenActivationFunction = net.LOGSIG
+    net.outputActivationFunction = net.LOGSIG
     return net
 
 
 def connectAsSingleLayer(net):
-    '''Given an unconnected network, will connect it as a single layer'''
+    '''Given an unconnected network, will connect it as a single layer.
+    Also scales the weight vectors appropriately.'''
     net.outputActivationFunction = net.LOGSIG
-    net.hiddenActivationFunction = net.TANH
+    net.hiddenActivationFunction = net.LOGSIG
+
+    outputweights = np.random.normal(size = numOfHidden + 1)
+    outputweights /= np.linalg.norm(outputweights)
 
     for h in range(net.numOfHidden):
-        net.connectHToB(h, uniform(-0.5, 0.5))
+        hiddenweights = np.random.normal(size = numOfInputs + 1)
+        hiddenweights /= np.linalg.norm(hiddenweights)
+          
+        net.connectHToB(h, hiddenweights[-1])
+        net.connectOToH(0, h, outputweights[h])
         for i in range(net.numOfInputs):
-            net.connectHToI(h, i, uniform(-0.5, 0.5))
+            net.connectHToI(h, i, hiddenweights[i])
 
-    for o in range(net.numOfOutputs):
-        net.connectOToB(o, uniform(-0.5, 0.5))
-        for h in range(net.numOfHidden):
-            net.connectOToH(o, h, uniform(-0.5, 0.5))
+    net.connectOToB(0, outputweights[-1])
 
 def connectAsNLayer(net, layers):
     '''Given an unconnected network, will connect it as layers
     where second argument describes how to place the hidden nodes
     in layers. Example: [10, 3]'''
     net.outputActivationFunction = net.LOGSIG
-    net.hiddenActivationFunction = net.TANH
+    net.hiddenActivationFunction = net.LOGSIG
 
     if sum(layers) != net.numOfHidden:
         raise ValueError("Sum of layers do not match numOfHidden!")
@@ -129,22 +141,29 @@ def connectAsNLayer(net, layers):
     for layer_count in layers:
         current_layer = range(total_count, total_count + layer_count)
         for h in current_layer:
-            net.connectHToB(h, uniform(-0.5, 0.5))
             # Input for first layer
             if len(prev_layer) == 0:
+                weights = np.random.normal(size = net.numOfInputs + 1)
+                weights /= np.linalg.norm(weights)
                 for i in range(net.numOfInputs):
-                    net.connectHToI(h, i, uniform(-0.5, 0.5))
+                    net.connectHToI(h, i, weights[i])
             else:
-                for i in prev_layer:
-                    net.connectHToH(h, i, uniform(-0.5, 0.5))
+                weights = np.random.normal(size = len(prev_layer) + 1)
+                weights /= np.linalg.norm(weights)
+                for j, i in enumerate(prev_layer):
+                    net.connectHToH(h, i, weights[j])
+            # Bias
+            net.connectHToB(h, weights[-1])
 
         total_count += layer_count
         prev_layer = current_layer
 
     for o in range(net.numOfOutputs):
-        net.connectOToB(o, uniform(-0.5, 0.5))
-        for h in prev_layer:
-            net.connectOToH(o, h, uniform(-0.5, 0.5))
+        weights = np.random.normal(size = len(prev_layer) + 1)
+        weights /= np.linalg.norm(weights)
+        net.connectOToB(o, weights[-1])
+        for i, h in enumerate(prev_layer):
+            net.connectOToH(o, h, weights[i])
 
 def connectAsShortcutNLayer(net, layers):
     '''
@@ -187,7 +206,6 @@ def connectAsShortcutNLayer(net, layers):
         for neurons in prev_layers:
             for h in neurons:
                 net.connectOToH(o, h, uniform(-0.5, 0.5))
-
 
 def getWeights(net):
     '''Returns a 2d-array of the weights in this network.
