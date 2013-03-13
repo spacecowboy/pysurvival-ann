@@ -12,6 +12,7 @@
 #include <numpy/arrayobject.h> // Numpy seen from C
 #include "FFNetworkWrapper.h"
 #include "RPropNetworkWrapper.h"
+#include "GeneticNetworkWrapper.h"
 #include "GeneticSurvivalNetworkWrapper.h"
 #include "activationfunctions.h"
 #include "CIndexWrapper.h"
@@ -134,7 +135,7 @@ static PyTypeObject FFNetworkType = {
 static PyMethodDef RPropNetworkMethods[] =
 {
   {"learn", (PyCFunction) RPropNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using RProp."},
-                        {NULL}, // So that we can iterate safely below
+  {NULL}, // So that we can iterate safely below
 };
 
 
@@ -204,7 +205,7 @@ static PyTypeObject RPropNetworkType = {
 
 
 /*
- * Genetic survival network
+ * Genetic network
  * ========================
  */
 
@@ -212,9 +213,9 @@ static PyTypeObject RPropNetworkType = {
  * Public Python methods
  * ---------------------
  */
-static PyMethodDef GenSurvNetworkMethods[] =
+static PyMethodDef GenNetworkMethods[] =
 {
-  {"learn", (PyCFunction) GenSurvNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using a genetic algorithm."},
+  {"learn", (PyCFunction) GenNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using a genetic algorithm."},
   {NULL}, // So that we can iterate safely below
 };
 
@@ -223,49 +224,115 @@ static PyMethodDef GenSurvNetworkMethods[] =
  * Public Python members with get/setters
  * --------------------------------------
  */
-static PyGetSetDef GenSurvNetworkGetSetters[] = {
-  {(char*)"generations", (getter)GenSurvNetwork_getGenerations, \
-   (setter)GenSurvNetwork_setGenerations,                       \
+static PyGetSetDef GenNetworkGetSetters[] = {
+  {(char*)"generations", (getter)GenNetwork_getGenerations, \
+   (setter)GenNetwork_setGenerations,                       \
    (char*)"Time to train", NULL},
-  {(char*)"populationSize", (getter)GenSurvNetwork_getPopulationSize,   \
-   (setter)GenSurvNetwork_setPopulationSize,                            \
+  {(char*)"populationSize", (getter)GenNetwork_getPopulationSize,   \
+   (setter)GenNetwork_setPopulationSize,                            \
    (char*)"Number of networks created each generation", NULL},
-  {(char*)"weightMutationChance", (getter)GenSurvNetwork_getWeightMutationChance, \
-   (setter)GenSurvNetwork_setWeightMutationChance,                      \
+  {(char*)"weightMutationChance", (getter)GenNetwork_getWeightMutationChance, \
+   (setter)GenNetwork_setWeightMutationChance,                      \
    (char*)"The chance of a single weight being changed during cloning", NULL},
   {(char*)"weightMutationHalfPoint",                  \
-   (getter)GenSurvNetwork_getWeightMutationHalfPoint, \
-   (setter)GenSurvNetwork_setWeightMutationHalfPoint,                   \
+   (getter)GenNetwork_getWeightMutationHalfPoint, \
+   (setter)GenNetwork_setWeightMutationHalfPoint,                   \
    (char*)"If time dependant mutation is desired, set this to a non-zero value.\
  StdDev will decrease linearly and reach half at specified generation.", NULL},
-  {(char*)"weightMutationStdDev",                  \
-   (getter)GenSurvNetwork_getWeightMutationStdDev, \
-   (setter)GenSurvNetwork_setWeightMutationStdDev,                      \
+  {(char*)"weightMutationFactor",                  \
+   (getter)GenNetwork_getWeightMutationFactor, \
+   (setter)GenNetwork_setWeightMutationFactor,                      \
    (char*)"Mutations are gaussians with this stddev and added to current\
  weight.", NULL},
 
   {(char*)"weightDecayL1",                  \
-   (getter)GenSurvNetwork_getDecayL1, \
-   (setter)GenSurvNetwork_setDecayL1,                      \
+   (getter)GenNetwork_getDecayL1, \
+   (setter)GenNetwork_setDecayL1,                      \
    (char*)"Coefficient for L1 weight decay. Zero by default.", NULL},
   {(char*)"weightDecayL2",                  \
-   (getter)GenSurvNetwork_getDecayL2, \
-   (setter)GenSurvNetwork_setDecayL2,                      \
+   (getter)GenNetwork_getDecayL2, \
+   (setter)GenNetwork_setDecayL2,                      \
    (char*)"Coefficient for L2 weight decay. Zero by default.", NULL},
   {(char*)"weightElimination",                  \
-   (getter)GenSurvNetwork_getWeightElimination, \
-   (setter)GenSurvNetwork_setWeightElimination,                      \
+   (getter)GenNetwork_getWeightElimination, \
+   (setter)GenNetwork_setWeightElimination,                      \
    (char*)"Coefficient (g) for soft weight elimination: P = g * sum(). Zero by default.", NULL},
   {(char*)"weightEliminationLambda",                  \
-   (getter)GenSurvNetwork_getWeightEliminationLambda, \
-   (setter)GenSurvNetwork_setWeightEliminationLambda,                      \
+   (getter)GenNetwork_getWeightEliminationLambda, \
+   (setter)GenNetwork_setWeightEliminationLambda,                      \
    (char*)"Coefficient (l) for soft weight elimination: P = sum( w^2 / [l^2 + w^2] ). Zero by default.", NULL},
+
+  {(char*)"resume",              \
+   (getter)GenNetwork_getResume, \
+   (setter)GenNetwork_setResume,                      \
+   (char*)"If the network should use the existing weighs as a base for the population. Default False.", NULL},
 
 
   {NULL} // Sentinel
 };
 
 
+
+/*
+ *  * Python type declaration
+ *   * -----------------------
+ *    */
+static PyTypeObject GenNetworkType = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+        "_ann.gennetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+        sizeof(PyGenNetwork),                                    /* tp_basicsize */
+        0,                                              /* tp_itemsize */
+        0,                  /* tp_dealloc */
+        0,                                              /* tp_print */
+        0,                                              /* tp_getattr */
+        0,                                              /* tp_setattr */
+        0,                                              /* tp_compare */
+        0,                                              /* tp_repr */
+        0,                                              /* tp_as_number */
+        0,                                              /* tp_as_sequence */
+        0,                                              /* tp_as_mapping */
+        0,                                              /* tp_hash */
+        0,                                              /* tp_call */
+        0,                                              /* tp_str */
+        0,                                              /* tp_getattro */
+        0,                                              /* tp_setattro */
+        0,                                              /* tp_as_buffer */
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+        "A feed forward neural network that traings using a genetic algoritm.",                       /* tp_doc */
+        0,                                              /* tp_traverse */
+        0,                                              /* tp_clear */
+        0,                                              /* tp_richcompare */
+        0,                                              /* tp_weaklistoffset */
+        0,                                              /* tp_iter */
+        0,                                              /* tp_iternext */
+        GenNetworkMethods,                                       /* tp_methods */
+        0,                                       /* tp_members */
+        GenNetworkGetSetters,                                            /* tp_getset */
+        0,                                              /* tp_base */
+        0,                                              /* tp_dict */
+        0,                                              /* tp_descr_get */
+        0,                                              /* tp_descr_set */
+        0,                                              /* tp_dictoffset */
+       (initproc)GenNetwork_init,                               /* tp_init */
+        0,                                              /* tp_alloc */
+        0,                                  /* tp_new */
+};
+
+
+/*
+ * Genetic Survival Network
+ * ========================
+ */
+static PyMethodDef GenSurvNetworkMethods[] =
+{
+  {"learn", (PyCFunction) GenSurvNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using a genetic algorithm."},
+  {NULL}, // So that we can iterate safely below
+};
+
+
+static PyGetSetDef GenSurvNetworkGetSetters[] = {
+  {NULL}, // Sentinel
+};
 
 /*
  *  * Python type declaration
@@ -292,7 +359,7 @@ static PyTypeObject GenSurvNetworkType = {
         0,                                              /* tp_setattro */
         0,                                              /* tp_as_buffer */
         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-        "A feed forward neural network for survival diagnosis. Trains on the C-index using a genetic algoritm.",                       /* tp_doc */
+        "A feed forward neural network for survival analysis that traings using a genetic algoritm.",                       /* tp_doc */
         0,                                              /* tp_traverse */
         0,                                              /* tp_clear */
         0,                                              /* tp_richcompare */
@@ -311,6 +378,7 @@ static PyTypeObject GenSurvNetworkType = {
         0,                                              /* tp_alloc */
         0,                                  /* tp_new */
 };
+
 
 
 /*
@@ -664,17 +732,32 @@ extern "C" {
     PyModule_AddObject(mod, "rpropnetwork", (PyObject*)&RPropNetworkType);
 
     /*
-     * GenSurvNetwork
+     * GenNetwork
      */
-    GenSurvNetworkType.tp_base = &FFNetworkType;
-    if (PyType_Ready(&GenSurvNetworkType) < 0) {
+    GenNetworkType.tp_base = &FFNetworkType;
+    if (PyType_Ready(&GenNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
       Py_DECREF(&RPropNetworkType);
       return MOD_ERROR_VAL;
     }
 
+    Py_INCREF(&GenNetworkType);
+    PyModule_AddObject(mod, "gennetwork", (PyObject*)&GenNetworkType);
+
+    /*
+     * GenSurvNetwork
+     */
+    GenSurvNetworkType.tp_base = &GenNetworkType;
+    if (PyType_Ready(&GenSurvNetworkType) < 0) {
+      Py_DECREF(&FFNetworkType);
+      Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&GenNetworkType);
+      return MOD_ERROR_VAL;
+    }
+
     Py_INCREF(&GenSurvNetworkType);
     PyModule_AddObject(mod, "gensurvnetwork", (PyObject*)&GenSurvNetworkType);
+
 
     /*
      * CascadeNetwork
@@ -683,6 +766,7 @@ extern "C" {
     if (PyType_Ready(&CascadeNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
       Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&GenNetworkType);
       Py_DECREF(&GenSurvNetworkType);
       return MOD_ERROR_VAL;
     }
@@ -697,6 +781,7 @@ extern "C" {
     if (PyType_Ready(&CoxCascadeNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
       Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&GenNetworkType);
       Py_DECREF(&GenSurvNetworkType);
       Py_DECREF(&CascadeNetworkType);
       return MOD_ERROR_VAL;
@@ -713,6 +798,7 @@ extern "C" {
     if (PyType_Ready(&GeneticCascadeNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
       Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&GenNetworkType);
       Py_DECREF(&GenSurvNetworkType);
       Py_DECREF(&CascadeNetworkType);
       Py_DECREF(&CoxCascadeNetworkType);
@@ -729,6 +815,7 @@ extern "C" {
     if (PyType_Ready(&GeneticLadderNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
       Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&GenNetworkType);
       Py_DECREF(&GenSurvNetworkType);
       Py_DECREF(&CascadeNetworkType);
       Py_DECREF(&CoxCascadeNetworkType);

@@ -16,11 +16,12 @@
 
 extern "C" {
 
-/*
- * Python init
- * -----------
- */
-  int GenSurvNetwork_init(PyGenSurvNetwork *self, PyObject *args, PyObject *kwds) {
+  /*
+   * Python init
+   * -----------
+   */
+  int GenSurvNetwork_init(PyGenSurvNetwork *self, PyObject *args,
+                          PyObject *kwds) {
     static char *kwlist[] = { (char*)"numOfInputs",  \
                               (char*)"numOfHidden", NULL };
 
@@ -28,23 +29,24 @@ extern "C" {
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "II", kwlist, &numOfInputs,
                                      &numOfHidden)) {
       PyErr_Format(PyExc_ValueError,
-                   "Arguments should be (all mandatory positive integers): numOfInputs, numOfHidden");
+                   "Arguments should be (all mandatory positive integers): \
+numOfInputs, numOfHidden");
       return -1;
     }
 
-    self->super.net = new GeneticSurvivalNetwork(numOfInputs, numOfHidden);
+    self->super.super.net = new GeneticSurvivalNetwork(numOfInputs, numOfHidden);
 
-    if (self->super.net == NULL)
+    if (self->super.super.net == NULL)
       return -1;
 
-    self->super.net->initNodes();
+    self->super.super.net->initNodes();
     return 0;
-}
+  }
 
-/*
- * Wrapper methods
- * ===============
- */
+  /*
+   * Wrapper methods
+   * ===============
+   */
 
   PyObject *GenSurvNetwork_learn(PyGenSurvNetwork *self, PyObject *args, \
                                  PyObject *kwargs) {
@@ -76,7 +78,7 @@ extern "C" {
 	// Objects were converted successfully. But make sure they are the same length!
 
 	if (inputArray->dimensions[0] != targetArray->dimensions[0] ||
-		(unsigned int)inputArray->dimensions[1] != self->super.net->getNumOfInputs() ||
+		(unsigned int)inputArray->dimensions[1] != self->super.super.net->getNumOfInputs() ||
 		targetArray->dimensions[1] != 2) {
       // Decrement, set error and return
 		PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same number of rows. Also the columns must match number of input neurons and target data must have 2 columns (time, event).");
@@ -88,7 +90,7 @@ extern "C" {
 
 	// Arguments are valid!
     printf("tN: %d, tM: %d, iN: %d, iM: %d\n", targetArray->dimensions[0], targetArray->dimensions[1], inputArray->dimensions[0], inputArray->dimensions[1]);
-	((GeneticSurvivalNetwork*)self->super.net)->learn((double *)inputArray->data, (double *)targetArray->data, inputArray->dimensions[0]);
+	((GeneticSurvivalNetwork*)self->super.super.net)->learn((double *)inputArray->data, (double *)targetArray->data, inputArray->dimensions[0]);
 
 	// Decrement counters for inputArray and targetArray
 	Py_DECREF(inputArray);
@@ -97,194 +99,4 @@ extern "C" {
 	// Return none
 	return Py_BuildValue("");
   }
-
-
-  /*
-   * Getters and Setters
-   */
-  PyObject *GenSurvNetwork_getGenerations(PyGenSurvNetwork *self, void *closure) {
-    return Py_BuildValue("I", ((GeneticSurvivalNetwork*)self->super.net)->getGenerations());
-  }
-
-  int GenSurvNetwork_setGenerations(PyGenSurvNetwork *self, PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    long val = PyInt_AsLong(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setGenerations((unsigned int) val);
-    return 0;
-  }
-
-  PyObject *GenSurvNetwork_getPopulationSize(PyGenSurvNetwork *self, void *closure){
-    return Py_BuildValue("I", ((GeneticSurvivalNetwork*)self->super.net)->getPopulationSize());
-  }
-
-  int GenSurvNetwork_setPopulationSize(PyGenSurvNetwork *self, PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    long val = PyInt_AsLong(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setPopulationSize((unsigned int) val);
-    return 0;
-  }
-
-  PyObject *GenSurvNetwork_getWeightMutationChance(PyGenSurvNetwork *self, void *closure) {
-    return Py_BuildValue("d", ((GeneticSurvivalNetwork*)self->super.net)->getWeightMutationChance());
-  }
-
-  int GenSurvNetwork_setWeightMutationChance(PyGenSurvNetwork *self, PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    double val = PyFloat_AsDouble(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setWeightMutationChance(val);
-    return 0;
-  }
-
-  PyObject *GenSurvNetwork_getWeightMutationHalfPoint(PyGenSurvNetwork *self, void *closure) {
-    return Py_BuildValue("I", ((GeneticSurvivalNetwork*)self->super.net)->getWeightMutationHalfPoint());
-  }
-
-  int GenSurvNetwork_setWeightMutationHalfPoint(PyGenSurvNetwork *self, PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    long val = PyInt_AsLong(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setWeightMutationHalfPoint((unsigned int) val);
-    return 0;
-  }
-
-  PyObject *GenSurvNetwork_getWeightMutationStdDev(PyGenSurvNetwork *self, void *closure) {
-    return Py_BuildValue("d", ((GeneticSurvivalNetwork*)self->super.net)->getWeightMutationStdDev());
-  }
-
-  int GenSurvNetwork_setWeightMutationStdDev(PyGenSurvNetwork *self, PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    double val = PyFloat_AsDouble(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setWeightMutationStdDev(val);
-    return 0;
-  }
-
-
-PyObject *GenSurvNetwork_getDecayL1(PyGenSurvNetwork *self, void *closure) {
-	 return Py_BuildValue("d",
-						  ((GeneticSurvivalNetwork*)self->super.net)->getDecayL1());
-}
-
-int GenSurvNetwork_setDecayL1(PyGenSurvNetwork *self,
-							  PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    double val = PyFloat_AsDouble(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setDecayL1(val);
-    return 0;
-}
-
-PyObject *GenSurvNetwork_getDecayL2(PyGenSurvNetwork *self, void *closure) {
-	 return Py_BuildValue("d",
-						  ((GeneticSurvivalNetwork*)self->super.net)->getDecayL2());
-}
-
-int GenSurvNetwork_setDecayL2(PyGenSurvNetwork *self,
-							  PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    double val = PyFloat_AsDouble(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setDecayL2(val);
-    return 0;
-  }
-
-PyObject *GenSurvNetwork_getWeightElimination(PyGenSurvNetwork *self,
-											  void *closure) {
-	 return Py_BuildValue("d",
-						  ((GeneticSurvivalNetwork*)self->super.net)->
-						  getWeightElimination());
-}
-
-int GenSurvNetwork_setWeightElimination(PyGenSurvNetwork *self,
-										PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    double val = PyFloat_AsDouble(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setWeightElimination(val);
-    return 0;
-}
-
-PyObject *GenSurvNetwork_getWeightEliminationLambda(PyGenSurvNetwork *self,
-													void *closure) {
-	 return Py_BuildValue("d",
-						  ((GeneticSurvivalNetwork*)self->super.net)->
-						  getWeightEliminationLambda());
-}
-
-int GenSurvNetwork_setWeightEliminationLambda(PyGenSurvNetwork *self,
-											  PyObject *value, void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    double val = PyFloat_AsDouble(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    ((GeneticSurvivalNetwork*)self->super.net)->setWeightEliminationLambda(val);
-    return 0;
-}
-
-
 }

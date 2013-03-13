@@ -34,7 +34,7 @@ void GeneticCascadeNetwork::initNodes() {
 
   this->outputNeurons = new Neuron*[this->numOfOutput];
   for (i = 0; i < this->numOfOutput; i++) {
-    this->outputNeurons[i] = new GeneticNeuron(i);
+    this->outputNeurons[i] = new GeneticCascadeNeuron(i);
   }
 
   this->bias = new RPropBias;
@@ -43,7 +43,7 @@ void GeneticCascadeNetwork::initNodes() {
 void GeneticCascadeNetwork::trainOutputs(double *X, double *Y, unsigned int rows) {
   unsigned int i;
   for (i = 0; i < numOfOutput; i++)
-    ((GeneticNeuron*) outputNeurons[i])->learn(X, Y, rows);
+    ((GeneticCascadeNeuron*) outputNeurons[i])->learn(X, Y, rows);
 }
 
 void GeneticCascadeNetwork::calcErrors(double *X, double *Y, unsigned int rows,
@@ -66,11 +66,11 @@ void GeneticCascadeNetwork::calcErrors(double *X, double *Y, unsigned int rows,
 
 /*
  * -----------------------
- * GeneticNeuron definitions
+ * GeneticCascadeNeuron definitions
  * -----------------------
  */
 
-GeneticNeuron::GeneticNeuron(int id) : Neuron(id),
+GeneticCascadeNeuron::GeneticCascadeNeuron(int id) : Neuron(id),
                                        rng(boost::mt19937(time(NULL))),
                                        dist_normal(boost::normal_distribution<double>(0,1)),
                                        gaussian(boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> >(rng, dist_normal)),
@@ -79,7 +79,7 @@ GeneticNeuron::GeneticNeuron(int id) : Neuron(id),
   setup();
 }
 
-GeneticNeuron::GeneticNeuron(int id, double (*activationFunction)(double),
+GeneticCascadeNeuron::GeneticCascadeNeuron(int id, double (*activationFunction)(double),
                                double (*activationDerivative)(double)) :
   Neuron(id, activationFunction, activationDerivative),
   rng(boost::mt19937(time(NULL))),
@@ -90,7 +90,7 @@ GeneticNeuron::GeneticNeuron(int id, double (*activationFunction)(double),
   setup();
 }
 
-void GeneticNeuron::setup() {
+void GeneticCascadeNeuron::setup() {
   populationSize = 30;
   generations = 20;
   weightMutationChance = 0.8;
@@ -121,7 +121,7 @@ void GeneticNeuron::setup() {
   */
 }
 
-GeneticNeuron::~GeneticNeuron() {
+GeneticCascadeNeuron::~GeneticCascadeNeuron() {
 }
 
 /*
@@ -131,7 +131,7 @@ GeneticNeuron::~GeneticNeuron() {
 
     Clears the vector before filling it
   */
-void GeneticNeuron::getAllWeights(vector<double> *weights) {
+void GeneticCascadeNeuron::getAllWeights(vector<double> *weights) {
   // Clear first
   weights->clear();
 
@@ -151,7 +151,7 @@ void GeneticNeuron::getAllWeights(vector<double> *weights) {
   Sets the weights in the connections. Expects the same order as in
   getAllWeights
 */
-void GeneticNeuron::setAllWeights(vector<double> *weights) {
+void GeneticCascadeNeuron::setAllWeights(vector<double> *weights) {
   unsigned int i, j;
   for (i = 0; i < weights->size(); i++) {
     // Add input weights
@@ -180,7 +180,7 @@ void mutateVector(vector<double> *weights,
   }
 }
 
-double GeneticNeuron::outputWithVector(vector<double> *weights,
+double GeneticCascadeNeuron::outputWithVector(vector<double> *weights,
                                        double *X) {
   double inputSum = 0;
   unsigned int i, j;
@@ -210,7 +210,7 @@ double GeneticNeuron::outputWithVector(vector<double> *weights,
   return activationFunction(inputSum);
 }
 
-double GeneticNeuron::evaluateWithVector(vector<double> *weights,
+double GeneticCascadeNeuron::evaluateWithVector(vector<double> *weights,
                                          double *X, double *Y,
                                          unsigned int length,
                                          double *outputs) {
@@ -266,7 +266,7 @@ void insertSorted(vector<vector<double>*> * const sortedPopulation,
 /*
   Skipping cross over
  */
-void GeneticNeuron::learn(double *X, double *Y,
+void GeneticCascadeNeuron::learn(double *X, double *Y,
                                    unsigned int length) {
   printf("Neuron Learn\n");
   // Create necessary vectors
@@ -355,23 +355,23 @@ GeneticLadderNetwork::GeneticLadderNetwork(unsigned int numOfInputs):
 }
 
 GeneticLadderNetwork::~GeneticLadderNetwork() {
-  while (hiddenGeneticNeurons->size() > 0) {
-    delete hiddenGeneticNeurons->back();
-    hiddenGeneticNeurons->pop_back();
+  while (hiddenGeneticCascadeNeurons->size() > 0) {
+    delete hiddenGeneticCascadeNeurons->back();
+    hiddenGeneticCascadeNeurons->pop_back();
   }
-  delete hiddenGeneticNeurons;
+  delete hiddenGeneticCascadeNeurons;
 }
 
 void GeneticLadderNetwork::initNodes() {
   hiddenRCascadeNeurons = new vector<RCascadeNeuron*>;
-  hiddenGeneticNeurons = new vector<GeneticNeuron*>;
+  hiddenGeneticCascadeNeurons = new vector<GeneticCascadeNeuron*>;
 
   this->hiddenNeurons = new Neuron*[0];
   unsigned int i;
 
   this->outputNeurons = new Neuron*[this->numOfOutput];
   for (i = 0; i < this->numOfOutput; i++) {
-    this->outputNeurons[i] = new GeneticNeuron(i);
+    this->outputNeurons[i] = new GeneticCascadeNeuron(i);
   }
 
   this->bias = new RPropBias;
@@ -411,12 +411,12 @@ void GeneticLadderNetwork::learn(double *X, double *Y, unsigned int rows) {
     printf("Moving output to hidden layer\n");
     // Set id
     outputNeurons[0]->setId((int) neuronCount);
-    // Move from outputs to hiddenGeneticNeurons
-    hiddenGeneticNeurons->push_back(static_cast<GeneticNeuron*>(outputNeurons[0]));
+    // Move from outputs to hiddenGeneticCascadeNeurons
+    hiddenGeneticCascadeNeurons->push_back(static_cast<GeneticCascadeNeuron*>(outputNeurons[0]));
 
     printf("Creating new output\n");
     // Create new output
-    outputNeurons[0] = new GeneticNeuron(0);
+    outputNeurons[0] = new GeneticCascadeNeuron(0);
     setOutputActivationFunction(outputActivationFunction);
     // Connect it to previous layers
     outputNeurons[0]->connectToNeuron(bias,
@@ -426,8 +426,8 @@ void GeneticLadderNetwork::learn(double *X, double *Y, unsigned int rows) {
       outputNeurons[0]->connectToInput(i,
                                 (uniform() - 0.5));
     }
-    for (i = 0; i < hiddenGeneticNeurons->size(); i++) {
-      outputNeurons[0]->connectToNeuron(hiddenGeneticNeurons->at(i),
+    for (i = 0; i < hiddenGeneticCascadeNeurons->size(); i++) {
+      outputNeurons[0]->connectToNeuron(hiddenGeneticCascadeNeurons->at(i),
                                  (uniform() - 0.5));
     }
     // Train output
@@ -470,14 +470,14 @@ void GeneticLadderNetwork::calcErrors(double *X, double *Y, unsigned int rows,
 
 unsigned int GeneticLadderNetwork::getNumOfHidden() const {
   unsigned int retval = 0;
-  if (this->hiddenGeneticNeurons != NULL) {
-    retval = this->hiddenGeneticNeurons->size();
+  if (this->hiddenGeneticCascadeNeurons != NULL) {
+    retval = this->hiddenGeneticCascadeNeurons->size();
   }
   return retval;
 }
 
 Neuron* GeneticLadderNetwork::getHiddenNeuron(unsigned int id) const {
-  return hiddenGeneticNeurons->at(id);
+  return hiddenGeneticCascadeNeurons->at(id);
 }
 
 bool GeneticLadderNetwork::getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight) {
@@ -486,7 +486,7 @@ bool GeneticLadderNetwork::getNeuronWeightFromHidden(unsigned int fromId, int to
     throw invalid_argument("Id was larger than number of nodes");
   }
 
-  return hiddenGeneticNeurons->at(fromId)->getNeuronWeight(toId, weight);
+  return hiddenGeneticCascadeNeurons->at(fromId)->getNeuronWeight(toId, weight);
 }
 
 bool GeneticLadderNetwork::getInputWeightFromHidden(unsigned int fromId, unsigned int toIndex, double *weight) {
@@ -495,5 +495,5 @@ bool GeneticLadderNetwork::getInputWeightFromHidden(unsigned int fromId, unsigne
 index was greater than number of inputs");
   }
 
-  return hiddenGeneticNeurons->at(fromId)->getInputWeight(toIndex, weight);
+  return hiddenGeneticCascadeNeurons->at(fromId)->getInputWeight(toIndex, weight);
 }

@@ -10,7 +10,7 @@
 #include "CascadeNetwork.h"
 #include "boost/random.hpp"
 
-class GeneticNeuron : public Neuron {
+class GeneticCascadeNeuron : public Neuron {
 protected:
   void setup();
   // How many networks should be created/mutated and compared in one generation
@@ -65,10 +65,10 @@ protected:
                             double *outputs);
 
 public:
-  GeneticNeuron(int id);
-  GeneticNeuron(int id, double (*activationFunction)(double),
+  GeneticCascadeNeuron(int id);
+  GeneticCascadeNeuron(int id, double (*activationFunction)(double),
 			double (*activationDerivative)(double));
-  virtual ~GeneticNeuron();
+  virtual ~GeneticCascadeNeuron();
 
   virtual void learn(double *X, double *Y,
                      unsigned int length);
@@ -89,7 +89,7 @@ class GeneticCascadeNetwork : public CascadeNetwork {
 
 class GeneticLadderNetwork : public GeneticCascadeNetwork {
  protected:
-  std::vector<GeneticNeuron*> *hiddenGeneticNeurons;
+  std::vector<GeneticCascadeNeuron*> *hiddenGeneticCascadeNeurons;
  public:
   GeneticLadderNetwork(unsigned int numOfInputs);
   virtual ~GeneticLadderNetwork();

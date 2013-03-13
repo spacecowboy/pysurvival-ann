@@ -11,6 +11,7 @@
 #include "drand.h"
 #include <cmath>
 #include <stdio.h>
+#include "ErrorFunctions.h"
 
 signed int sign(double x) {
 	if (x >= 0)
@@ -42,33 +43,6 @@ RPropNetwork* getRPropNetwork(unsigned int numOfInputs,
 	net->connectOToB(0, dRand());
 
 	return net;
-}
-
-/*
- * Derivative of SumSquareError
- */
-double SSEDeriv(double target, double output) {
-	return target - output;
-}
-
-double *SSEDerivs(double *target, double *output, int length) {
-	double *derivs = new double[length];
-	for (int i = 0; i < length; i++) {
-		derivs[i] = target[i] - output[i];
-	}
-	return derivs;
-}
-
-double SSE(double target, double output) {
-	return std::pow(target - output, 2) / 2;
-}
-
-double *SSEs(double *target, double *output, int length) {
-	double *errors = new double[length];
-	for (int i = 0; i < length; i++) {
-		errors[i] = std::pow(target[i] - output[i], 2) / 2;
-	}
-	return errors;
 }
 
 RPropNetwork::RPropNetwork(unsigned int numOfInputs, unsigned int numOfHidden,

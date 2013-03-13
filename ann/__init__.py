@@ -7,6 +7,7 @@ Should write intended usage here...
 
 from __future__ import division
 from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
+                   gennetwork as _gennetwork,
                    gensurvnetwork as _gensurvnetwork, get_C_index,
                    cascadenetwork as _cascadenetwork,
                    coxcascadenetwork as _coxcascadenetwork,
@@ -48,14 +49,14 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=0.5):
     ORDER MATTERS!
     '''
     net = gensurvnetwork(numOfInputs, numOfHidden)
-    
+
     outputweights = np.random.normal(size = numOfHidden + 1)
     outputweights /= np.linalg.norm(outputweights)
 
     for h in range(net.numOfHidden):
         hiddenweights = np.random.normal(size = numOfInputs + 1)
         hiddenweights /= np.linalg.norm(hiddenweights)
-          
+
         net.connectHToB(h, hiddenweights[-1])
         net.connectOToH(0, h, outputweights[h])
         for i in range(net.numOfInputs):
@@ -67,6 +68,41 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=0.5):
     net.outputActivationFunction = net.LOGSIG
 
     return net
+
+def getSingleLayerGenetic(numOfInputs, numOfHidden, numOfOutputs):
+    ''' Constructs and connects a neural network with a single layer
+    of hidden neurons which can be trained with a genetic algorithm
+    for censored survival data. Weights are scaled so that each
+    vector of weights connected to a neuron will have L2-norm = 1.
+
+    Keyword arguments:
+    numOfInputs - Number of input neurons
+    numOfHidden - Number of hidden neurons
+    numOfOutputs - Number of output neurons
+
+    ORDER MATTERS!
+    '''
+    net = geneticnetwork(numOfInputs, numOfHidden, numOfOutputs)
+
+    outputweights = np.random.normal(size = numOfHidden + 1)
+    outputweights /= np.linalg.norm(outputweights)
+
+    for h in range(net.numOfHidden):
+        hiddenweights = np.random.normal(size = numOfInputs + 1)
+        hiddenweights /= np.linalg.norm(hiddenweights)
+
+        net.connectHToB(h, hiddenweights[-1])
+        net.connectOToH(0, h, outputweights[h])
+        for i in range(net.numOfInputs):
+            net.connectHToI(h, i, hiddenweights[i])
+
+    net.connectOToB(0, outputweights[-1])
+
+    net.hiddenActivationFunction = net.LOGSIG
+    net.outputActivationFunction = net.LOGSIG
+
+    return net
+
 
 def getCascadeNetwork(numOfInputs):
     '''Returns a connected cascade network with the specified
@@ -118,7 +154,7 @@ def connectAsSingleLayer(net):
     for h in range(net.numOfHidden):
         hiddenweights = np.random.normal(size = numOfInputs + 1)
         hiddenweights /= np.linalg.norm(hiddenweights)
-          
+
         net.connectHToB(h, hiddenweights[-1])
         net.connectOToH(0, h, outputweights[h])
         for i in range(net.numOfInputs):
@@ -372,6 +408,10 @@ class geneticcascadenetwork(_geneticcascadenetwork):
 
 @UtilFuncs
 class geneticladdernetwork(_geneticladdernetwork):
+    pass
+
+@UtilFuncs
+class geneticnetwork(_gennetwork):
     pass
 
 @UtilFuncs
