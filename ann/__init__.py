@@ -35,41 +35,26 @@ def getRProp(numOfInputs, hiddenlayers, numOfOutputs):
     connectAsNLayer(net, hiddenlayers)
     return net
 
-def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=0.5):
+def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=None):
     ''' Constructs and connects a neural network with a single layer
     of hidden neurons which can be trained with a genetic algorithm
-    for censored survival data. Weights are scaled so that each
+    for censored survival data. If variance is None,
+    weights are scaled so that each
     vector of weights connected to a neuron will have L2-norm = 1.
 
     Keyword arguments:
     numOfInputs - Number of input neurons
     numOfHidden - Number of hidden neurons
-    variance=0.5 - Uniform variance of initial weights
-
-    ORDER MATTERS!
+    variance=None - How to scale the weights. If None, will scale
+    with the L2-norm.
     '''
     net = gensurvnetwork(numOfInputs, numOfHidden)
 
-    outputweights = np.random.normal(size = numOfHidden + 1)
-    outputweights /= np.linalg.norm(outputweights)
+    return _connect_single_layer_genetic(net, variance)
 
-    for h in range(net.numOfHidden):
-        hiddenweights = np.random.normal(size = numOfInputs + 1)
-        hiddenweights /= np.linalg.norm(hiddenweights)
 
-        net.connectHToB(h, hiddenweights[-1])
-        net.connectOToH(0, h, outputweights[h])
-        for i in range(net.numOfInputs):
-            net.connectHToI(h, i, hiddenweights[i])
-
-    net.connectOToB(0, outputweights[-1])
-
-    net.hiddenActivationFunction = net.LOGSIG
-    net.outputActivationFunction = net.LOGSIG
-
-    return net
-
-def getSingleLayerGenetic(numOfInputs, numOfHidden, numOfOutputs):
+def getSingleLayerGenetic(numOfInputs, numOfHidden, numOfOutputs,
+                          variance=None):
     ''' Constructs and connects a neural network with a single layer
     of hidden neurons which can be trained with a genetic algorithm
     for censored survival data. Weights are scaled so that each
@@ -79,17 +64,30 @@ def getSingleLayerGenetic(numOfInputs, numOfHidden, numOfOutputs):
     numOfInputs - Number of input neurons
     numOfHidden - Number of hidden neurons
     numOfOutputs - Number of output neurons
-
-    ORDER MATTERS!
+    variance=None - How to scale the weights. If None, will scale
+    with the L2-norm.
     '''
     net = geneticnetwork(numOfInputs, numOfHidden, numOfOutputs)
 
-    outputweights = np.random.normal(size = numOfHidden + 1)
-    outputweights /= np.linalg.norm(outputweights)
+    return _connect_single_layer_genetic(net, variance)
+
+def _connect_single_layer_genetic(net, variance):
+    '''Order must remain consistent with training algorithm!'''
+    scaleL2 = False
+    if not variance:
+        variance = 1.0
+        scaleL2 = True
+
+    outputweights = np.random.normal(scale = variance,
+                                     size = net.numOfHidden + 1)
+    if scaleL2:
+        outputweights /= np.linalg.norm(outputweights)
 
     for h in range(net.numOfHidden):
-        hiddenweights = np.random.normal(size = numOfInputs + 1)
-        hiddenweights /= np.linalg.norm(hiddenweights)
+        hiddenweights = np.random.normal(scale = variance,
+                                         size = net.numOfInputs + 1)
+        if scaleL2:
+            hiddenweights /= np.linalg.norm(hiddenweights)
 
         net.connectHToB(h, hiddenweights[-1])
         net.connectOToH(0, h, outputweights[h])
