@@ -33,10 +33,12 @@ GeneticNetwork::getGeneticNetwork(GeneticNetwork *cloner,
   // First clone all the weights as initial values
   net->cloneNetworkSlow(cloner);
 
+  double dummy = 0;
   // Then mutate the weights. Set halfpoint to irrelevant values
   // Reverse of resume is independent
   net->mutateWeights(gaussian, uniform, cloner->weightMutationChance,
-                     cloner->weightMutationFactor, 1, 0, !cloner->getResume());
+                     cloner->weightMutationFactor, 1, 0, !cloner->getResume(),
+                     &dummy, &dummy);
 
   return net;
 }
@@ -55,6 +57,7 @@ GeneticNetwork::GeneticNetwork(unsigned int numOfInputs,
   weightElimination = 0;
   weightEliminationLambda = 0;
   resume = false;
+  crossoverChance = 1.0;
 }
 
 void GeneticNetwork::initNodes() {
@@ -151,7 +154,8 @@ void GeneticNetwork::mutateWeights(boost::variate_generator<boost::mt19937&,
                                    boost::uniform_int<> > *uniform,
                                    double mutationChance, double factor,
                                    int deviationHalfPoint, int epoch,
-                                   bool independent) {
+                                   bool independent, double *mutSmallest,
+                                   double *mutLargest) {
 
   double currentFactor = factor;
   if (deviationHalfPoint > 0 && epoch > 0) {
@@ -165,14 +169,20 @@ void GeneticNetwork::mutateWeights(boost::variate_generator<boost::mt19937&,
                                                        uniform,
                                                        mutationChance,
                                                        currentFactor,
-                                                       independent);
+                                                       independent,
+                                                       false,
+                                                       mutSmallest,
+                                                       mutLargest);
   }
   for (n = 0; n < numOfOutput; n++) {
     ((GeneticNeuron*) outputNeurons[n])->mutateWeights(gaussian,
                                                        uniform,
                                                        mutationChance,
                                                        currentFactor,
-                                                       independent);
+                                                       independent,
+                                                       false,
+                                                       mutSmallest,
+                                                       mutLargest);
     }
 }
 
@@ -474,7 +484,7 @@ void GeneticNetwork::learn(double *X, double *Y,
   vector<GeneticNetwork*>::iterator netIt;
   vector<double>::iterator errorIt;
 
-  printf("Length: %d\n", length);
+  printf("Data size: %d\n", length);
 
   for (i = 0; i < populationSize + 1; i++) {
        GeneticNetwork *net = getGeneticNetwork(this, &gaussian,
@@ -488,23 +498,45 @@ void GeneticNetwork::learn(double *X, double *Y,
   GeneticNetwork *best = sortedPopulation.front();
   GeneticNetwork *child;
 
+  // For debug, keep track of every generation's least and biggest mutations
+  double mutSmallest, mutLargest;
+
   // For each generation
   unsigned int curGen, genChild, mother, father;
   for (curGen = 0; curGen < generations; curGen++) {
+    mutSmallest = 1000;
+    mutLargest = 0;
+
     for (genChild = 0; genChild < populationSize; genChild++) {
-      // We recycle the worst network
-      child = sortedPopulation.back();
-      sortedPopulation.pop_back();
-      sortedErrors.pop_back();
-      // Select two networks
-      selectParents(&geometric, populationSize, &mother, &father);
-      // Create new child through crossover
-      child->crossover(&uniform, sortedPopulation[mother],
-                       sortedPopulation[father]);
+      // Chance that we we don't do crossover
+      // debug
+      // The key is that crappy children must die. Now they dont
+      // there is no selection process. e.g. just a random process
+      crossoverChance = 2;
+      if (uniform() < crossoverChance) {
+        //printf("Doing crossover\n");
+        // We recycle the worst network
+        child = sortedPopulation.back();
+        sortedPopulation.pop_back();
+        sortedErrors.pop_back();
+        // Select two networks
+        selectParents(&geometric, populationSize, &mother, &father);
+        // Create new child through crossover
+        child->crossover(&uniform, sortedPopulation[mother],
+                         sortedPopulation[father]);
+      }
+      else {
+        // Mutate an existing network!
+        selectParents(&geometric, populationSize, &mother, &father);
+        //printf("m: %d, f: %d\n", mother, father);
+        child = sortedPopulation.at(mother);
+        sortedPopulation.erase(sortedPopulation.begin() + mother);
+        sortedErrors.erase(sortedErrors.begin() + mother);
+      }
       // Mutate child
       child->mutateWeights(&gaussian, &uniform, weightMutationChance,
                            weightMutationFactor, weightMutationHalfPoint,
-                           curGen, false);
+                           curGen, false, &mutSmallest, &mutLargest);
       // evaluate error child
       error = evaluateNetwork(child, X, Y, length, outputs);
       // Insert child into the sorted list
@@ -513,7 +545,9 @@ void GeneticNetwork::learn(double *X, double *Y,
       best = sortedPopulation.front();
     }
     // Add printEpoch check here
-    printf("gen: %d, best: %f\n", curGen, sortedErrors.front());
+    printf("gen: %d, best: %f, weightSmallest: %f, weightLargest: %f\n", curGen,
+           sortedErrors.front(), mutSmallest, mutLargest);
+
     if (decayL2 != 0) {
       printf("L2term = %f * %f\n", decayL2, weightSquaredSum2(best));
     }
@@ -622,35 +656,58 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
                                   boost::variate_generator<boost::mt19937&,
                                   boost::uniform_int<> > *uniform,
                                   double mutationChance, double factor,
-                                  bool independent) {
+                                  bool independent, bool l2scale,
+                                  double *mutSmallest,
+                                  double *mutLargest) {
   unsigned int n;
   // l2 = sqrt( sum( x^2 ) )
-  double l2 = 0;
+  double l2 = 0, mutation = 0;
   // Base deviation is the magnitude of the weight. Minus-signs are irrelevant
   // Since it's random anyway
   for (n = 0; n < neuronConnections->size(); n++) {
     if (independent) {
       neuronConnections->at(n).second = (*gaussian)();
-      l2 += neuronConnections->at(n).second * neuronConnections->at(n).second;
     }
-    else if ((*uniform)() <= mutationChance)
-      neuronConnections->at(n).second += ((*gaussian)()
-                                          * neuronConnections->at(n).second
-                                          * factor);
+    else if ((*uniform)() <= mutationChance) {
+      //mutation = (*gaussian)() * neuronConnections->at(n).second * factor;
+      mutation = (*gaussian)() * factor;
+      if (neuronConnections->at(n).second < 1.0)
+        mutation *= neuronConnections->at(n).second;
+      neuronConnections->at(n).second += mutation;
+      /*
+      if (fabs(mutation) > *mutLargest)
+        *mutLargest = fabs(mutation);
+      else if (fabs(mutation) < *mutSmallest)
+        *mutSmallest = fabs(mutation);
+        */
+    }
+
+    l2 += neuronConnections->at(n).second * neuronConnections->at(n).second;
   }
   for (n = 0; n < inputConnections->size(); n++) {
     if (independent) {
       inputConnections->at(n).second = (*gaussian)();
-      l2 += inputConnections->at(n).second * inputConnections->at(n).second;
     }
-    else if ((*uniform)() <= mutationChance)
-      inputConnections->at(n).second += ((*gaussian)()
-                                         * inputConnections->at(n).second
-                                         * factor);
+    else if ((*uniform)() <= mutationChance) {
+      //mutation = (*gaussian)()* inputConnections->at(n).second * factor;
+      mutation = (*gaussian)() * factor;
+      if (inputConnections->at(n).second < 1.0)
+        mutation *= inputConnections->at(n).second;
+      inputConnections->at(n).second += mutation;
+
+      /*
+      if (fabs(mutation) > *mutLargest)
+        *mutLargest = fabs(mutation);
+      else if (fabs(mutation) < *mutSmallest)
+        *mutSmallest = fabs(mutation);
+        */
+    }
+
+    l2 += inputConnections->at(n).second * inputConnections->at(n).second;
   }
 
   // Scale by L2 norm
-  if (independent) {
+  if (independent || l2scale) {
     l2 = sqrt(l2);
     for (n = 0; n < neuronConnections->size(); n++) {
       neuronConnections->at(n).second /= l2;
@@ -658,5 +715,19 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
     for (n = 0; n < inputConnections->size(); n++) {
       inputConnections->at(n).second /= l2;
     }
+  }
+  for (n = 0; n < neuronConnections->size(); n++) {
+
+    if (fabs(neuronConnections->at(n).second) > *mutLargest)
+      *mutLargest = fabs(neuronConnections->at(n).second);
+    else if (fabs(neuronConnections->at(n).second) < *mutSmallest)
+      *mutSmallest = fabs(neuronConnections->at(n).second);
+  }
+
+  for (n = 0; n < inputConnections->size(); n++) {
+    if (fabs(inputConnections->at(n).second) > *mutLargest)
+      *mutLargest = fabs(inputConnections->at(n).second);
+    else if (fabs(inputConnections->at(n).second) < *mutSmallest)
+      *mutSmallest = fabs(inputConnections->at(n).second);
   }
 }

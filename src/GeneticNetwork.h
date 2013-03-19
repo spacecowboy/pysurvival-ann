@@ -22,6 +22,9 @@ class GeneticNetwork: public FFNetwork {
   // Scales the mutation variance.
   double weightMutationFactor;
 
+  // Chance of doing crossover
+  double crossoverChance;
+
   // If this is non zero, it is interpreted as the generation where the stddev should have
   // decreased to half its value.
   // This calculation is NOT done if this is zero, which it is by default.
@@ -70,7 +73,8 @@ class GeneticNetwork: public FFNetwork {
                              boost::uniform_int<> > *uniform,
                              double mutationChance, double stdDev,
                              int deviationHalfPoint, int epoch,
-                             bool independent);
+                             bool independent, double *mutSmallest,
+                             double *mutLargest);
 
   // Makes this network into a clone of the original. Assumes equal iteration.
   virtual void cloneNetwork(GeneticNetwork *original);
@@ -131,7 +135,9 @@ public:
                              boost::variate_generator<boost::mt19937&,
                              boost::uniform_int<> > *uniform,
                              double mutationChance, double stdDev,
-                             bool independent);
+                             bool independent, bool l2scale,
+                             double *mutSmallest,
+                             double *mutLargest);
 };
 
 class GeneticBias: public GeneticNeuron {

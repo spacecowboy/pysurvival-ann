@@ -32,9 +32,11 @@ GeneticSurvivalNetwork::getGeneticNetwork(GeneticNetwork *cloner,
   // First clone all the weights as initial values
   net->cloneNetworkSlow(cloner);
 
+  double dummy = 0;
   // Then mutate the weights. Set halfpoint to irrelevant values
   net->mutateWeights(gaussian, uniform, cloner->weightMutationChance,
-                     cloner->weightMutationFactor, 1, 0, !cloner->getResume());
+                     cloner->weightMutationFactor, 1, 0, !cloner->getResume(),
+                     &dummy, &dummy);
 
   return net;
 }
