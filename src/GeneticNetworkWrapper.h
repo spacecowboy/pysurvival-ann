@@ -88,6 +88,12 @@ extern "C" {
                            PyObject *value,
                            void *closure);
 
+  PyObject *GenNetwork_getCrossoverChance(PyGenNetwork *self,
+                                          void *closure);
+  int GenNetwork_setCrossoverChance(PyGenNetwork *self,
+                                    PyObject *value,
+                                    void *closure);
+
 /*
  * Pickle methods
  * ==============

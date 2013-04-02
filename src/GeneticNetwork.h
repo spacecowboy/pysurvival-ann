@@ -14,10 +14,12 @@ class GeneticNetwork: public FFNetwork {
   // Training variables
   // How many networks should be created/mutated and compared in one generation
   unsigned int populationSize;
-  // Train for this many generations. E.g. total number of networks created/mutated is
+  // Train for this many generations. E.g. total number of networks
+  // created/mutated is
   // populationSize * generations
   unsigned int generations;
-  // If uniformRandom < weightMutationChance then mutate weight by mutationChange
+  // If uniformRandom < weightMutationChance then mutate weight by
+  // mutationChange
   double weightMutationChance;
   // Scales the mutation variance.
   double weightMutationFactor;
@@ -25,8 +27,8 @@ class GeneticNetwork: public FFNetwork {
   // Chance of doing crossover
   double crossoverChance;
 
-  // If this is non zero, it is interpreted as the generation where the stddev should have
-  // decreased to half its value.
+  // If this is non zero, it is interpreted as the generation where the stddev
+  // should have decreased to half its value.
   // This calculation is NOT done if this is zero, which it is by default.
   unsigned int weightMutationHalfPoint;
 
@@ -113,6 +115,9 @@ class GeneticNetwork: public FFNetwork {
 
   bool getResume() const;
   void setResume(bool val);
+
+  double getCrossoverChance() const;
+  void setCrossoverChance(double val);
 };
 
 class GeneticNeuron: public Neuron {

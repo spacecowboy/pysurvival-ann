@@ -21,9 +21,11 @@ using namespace std;
 GeneticNetwork*
 GeneticNetwork::getGeneticNetwork(GeneticNetwork *cloner,
                                   boost::variate_generator<boost::mt19937&,
-                                  boost::normal_distribution<double> >* gaussian,
+                                  boost::normal_distribution<double> >
+                                  *gaussian,
                                   boost::variate_generator<boost::mt19937&,
-                                  boost::uniform_int<> > *uniform)
+                                  boost::uniform_int<> >
+                                  *uniform)
 {
   GeneticNetwork *net = new GeneticNetwork(cloner->getNumOfInputs(),
                                            cloner->getNumOfHidden(),
@@ -258,6 +260,14 @@ bool GeneticNetwork::getResume()const {
 }
 void GeneticNetwork::setResume(bool val) {
   this->resume = val;
+}
+
+double GeneticNetwork::getCrossoverChance() const {
+  return crossoverChance;
+}
+
+void GeneticNetwork::setCrossoverChance(double val) {
+  this->crossoverChance = val;
 }
 
 // Safe to remove
@@ -509,10 +519,6 @@ void GeneticNetwork::learn(double *X, double *Y,
 
     for (genChild = 0; genChild < populationSize; genChild++) {
       // Chance that we we don't do crossover
-      // debug
-      // The key is that crappy children must die. Now they dont
-      // there is no selection process. e.g. just a random process
-      crossoverChance = 2;
       if (uniform() < crossoverChance) {
         //printf("Doing crossover\n");
         // We recycle the worst network
@@ -524,23 +530,50 @@ void GeneticNetwork::learn(double *X, double *Y,
         // Create new child through crossover
         child->crossover(&uniform, sortedPopulation[mother],
                          sortedPopulation[father]);
+
+        // Mutate child
+        child->mutateWeights(&gaussian, &uniform, weightMutationChance,
+                             weightMutationFactor, weightMutationHalfPoint,
+                             curGen, false, &mutSmallest, &mutLargest);
+        // evaluate error child
+        error = evaluateNetwork(child, X, Y, length, outputs);
+        // Insert child into the sorted list
+        insertSorted(&sortedPopulation, &sortedErrors, error, child);
       }
       else {
-        // Mutate an existing network!
+        // Clone an existing network
+        child = sortedPopulation.back();
+        sortedPopulation.pop_back();
+        sortedErrors.pop_back();
+
         selectParents(&geometric, populationSize, &mother, &father);
-        //printf("m: %d, f: %d\n", mother, father);
-        child = sortedPopulation.at(mother);
-        sortedPopulation.erase(sortedPopulation.begin() + mother);
-        sortedErrors.erase(sortedErrors.begin() + mother);
+        child->cloneNetwork(sortedPopulation.at(mother));
+
+        // Mutate it
+        child->mutateWeights(&gaussian, &uniform, weightMutationChance,
+                             weightMutationFactor, weightMutationHalfPoint,
+                             curGen, false, &mutSmallest, &mutLargest);
+
+        // If better, it replaces it's source
+        error = evaluateNetwork(child, X, Y, length, outputs);
+        if (error >= sortedErrors.at(mother)) {
+          // Not better, back to bin
+          sortedPopulation.push_back(child);
+          sortedErrors.push_back(error);
+        } else {
+          // Better, replace mother
+          GeneticNetwork *m = sortedPopulation.at(mother);
+          sortedPopulation.erase(sortedPopulation.begin() + mother);
+          sortedErrors.erase(sortedErrors.begin() + mother);
+
+          // Insert child into the sorted list
+          insertSorted(&sortedPopulation, &sortedErrors, error, child);
+
+          // Put mother last
+          sortedPopulation.push_back(m);
+          sortedErrors.push_back(99999999);
+        }
       }
-      // Mutate child
-      child->mutateWeights(&gaussian, &uniform, weightMutationChance,
-                           weightMutationFactor, weightMutationHalfPoint,
-                           curGen, false, &mutSmallest, &mutLargest);
-      // evaluate error child
-      error = evaluateNetwork(child, X, Y, length, outputs);
-      // Insert child into the sorted list
-      insertSorted(&sortedPopulation, &sortedErrors, error, child);
       // Save best network
       best = sortedPopulation.front();
     }

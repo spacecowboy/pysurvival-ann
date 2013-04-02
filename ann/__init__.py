@@ -10,12 +10,17 @@ from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
                    gennetwork as _gennetwork,
                    gensurvnetwork as _gensurvnetwork, get_C_index,
                    cascadenetwork as _cascadenetwork,
-                   coxcascadenetwork as _coxcascadenetwork,
                    geneticcascadenetwork as _geneticcascadenetwork,
                    geneticladdernetwork as _geneticladdernetwork)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
+
+try:
+    from ._ann import coxcascadenetwork as _coxcascadenetwork
+except:
+    print("Ignoring Cox cascade network, was probably not built")
+    _coxcascadenetwork = None
 
 
 def getSingleLayerRProp(numOfInputs, numOfHidden, numOfOutputs):
@@ -110,13 +115,14 @@ def getCascadeNetwork(numOfInputs):
     connectAsShortcutNLayer(net, [])
     return net
 
-def getCoxCascadeNetwork(numOfInputs):
-    '''Returns a connected cox cascade network with the specified
-    amount of input neurons, ready to be trained.
-    '''
-    net = coxcascadenetwork(numOfInputs)
-    connectAsShortcutNLayer(net, [])
-    return net
+if _coxcascadenetwork is not None:
+    def getCoxCascadeNetwork(numOfInputs):
+        '''Returns a connected cox cascade network with the specified
+        amount of input neurons, ready to be trained.
+        '''
+        net = coxcascadenetwork(numOfInputs)
+        connectAsShortcutNLayer(net, [])
+        return net
 
 
 def getGeneticCascadeNetwork(numOfInputs):
@@ -396,9 +402,10 @@ class rpropnetwork(_rpropnetwork):
 class cascadenetwork(_cascadenetwork):
     pass
 
-@UtilFuncs
-class coxcascadenetwork(_coxcascadenetwork):
-    pass
+if _coxcascadenetwork is not None:
+    @UtilFuncs
+    class coxcascadenetwork(_coxcascadenetwork):
+        pass
 
 @UtilFuncs
 class geneticcascadenetwork(_geneticcascadenetwork):

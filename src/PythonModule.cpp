@@ -17,7 +17,7 @@
 #include "activationfunctions.h"
 #include "CIndexWrapper.h"
 #include "CascadeNetworkWrapper.h"
-#include "CoxCascadeNetworkWrapper.h"
+//#include "CoxCascadeNetworkWrapper.h"
 #include "GeneticCascadeNetworkWrapper.h"
 
 /*
@@ -267,6 +267,11 @@ static PyGetSetDef GenNetworkGetSetters[] = {
    (setter)GenNetwork_setResume,                      \
    (char*)"If the network should use the existing weighs as a base for the population. Default False.", NULL},
 
+  {(char*)"crossoverchance",              \
+   (getter)GenNetwork_getCrossoverChance, \
+   (setter)GenNetwork_setCrossoverChance,                      \
+   (char*)"Probability to perform crossover before mutation.", NULL},
+
 
   {NULL} // Sentinel
 };
@@ -463,67 +468,68 @@ static PyTypeObject CascadeNetworkType = {
 /*
  * Public Python methods
  * ---------------------
- */
+ *
 static PyMethodDef CoxCascadeNetworkMethods[] =
 {
   {"learn", (PyCFunction) CoxCascadeNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using the Cascade algorithm. \
 Takes arguments: X (inputs), Y (time, event)."},
 
   {NULL}, // So that we can iterate safely below
-};
+  };*/
 
 /*
  * Public Python members with get/setters
  * --------------------------------------
- */
+ *
 static PyGetSetDef CoxCascadeNetworkGetSetters[] = {
   {NULL} // Sentinel
-};
+  };*/
 
 /*
- *  * Python type declaration
- *   * -----------------------
- *    */
+ *   Python type declaration
+ *   -----------------------
+ *
+ *
 static PyTypeObject CoxCascadeNetworkType = {
   PyVarObject_HEAD_INIT(NULL, 0)
-        "_ann.coxcascadenetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
-        sizeof(PyCoxCascadeNetwork),                                    /* tp_basicsize */
-        0,                                              /* tp_itemsize */
-        0,                  /* tp_dealloc */
-        0,                                              /* tp_print */
-        0,                                              /* tp_getattr */
-        0,                                              /* tp_setattr */
-        0,                                              /* tp_compare */
-        0,                                              /* tp_repr */
-        0,                                              /* tp_as_number */
-        0,                                              /* tp_as_sequence */
-        0,                                              /* tp_as_mapping */
-        0,                                              /* tp_hash */
-        0,                                              /* tp_call */
-        0,                                              /* tp_str */
-        0,                                              /* tp_getattro */
-        0,                                              /* tp_setattro */
-        0,                                              /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-        "An implementation of the Cascade correlation algorithm. Hidden Layers are trained with RProp, while the output neuron is replaced by a Cox model.",                       /* tp_doc */
-        0,                                              /* tp_traverse */
-        0,                                              /* tp_clear */
-        0,                                              /* tp_richcompare */
-        0,                                              /* tp_weaklistoffset */
-        0,                                              /* tp_iter */
-        0,                                              /* tp_iternext */
-        CoxCascadeNetworkMethods,                                       /* tp_methods */
-        0,                                       /* tp_members */
-        CoxCascadeNetworkGetSetters,                                            /* tp_getset */
-        0,                                              /* tp_base */
-        0,                                              /* tp_dict */
-        0,                                              /* tp_descr_get */
-        0,                                              /* tp_descr_set */
-        0,                                              /* tp_dictoffset */
-       (initproc)CoxCascadeNetwork_init,                               /* tp_init */
-        0,                                              /* tp_alloc */
-        0,                                  /* tp_new */
-};
+        "_ann.coxcascadenetwork",
+        sizeof(PyCoxCascadeNetwork),
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        "An implementation of the Cascade correlation algorithm. Hidden Layers are trained with RProp, while the output neuron is replaced by a Cox model.",
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        CoxCascadeNetworkMethods,
+        0,
+        CoxCascadeNetworkGetSetters,
+        0,
+        0,
+        0,
+        0,
+        0,
+       (initproc)CoxCascadeNetwork_init,
+        0,
+        0,
+};*/
 
 
 /*
@@ -776,7 +782,7 @@ extern "C" {
 
     /*
      * CoxCascadeNetwork
-     */
+     *
     CoxCascadeNetworkType.tp_base = &CascadeNetworkType;
     if (PyType_Ready(&CoxCascadeNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
@@ -789,7 +795,7 @@ extern "C" {
 
     Py_INCREF(&CoxCascadeNetworkType);
     PyModule_AddObject(mod, "coxcascadenetwork", (PyObject*)&CoxCascadeNetworkType);
-
+    */
 
     /*
      * GeneticCascadeNetwork
@@ -801,7 +807,7 @@ extern "C" {
       Py_DECREF(&GenNetworkType);
       Py_DECREF(&GenSurvNetworkType);
       Py_DECREF(&CascadeNetworkType);
-      Py_DECREF(&CoxCascadeNetworkType);
+      //Py_DECREF(&CoxCascadeNetworkType);
       return MOD_ERROR_VAL;
     }
 
@@ -818,7 +824,7 @@ extern "C" {
       Py_DECREF(&GenNetworkType);
       Py_DECREF(&GenSurvNetworkType);
       Py_DECREF(&CascadeNetworkType);
-      Py_DECREF(&CoxCascadeNetworkType);
+      //Py_DECREF(&CoxCascadeNetworkType);
       Py_DECREF(&GeneticCascadeNetworkType);
       return MOD_ERROR_VAL;
     }

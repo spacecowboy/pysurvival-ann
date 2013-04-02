@@ -324,4 +324,27 @@ targets (2d array)");
 
     return 0;
   }
+
+  PyObject *GenNetwork_getCrossoverChance(PyGenNetwork *self,
+                                          void *closure) {
+    return Py_BuildValue("d", ((GeneticNetwork*)self->super.net)->
+                         getCrossoverChance());
+  }
+
+  int GenNetwork_setCrossoverChance(PyGenNetwork *self, PyObject *value,
+                                    void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticNetwork*)self->super.net)->setCrossoverChance(val);
+    return 0;
+  }
+
 }
