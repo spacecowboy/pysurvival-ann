@@ -104,15 +104,19 @@ void RPropNetwork::learn(double *X, double *Y, unsigned int rows) {
 	int i, n;
 
 	do {
-      if (printEpoch > 0 && epoch % (int) printEpoch == 0)
-			printf("epoch: %d, error: %f\n", epoch, error[0]);
+        if (printEpoch > 0 && epoch % (int) printEpoch == 0) {
+			printf("epoch: %d, error: %f\n", epoch, error[0] / rows);
+        }
+        for (n = 0; n < (int) numOfOutput; n++) {
+            error[n] = 0;
+        }
 		// Evaluate for each value in input vector
       for (i = 0; i < (int) rows; i++) {
 			// First let all neurons evaluate
 			output(X + i*numOfInputs, outputs);
 			for (n = 0; n < (int) numOfOutput; n++) {
 				deriv = SSEDeriv(Y[i*numOfOutput + n], outputs[n]);
-				error[n] = SSE(Y[i*numOfOutput + n], outputs[n]);
+				error[n] += SSE(Y[i*numOfOutput + n], outputs[n]);
 				// set error deriv on output node
 				static_cast<RPropNeuron*>(outputNeurons[n])->addLocalError(
 						deriv);
@@ -127,7 +131,7 @@ void RPropNetwork::learn(double *X, double *Y, unsigned int rows) {
 				static_cast<RPropNeuron*>(hiddenNeurons[n])->calcLocalDerivative(
 						X + i*numOfInputs);
 			}
-		}
+      }
 		// Apply weight updates
 		for (n = 0; n < (int) numOfOutput; n++) {
 			static_cast<RPropNeuron*>(outputNeurons[n])->applyWeightUpdates();

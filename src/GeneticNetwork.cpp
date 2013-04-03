@@ -704,8 +704,8 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
     else if ((*uniform)() <= mutationChance) {
       //mutation = (*gaussian)() * neuronConnections->at(n).second * factor;
       mutation = (*gaussian)() * factor;
-      if (fabs(neuronConnections->at(n).second) < 1.0)
-        mutation *= neuronConnections->at(n).second;
+      //if (fabs(neuronConnections->at(n).second) < 1.0)
+      //  mutation *= neuronConnections->at(n).second;
       neuronConnections->at(n).second += mutation;
       /*
       if (fabs(mutation) > *mutLargest)
@@ -724,8 +724,8 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
     else if ((*uniform)() <= mutationChance) {
       //mutation = (*gaussian)()* inputConnections->at(n).second * factor;
       mutation = (*gaussian)() * factor;
-      if (fabs(inputConnections->at(n).second) < 1.0)
-        mutation *= inputConnections->at(n).second;
+      //if (fabs(inputConnections->at(n).second) < 1.0)
+      //  mutation *= inputConnections->at(n).second;
       inputConnections->at(n).second += mutation;
 
       /*
@@ -741,6 +741,7 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
 
   // Scale by L2 norm
   if (independent || l2scale) {
+      printf("Scaling..\n");
     l2 = sqrt(l2);
     for (n = 0; n < neuronConnections->size(); n++) {
       neuronConnections->at(n).second /= l2;
