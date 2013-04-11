@@ -392,36 +392,43 @@ def UtilFuncs(cls):
 
 @UtilFuncs
 class ffnetwork(_ffnetwork):
+    __doc__ = _ffnetwork.__doc__
     pass
 
 @UtilFuncs
 class rpropnetwork(_rpropnetwork):
+    __doc__ = _rpropnetwork.__doc__
     pass
 
 @UtilFuncs
 class cascadenetwork(_cascadenetwork):
+    __doc__ = _cascadenetwork.__doc__
     pass
 
 if _coxcascadenetwork is not None:
     @UtilFuncs
     class coxcascadenetwork(_coxcascadenetwork):
+        __doc__ = _coxcascadenetwork.__doc__
         pass
 
 @UtilFuncs
 class geneticcascadenetwork(_geneticcascadenetwork):
+    __doc__ = _geneticcascadenetwork.__doc__
     pass
 
 @UtilFuncs
 class geneticladdernetwork(_geneticladdernetwork):
+    __doc__ = _geneticladdernetwork.__doc__
     pass
 
 @UtilFuncs
 class geneticnetwork(_gennetwork):
+    __doc__ = _gennetwork.__doc__
     pass
 
 @UtilFuncs
 class gensurvnetwork(_gensurvnetwork):
-    '''Genetic survival network.'''
+    __doc__ = _gensurvnetwork.__doc__
 
     def riskeval(self, inputdata):
         '''Given the inputs for a patient, returns its normalized

@@ -19,6 +19,7 @@
 #include "CascadeNetworkWrapper.h"
 //#include "CoxCascadeNetworkWrapper.h"
 #include "GeneticCascadeNetworkWrapper.h"
+#include "GeneticNetwork.h"
 
 /*
  * FFNetwork
@@ -64,17 +65,25 @@ static PyMemberDef FFNetworkMembers[] = {
  * --------------------------------------
  */
 static PyGetSetDef FFNetworkGetSetters[] = {
-  {(char*)"numOfInputs", (getter)FFNetwork_getNumOfInputs, NULL,    \
-   (char*)"Number of input neurons", NULL},
-  {(char*)"numOfHidden", (getter)FFNetwork_getNumOfHidden, NULL,    \
-   (char*)"Number of hidden neurons", NULL},
-  {(char*)"numOfOutputs", (getter)FFNetwork_getNumOfOutputs, NULL,  \
-   (char*)"Number of output neurons", NULL},
+    {(char*)"numOfInputs", (getter)FFNetwork_getNumOfInputs, NULL,  \
+     (char*)"Number of input neurons", NULL},
+    {(char*)"numOfHidden", (getter)FFNetwork_getNumOfHidden, NULL,  \
+     (char*)"Number of hidden neurons", NULL},
+    {(char*)"numOfOutputs", (getter)FFNetwork_getNumOfOutputs, NULL,    \
+     (char*)"Number of output neurons", NULL},
 
-  {(char*)"outputActivationFunction", (getter)FFNetwork_getOutputActivationFunction, (setter)FFNetwork_setOutputActivationFunction, (char*)"The activation function used by output neurons. For example network.LOGSIG", NULL},
-  {(char*)"hiddenActivationFunction", (getter)FFNetwork_getHiddenActivationFunction, (setter)FFNetwork_setHiddenActivationFunction, (char*)"The activation function used by hidden neurons. For example network.TANH", NULL},
+    {(char*)"outputActivationFunction", \
+     (getter)FFNetwork_getOutputActivationFunction, \
+     (setter)FFNetwork_setOutputActivationFunction, \
+     (char*)"The activation function used by output neurons. \
+For example network.LOGSIG", NULL},
+    {(char*)"hiddenActivationFunction", \
+     (getter)FFNetwork_getHiddenActivationFunction, \
+     (setter)FFNetwork_setHiddenActivationFunction, \
+     (char*)"The activation function used by hidden neurons. \
+For example network.TANH", NULL},
 
-  {NULL} // Sentinel
+    {NULL} // Sentinel
 };
 
 /*
@@ -82,8 +91,8 @@ static PyGetSetDef FFNetworkGetSetters[] = {
  * -----------------------
  */
 static PyTypeObject FFNetworkType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-	"_ann.ffnetwork",		/* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_ann.ffnetwork",		/* tp_name */ // VITAL PACKAGE NAME FOR PICKLING!
 	sizeof(PyFFNetwork),					/* tp_basicsize */
 	0,						/* tp_itemsize */
 	(destructor)FFNetwork_dealloc,			/* tp_dealloc */
@@ -134,8 +143,9 @@ static PyTypeObject FFNetworkType = {
  */
 static PyMethodDef RPropNetworkMethods[] =
 {
-  {"learn", (PyCFunction) RPropNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using RProp."},
-  {NULL}, // So that we can iterate safely below
+    {"learn", (PyCFunction) RPropNetwork_learn,                         \
+     METH_VARARGS | METH_KEYWORDS, "Trains the network using RProp."},
+    {NULL}, // So that we can iterate safely below
 };
 
 
@@ -163,44 +173,44 @@ static PyGetSetDef RPropNetworkGetSetters[] = {
  *   * -----------------------
  *    */
 static PyTypeObject RPropNetworkType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-        "_ann.rpropnetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
-        sizeof(PyRPropNetwork),                                    /* tp_basicsize */
-        0,                                              /* tp_itemsize */
-        0,                  /* tp_dealloc */
-        0,                                              /* tp_print */
-        0,                                              /* tp_getattr */
-        0,                                              /* tp_setattr */
-        0,                                              /* tp_compare */
-        0,                                              /* tp_repr */
-        0,                                              /* tp_as_number */
-        0,                                              /* tp_as_sequence */
-        0,                                              /* tp_as_mapping */
-        0,                                              /* tp_hash */
-        0,                                              /* tp_call */
-        0,                                              /* tp_str */
-        0,                                              /* tp_getattro */
-        0,                                              /* tp_setattro */
-        0,                                              /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-        "A feed forward neural network which can be trained with RProp.",                       /* tp_doc */
-        0,                                              /* tp_traverse */
-        0,                                              /* tp_clear */
-        0,                                              /* tp_richcompare */
-        0,                                              /* tp_weaklistoffset */
-        0,                                              /* tp_iter */
-        0,                                              /* tp_iternext */
-        RPropNetworkMethods,                                       /* tp_methods */
-        0,                                       /* tp_members */
-        RPropNetworkGetSetters,                                            /* tp_getset */
-        0,                                              /* tp_base */
-        0,                                              /* tp_dict */
-        0,                                              /* tp_descr_get */
-        0,                                              /* tp_descr_set */
-        0,                                              /* tp_dictoffset */
-       (initproc)RPropNetwork_init,                               /* tp_init */
-        0,                                              /* tp_alloc */
-        0,                                  /* tp_new */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_ann.rpropnetwork",  // tp_name VITAL PACKAGE NAME FOR PICKLING!
+    sizeof(PyRPropNetwork),                   /* tp_basicsize */
+    0,                                              /* tp_itemsize */
+    0,                  /* tp_dealloc */
+    0,                                              /* tp_print */
+    0,                                              /* tp_getattr */
+    0,                                              /* tp_setattr */
+    0,                                              /* tp_compare */
+    0,                                              /* tp_repr */
+    0,                                              /* tp_as_number */
+    0,                                              /* tp_as_sequence */
+    0,                                              /* tp_as_mapping */
+    0,                                              /* tp_hash */
+    0,                                              /* tp_call */
+    0,                                              /* tp_str */
+    0,                                              /* tp_getattro */
+    0,                                              /* tp_setattro */
+    0,                                              /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+    "A feed forward neural network which can be trained with RProp.",// tp_doc
+    0,                                              /* tp_traverse */
+    0,                                              /* tp_clear */
+    0,                                              /* tp_richcompare */
+    0,                                              /* tp_weaklistoffset */
+    0,                                              /* tp_iter */
+    0,                                              /* tp_iternext */
+    RPropNetworkMethods,                                       /* tp_methods */
+    0,                                       /* tp_members */
+    RPropNetworkGetSetters,                       /* tp_getset */
+    0,                                              /* tp_base */
+    0,                                              /* tp_dict */
+    0,                                              /* tp_descr_get */
+    0,                                              /* tp_descr_set */
+    0,                                              /* tp_dictoffset */
+    (initproc)RPropNetwork_init,                               /* tp_init */
+    0,                                              /* tp_alloc */
+    0,                                  /* tp_new */
 };
 
 
@@ -215,8 +225,10 @@ static PyTypeObject RPropNetworkType = {
  */
 static PyMethodDef GenNetworkMethods[] =
 {
-  {"learn", (PyCFunction) GenNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using a genetic algorithm."},
-  {NULL}, // So that we can iterate safely below
+    {"learn", (PyCFunction) GenNetwork_learn,                           \
+     METH_VARARGS | METH_KEYWORDS, \
+     "Trains the network using a genetic algorithm."},
+    {NULL}, // So that we can iterate safely below
 };
 
 
@@ -256,21 +268,41 @@ static PyGetSetDef GenNetworkGetSetters[] = {
   {(char*)"weightElimination",                  \
    (getter)GenNetwork_getWeightElimination, \
    (setter)GenNetwork_setWeightElimination,                      \
-   (char*)"Coefficient (g) for soft weight elimination: P = g * sum(). Zero by default.", NULL},
+   (char*)"Coefficient (g) for soft weight elimination: P = g * sum(). \
+Zero by default.", NULL},
   {(char*)"weightEliminationLambda",                  \
    (getter)GenNetwork_getWeightEliminationLambda, \
    (setter)GenNetwork_setWeightEliminationLambda,                      \
-   (char*)"Coefficient (l) for soft weight elimination: P = sum( w^2 / [l^2 + w^2] ). Zero by default.", NULL},
+   (char*)"Coefficient (l) for soft weight elimination: \
+P = sum( w^2 / [l^2 + w^2] ). Zero by default.", NULL},
 
   {(char*)"resume",              \
    (getter)GenNetwork_getResume, \
    (setter)GenNetwork_setResume,                      \
-   (char*)"If the network should use the existing weighs as a base for the population. Default False.", NULL},
+   (char*)"If the network should use the existing weighs as a base \
+for the population. Default False.", NULL},
 
   {(char*)"crossoverchance",              \
    (getter)GenNetwork_getCrossoverChance, \
    (setter)GenNetwork_setCrossoverChance,                      \
    (char*)"Probability to perform crossover before mutation.", NULL},
+
+  {(char*)"selection_method",              \
+   (getter)GenNetwork_getSelectionMethod, \
+   (setter)GenNetwork_setSelectionMethod,                      \
+   (char*)"Method to select parents.", NULL},
+
+  {(char*)"crossover_method",              \
+   (getter)GenNetwork_getCrossoverMethod, \
+   (setter)GenNetwork_setCrossoverMethod,                      \
+   (char*)"Way to perform crossover.", NULL},
+
+  {(char*)"insert_method",              \
+   (getter)GenNetwork_getInsertMethod, \
+   (setter)GenNetwork_setInsertMethod,                      \
+   (char*)"Way to insert parent and children into population after crossover.",\
+   NULL},
+
 
 
   {NULL} // Sentinel
@@ -283,44 +315,69 @@ static PyGetSetDef GenNetworkGetSetters[] = {
  *   * -----------------------
  *    */
 static PyTypeObject GenNetworkType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-        "_ann.gennetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
-        sizeof(PyGenNetwork),                                    /* tp_basicsize */
-        0,                                              /* tp_itemsize */
-        0,                  /* tp_dealloc */
-        0,                                              /* tp_print */
-        0,                                              /* tp_getattr */
-        0,                                              /* tp_setattr */
-        0,                                              /* tp_compare */
-        0,                                              /* tp_repr */
-        0,                                              /* tp_as_number */
-        0,                                              /* tp_as_sequence */
-        0,                                              /* tp_as_mapping */
-        0,                                              /* tp_hash */
-        0,                                              /* tp_call */
-        0,                                              /* tp_str */
-        0,                                              /* tp_getattro */
-        0,                                              /* tp_setattro */
-        0,                                              /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-        "A feed forward neural network that traings using a genetic algoritm.",                       /* tp_doc */
-        0,                                              /* tp_traverse */
-        0,                                              /* tp_clear */
-        0,                                              /* tp_richcompare */
-        0,                                              /* tp_weaklistoffset */
-        0,                                              /* tp_iter */
-        0,                                              /* tp_iternext */
-        GenNetworkMethods,                                       /* tp_methods */
-        0,                                       /* tp_members */
-        GenNetworkGetSetters,                                            /* tp_getset */
-        0,                                              /* tp_base */
-        0,                                              /* tp_dict */
-        0,                                              /* tp_descr_get */
-        0,                                              /* tp_descr_set */
-        0,                                              /* tp_dictoffset */
-       (initproc)GenNetwork_init,                               /* tp_init */
-        0,                                              /* tp_alloc */
-        0,                                  /* tp_new */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_ann.gennetwork", // tp_name // VITAL CORRECT PACKAGE NAME FOR PICKLING!
+    sizeof(PyGenNetwork),                                    /* tp_basicsize */
+    0,                                              /* tp_itemsize */
+    0,                  /* tp_dealloc */
+    0,                                              /* tp_print */
+    0,                                              /* tp_getattr */
+    0,                                              /* tp_setattr */
+    0,                                              /* tp_compare */
+    0,                                              /* tp_repr */
+    0,                                              /* tp_as_number */
+    0,                                              /* tp_as_sequence */
+    0,                                              /* tp_as_mapping */
+    0,                                              /* tp_hash */
+    0,                                              /* tp_call */
+    0,                                              /* tp_str */
+    0,                                              /* tp_getattro */
+    0,                                              /* tp_setattro */
+    0,                                              /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+    "A neural network that trains using a genetic algorithm.\n\
+A few properties influence the algorithm's behaviour:\n\
+\n\
+**selection_method** - The way in which networks are chosen as parents for\n\
+crossover. *Geometric* picks the parents from a geometric distribution\n\
+to benifit the fittest network the most.\n\
+*Roulette* gives each network a probability proportional to their score\n\
+divided by the sum of all scores. \n\
+*Tournament* picks, for each parent, two networks and uses the fittest.\n\
+This is the least elitist, and least predictable.\n\
+\n\
+**crossover_method** - The crossover operation itself can be done in several\n\
+ways. *Random neuron* assembles a child by selecting neurons and associated\n\
+weight vector at random from each parent with equal probability. \n\
+*Two point* selects two places along the genome and exchanges everything\n\
+in between for the other parent's genetic material. This produces two\n\
+children, with opposite genomes.\n\
+\n\
+**insertion_method** - Once a crossover, and possible mutation, is performed\n\
+the children must be inserted into the population somehow.\n\
+*Insert all* simply inserts the children into the sorted population.\n\
+Nothing is done with the parents. \n\
+*Insert fittest* on the other hand makes a choice between the children\n\
+and the parents. The fittest of the two is (re)inserted in the\n\
+population. The exception is if the parent is the best current member,\n\
+then it is always kept in the population.\n", /* tp_doc */
+    0,                                              /* tp_traverse */
+    0,                                              /* tp_clear */
+    0,                                              /* tp_richcompare */
+    0,                                              /* tp_weaklistoffset */
+    0,                                              /* tp_iter */
+    0,                                              /* tp_iternext */
+    GenNetworkMethods,                                       /* tp_methods */
+    0,                                       /* tp_members */
+    GenNetworkGetSetters,              /* tp_getset */
+    0,                                              /* tp_base */
+    0,                                              /* tp_dict */
+    0,                                              /* tp_descr_get */
+    0,                                              /* tp_descr_set */
+    0,                                              /* tp_dictoffset */
+    (initproc)GenNetwork_init,                      /* tp_init */
+    0,                                              /* tp_alloc */
+    0,                                  /* tp_new */
 };
 
 
@@ -330,58 +387,61 @@ static PyTypeObject GenNetworkType = {
  */
 static PyMethodDef GenSurvNetworkMethods[] =
 {
-  {"learn", (PyCFunction) GenSurvNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using a genetic algorithm."},
-  {NULL}, // So that we can iterate safely below
+    {"learn", (PyCFunction) GenSurvNetwork_learn, \
+     METH_VARARGS | METH_KEYWORDS,                      \
+     "Trains the network using a genetic algorithm."},
+    {NULL}, // So that we can iterate safely below
 };
 
 
 static PyGetSetDef GenSurvNetworkGetSetters[] = {
-  {NULL}, // Sentinel
+    {NULL}, // Sentinel
 };
 
 /*
- *  * Python type declaration
- *   * -----------------------
- *    */
+ *   Python type declaration
+ *   -----------------------
+ */
 static PyTypeObject GenSurvNetworkType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-        "_ann.gensurvnetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
-        sizeof(PyGenSurvNetwork),                                    /* tp_basicsize */
-        0,                                              /* tp_itemsize */
-        0,                  /* tp_dealloc */
-        0,                                              /* tp_print */
-        0,                                              /* tp_getattr */
-        0,                                              /* tp_setattr */
-        0,                                              /* tp_compare */
-        0,                                              /* tp_repr */
-        0,                                              /* tp_as_number */
-        0,                                              /* tp_as_sequence */
-        0,                                              /* tp_as_mapping */
-        0,                                              /* tp_hash */
-        0,                                              /* tp_call */
-        0,                                              /* tp_str */
-        0,                                              /* tp_getattro */
-        0,                                              /* tp_setattro */
-        0,                                              /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-        "A feed forward neural network for survival analysis that traings using a genetic algoritm.",                       /* tp_doc */
-        0,                                              /* tp_traverse */
-        0,                                              /* tp_clear */
-        0,                                              /* tp_richcompare */
-        0,                                              /* tp_weaklistoffset */
-        0,                                              /* tp_iter */
-        0,                                              /* tp_iternext */
-        GenSurvNetworkMethods,                                       /* tp_methods */
-        0,                                       /* tp_members */
-        GenSurvNetworkGetSetters,                                            /* tp_getset */
-        0,                                              /* tp_base */
-        0,                                              /* tp_dict */
-        0,                                              /* tp_descr_get */
-        0,                                              /* tp_descr_set */
-        0,                                              /* tp_dictoffset */
-       (initproc)GenSurvNetwork_init,                               /* tp_init */
-        0,                                              /* tp_alloc */
-        0,                                  /* tp_new */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_ann.gensurvnetwork", // tp_name VITAL PACKAGE NAME FOR PICKLING!
+    sizeof(PyGenSurvNetwork),               /* tp_basicsize */
+    0,                                              /* tp_itemsize */
+    0,                  /* tp_dealloc */
+    0,                                              /* tp_print */
+    0,                                              /* tp_getattr */
+    0,                                              /* tp_setattr */
+    0,                                              /* tp_compare */
+    0,                                              /* tp_repr */
+    0,                                              /* tp_as_number */
+    0,                                              /* tp_as_sequence */
+    0,                                              /* tp_as_mapping */
+    0,                                              /* tp_hash */
+    0,                                              /* tp_call */
+    0,                                              /* tp_str */
+    0,                                              /* tp_getattro */
+    0,                                              /* tp_setattro */
+    0,                                              /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+    "A feed forward neural network for survival analysis that trains \
+using a genetic algoritm.",                       /* tp_doc */
+    0,                                              /* tp_traverse */
+    0,                                              /* tp_clear */
+    0,                                              /* tp_richcompare */
+    0,                                              /* tp_weaklistoffset */
+    0,                                              /* tp_iter */
+    0,                                              /* tp_iternext */
+    GenSurvNetworkMethods,                  /* tp_methods */
+    0,                                       /* tp_members */
+    GenSurvNetworkGetSetters,                          /* tp_getset */
+    0,                                              /* tp_base */
+    0,                                              /* tp_dict */
+    0,                                              /* tp_descr_get */
+    0,                                              /* tp_descr_set */
+    0,                                              /* tp_dictoffset */
+    (initproc)GenSurvNetwork_init,                               /* tp_init */
+    0,                                              /* tp_alloc */
+    0,                                  /* tp_new */
 };
 
 
@@ -633,44 +693,44 @@ static PyGetSetDef GeneticLadderNetworkGetSetters[] = {
  *   * -----------------------
  *    */
 static PyTypeObject GeneticLadderNetworkType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-        "_ann.geneticladdernetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
-        sizeof(PyGeneticLadderNetwork),                                    /* tp_basicsize */
-        0,                                              /* tp_itemsize */
-        0,                  /* tp_dealloc */
-        0,                                              /* tp_print */
-        0,                                              /* tp_getattr */
-        0,                                              /* tp_setattr */
-        0,                                              /* tp_compare */
-        0,                                              /* tp_repr */
-        0,                                              /* tp_as_number */
-        0,                                              /* tp_as_sequence */
-        0,                                              /* tp_as_mapping */
-        0,                                              /* tp_hash */
-        0,                                              /* tp_call */
-        0,                                              /* tp_str */
-        0,                                              /* tp_getattro */
-        0,                                              /* tp_setattro */
-        0,                                              /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-        "A modified cascade algorithm. Neurons are trained as output neurons and then moved to the hidden layer as new output neurons are added. The final structure is fully shortcut connected as for cascade, but neurons are trained as output neurons on the full error function genetically.",                       /* tp_doc */
-        0,                                              /* tp_traverse */
-        0,                                              /* tp_clear */
-        0,                                              /* tp_richcompare */
-        0,                                              /* tp_weaklistoffset */
-        0,                                              /* tp_iter */
-        0,                                              /* tp_iternext */
-        GeneticLadderNetworkMethods,                                       /* tp_methods */
-        0,                                       /* tp_members */
-        GeneticLadderNetworkGetSetters,                                            /* tp_getset */
-        0,                                              /* tp_base */
-        0,                                              /* tp_dict */
-        0,                                              /* tp_descr_get */
-        0,                                              /* tp_descr_set */
-        0,                                              /* tp_dictoffset */
-       (initproc)GeneticLadderNetwork_init,                               /* tp_init */
-        0,                                              /* tp_alloc */
-        0,                                  /* tp_new */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_ann.geneticladdernetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
+    sizeof(PyGeneticLadderNetwork),                                    /* tp_basicsize */
+    0,                                              /* tp_itemsize */
+    0,                  /* tp_dealloc */
+    0,                                              /* tp_print */
+    0,                                              /* tp_getattr */
+    0,                                              /* tp_setattr */
+    0,                                              /* tp_compare */
+    0,                                              /* tp_repr */
+    0,                                              /* tp_as_number */
+    0,                                              /* tp_as_sequence */
+    0,                                              /* tp_as_mapping */
+    0,                                              /* tp_hash */
+    0,                                              /* tp_call */
+    0,                                              /* tp_str */
+    0,                                              /* tp_getattro */
+    0,                                              /* tp_setattro */
+    0,                                              /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+    "A modified cascade algorithm. Neurons are trained as output neurons and then moved to the hidden layer as new output neurons are added. The final structure is fully shortcut connected as for cascade, but neurons are trained as output neurons on the full error function genetically.",                       /* tp_doc */
+    0,                                              /* tp_traverse */
+    0,                                              /* tp_clear */
+    0,                                              /* tp_richcompare */
+    0,                                              /* tp_weaklistoffset */
+    0,                                              /* tp_iter */
+    0,                                              /* tp_iternext */
+    GeneticLadderNetworkMethods,                                       /* tp_methods */
+    0,                                       /* tp_members */
+    GeneticLadderNetworkGetSetters,                     /* tp_getset */
+    0,                                              /* tp_base */
+    0,                                              /* tp_dict */
+    0,                                              /* tp_descr_get */
+    0,                                              /* tp_descr_set */
+    0,                                              /* tp_dictoffset */
+    (initproc)GeneticLadderNetwork_init,            // tp_init
+    0,                                              /* tp_alloc */
+    0,                                  /* tp_new */
 };
 
 
@@ -683,8 +743,12 @@ static PyTypeObject GeneticLadderNetworkType = {
 Module methods
 */
 static PyMethodDef annMethods[] = {
-  {"get_C_index", (PyCFunction) CIndex_getCindex, METH_VARARGS | METH_KEYWORDS, "Calculates the C-index. Note that outputs converted to one dimension. Targets should be (survival time, event)\n\nInput: Targets, Predictions\nReturns: 0 if no concordance could be found."},
-  {NULL, NULL, 0, NULL} /* Sentinel */
+    {"get_C_index", (PyCFunction) CIndex_getCindex,                     \
+     METH_VARARGS | METH_KEYWORDS, "Calculates the C-index. Note that outputs \
+are converted to one dimension. Targets should be                       \
+(survival time, event)\n\nInput: Targets, Predictions\nReturns: 0 if no \
+concordance could be found."},
+    {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
 /* PyMODINIT_FUNC automatically does extern C in c++
@@ -716,9 +780,12 @@ extern "C" {
     }
 
     // Add static class variables
-    PyDict_SetItemString(FFNetworkType.tp_dict, "LINEAR", Py_BuildValue("i", LINEAR));
-    PyDict_SetItemString(FFNetworkType.tp_dict, "LOGSIG", Py_BuildValue("i", LOGSIG));
-    PyDict_SetItemString(FFNetworkType.tp_dict, "TANH", Py_BuildValue("i", TANH));
+    PyDict_SetItemString(FFNetworkType.tp_dict, "LINEAR",
+                         Py_BuildValue("i", LINEAR));
+    PyDict_SetItemString(FFNetworkType.tp_dict, "LOGSIG",
+                         Py_BuildValue("i", LOGSIG));
+    PyDict_SetItemString(FFNetworkType.tp_dict, "TANH",
+                         Py_BuildValue("i", TANH));
 
 
     // Add the type to the module.
@@ -746,6 +813,31 @@ extern "C" {
       Py_DECREF(&RPropNetworkType);
       return MOD_ERROR_VAL;
     }
+
+    // Add static class variables
+
+    PyDict_SetItemString(GenNetworkType.tp_dict, "SELECTION_GEOMETRIC",
+                         Py_BuildValue("i", SELECTION_GEOMETRIC));
+    PyDict_SetItemString(GenNetworkType.tp_dict, "SELECTION_ROULETTE",
+                         Py_BuildValue("i", SELECTION_ROULETTE));
+    PyDict_SetItemString(GenNetworkType.tp_dict, "SELECTION_TOURNAMENT",
+                         Py_BuildValue("i", SELECTION_TOURNAMENT));
+
+
+
+    PyDict_SetItemString(GenNetworkType.tp_dict, "CROSSOVER_NEURON",
+                         Py_BuildValue("i", CROSSOVER_NEURON));
+    PyDict_SetItemString(GenNetworkType.tp_dict, "CROSSOVER_TWOPOINT",
+                         Py_BuildValue("i", CROSSOVER_TWOPOINT));
+
+
+
+    PyDict_SetItemString(GenNetworkType.tp_dict, "INSERT_ALL",
+                         Py_BuildValue("i", INSERT_ALL));
+    PyDict_SetItemString(GenNetworkType.tp_dict, "INSERT_FITTEST",
+                         Py_BuildValue("i", INSERT_FITTEST));
+
+
 
     Py_INCREF(&GenNetworkType);
     PyModule_AddObject(mod, "gennetwork", (PyObject*)&GenNetworkType);
@@ -812,7 +904,8 @@ extern "C" {
     }
 
     Py_INCREF(&GeneticCascadeNetworkType);
-    PyModule_AddObject(mod, "geneticcascadenetwork", (PyObject*)&GeneticCascadeNetworkType);
+    PyModule_AddObject(mod, "geneticcascadenetwork",
+                       (PyObject*)&GeneticCascadeNetworkType);
 
     /*
      * GeneticLadderNetwork
@@ -830,7 +923,8 @@ extern "C" {
     }
 
     Py_INCREF(&GeneticLadderNetworkType);
-    PyModule_AddObject(mod, "geneticladdernetwork", (PyObject*)&GeneticLadderNetworkType);
+    PyModule_AddObject(mod, "geneticladdernetwork",
+                       (PyObject*)&GeneticLadderNetworkType);
 
 
     return MOD_SUCCESS_VAL(mod);

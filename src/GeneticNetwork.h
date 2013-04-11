@@ -5,6 +5,17 @@
 #include "FFNeuron.h"
 #include "boost/random.hpp"
 
+enum selection_method_t { SELECTION_GEOMETRIC,
+                          SELECTION_ROULETTE,
+                          SELECTION_TOURNAMENT };
+
+enum crossover_method_t { CROSSOVER_NEURON,
+                          CROSSOVER_TWOPOINT };
+
+enum insert_method_t { INSERT_ALL,
+                       INSERT_FITTEST };
+
+
 class GeneticNetwork: public FFNetwork {
  public:
   // If the network should resume from its existing weights
@@ -26,6 +37,10 @@ class GeneticNetwork: public FFNetwork {
 
   // Chance of doing crossover
   double crossoverChance;
+
+  selection_method_t selectionMethod;
+  crossover_method_t crossoverMethod;
+  insert_method_t insertMethod;
 
   // If this is non zero, it is interpreted as the generation where the stddev
   // should have decreased to half its value.
@@ -62,7 +77,7 @@ class GeneticNetwork: public FFNetwork {
   // Make this network into a mixture of the mother and father
   virtual void crossover(
                  boost::variate_generator<boost::mt19937&,
-                 boost::uniform_int<> > *uniform,
+                 boost::uniform_real<> > *uniform,
                  GeneticNetwork *mother, GeneticNetwork *father);
 
   // Randomly mutates the weights of the network.
@@ -72,11 +87,10 @@ class GeneticNetwork: public FFNetwork {
                              boost::variate_generator<boost::mt19937&,
                              boost::normal_distribution<double> > *gaussian,
                              boost::variate_generator<boost::mt19937&,
-                             boost::uniform_int<> > *uniform,
+                             boost::uniform_real<> > *uniform,
                              double mutationChance, double stdDev,
                              int deviationHalfPoint, int epoch,
-                             bool independent, double *mutSmallest,
-                             double *mutLargest);
+                             bool independent);
 
   // Makes this network into a clone of the original. Assumes equal iteration.
   virtual void cloneNetwork(GeneticNetwork *original);
@@ -89,7 +103,7 @@ class GeneticNetwork: public FFNetwork {
                       boost::variate_generator<boost::mt19937&,
                       boost::normal_distribution<double> >* gaussian,
                       boost::variate_generator<boost::mt19937&,
-                      boost::uniform_int<> > *uniform);
+                      boost::uniform_real<> > *uniform);
 
 
   unsigned int getGenerations() const;
@@ -118,6 +132,15 @@ class GeneticNetwork: public FFNetwork {
 
   double getCrossoverChance() const;
   void setCrossoverChance(double val);
+
+  selection_method_t getSelectionMethod() const;
+  void setSelectionMethod(long val);
+
+  crossover_method_t getCrossoverMethod() const;
+  void setCrossoverMethod(long val);
+
+  insert_method_t getInsertMethod() const;
+  void setInsertMethod(long val);
 };
 
 class GeneticNeuron: public Neuron {
@@ -138,11 +161,9 @@ public:
   virtual void mutateWeights(boost::variate_generator<boost::mt19937&,
                              boost::normal_distribution<double> > *gaussian,
                              boost::variate_generator<boost::mt19937&,
-                             boost::uniform_int<> > *uniform,
+                             boost::uniform_real<> > *uniform,
                              double mutationChance, double stdDev,
-                             bool independent, bool l2scale,
-                             double *mutSmallest,
-                             double *mutLargest);
+                             bool independent, bool l2scale);
 };
 
 class GeneticBias: public GeneticNeuron {

@@ -24,7 +24,7 @@ GeneticNetwork::getGeneticNetwork(GeneticNetwork *cloner,
                                   boost::normal_distribution<double> >
                                   *gaussian,
                                   boost::variate_generator<boost::mt19937&,
-                                  boost::uniform_int<> >
+                                  boost::uniform_real<> >
                                   *uniform)
 {
   GeneticNetwork *net = new GeneticNetwork(cloner->getNumOfInputs(),
@@ -35,12 +35,10 @@ GeneticNetwork::getGeneticNetwork(GeneticNetwork *cloner,
   // First clone all the weights as initial values
   net->cloneNetworkSlow(cloner);
 
-  double dummy = 0;
   // Then mutate the weights. Set halfpoint to irrelevant values
   // Reverse of resume is independent
   net->mutateWeights(gaussian, uniform, cloner->weightMutationChance,
-                     cloner->weightMutationFactor, 1, 0, !cloner->getResume(),
-                     &dummy, &dummy);
+                     cloner->weightMutationFactor, 1, 0, !cloner->getResume());
 
   return net;
 }
@@ -60,6 +58,9 @@ GeneticNetwork::GeneticNetwork(unsigned int numOfInputs,
   weightEliminationLambda = 0;
   resume = false;
   crossoverChance = 1.0;
+  selectionMethod = SELECTION_GEOMETRIC;
+  crossoverMethod = CROSSOVER_NEURON;
+  insertMethod = INSERT_ALL;
 }
 
 void GeneticNetwork::initNodes() {
@@ -107,7 +108,6 @@ void insertSorted(vector<GeneticNetwork*> * const sortedPopulation,
   }
 }
 
-// Safe to remove
 void selectParents(boost::variate_generator<boost::mt19937&,
                    boost::geometric_distribution<int, double> > *geometric,
                    unsigned int maximum, unsigned int *mother,
@@ -125,9 +125,108 @@ void selectParents(boost::variate_generator<boost::mt19937&,
 }
 
 
+double convertErrorToFitness(double error) {
+    return 1.0 / (1.0 + error);
+}
+
+void selectParentsRoulette(boost::variate_generator<boost::mt19937&,
+                           boost::uniform_real<> > *uniform,
+                           vector<double> *sortedErrors,
+                           unsigned int *mother,
+                           unsigned int *father) {
+    double sum = 0;
+    double incProp, motherRoll, fatherRoll;
+    unsigned int i;
+    bool mDone = false, fDone = false;
+    // First calc sum
+    for (i = 0; i < sortedErrors->size(); i++) {
+        sum += convertErrorToFitness(sortedErrors->at(i));
+    }
+    //printf("sum=%f\n", sum);
+
+    // There is a SMALL probability that one of the rolls did not
+    // find a result (both rolled 1)
+    while (!mDone || !fDone) {
+        incProp = 0;
+        motherRoll = (*uniform)();
+        fatherRoll = (*uniform)();
+
+        // Find mother and father
+        for (i = 0; i < sortedErrors->size(); i++) {
+            incProp += convertErrorToFitness(sortedErrors->at(i)) / sum;
+            //printf("incProp=%f, mRoll=%f, fRoll=%f\n", incProp,
+            //       motherRoll, fatherRoll);
+            if (!mDone && motherRoll <= incProp &&
+                !(fDone && i == *father)) {
+                mDone = true;
+                *mother = i;
+            }
+            // Also make sure father != mother
+            if (!fDone && fatherRoll <= incProp &&
+                !(mDone && i == *mother)) {
+                fDone = true;
+                *father = i;
+            }
+            if (mDone && fDone) {
+                break;
+            }
+        }
+    }
+    // debug print
+    //printf("selectroulette: %d, %d\n", *mother, *father);
+}
+
+/**
+ * Picks two at random adn select the best, for both mother and father.
+ */
+void selectParentsTournament(boost::variate_generator<boost::mt19937&,
+                             boost::uniform_real<> > *uniform,
+                             vector<double> *sortedErrors,
+                             unsigned int *mother,
+                             unsigned int *father) {
+    unsigned int i, j, winner, max = 9;
+
+    bool mDone = false, fDone = false;
+
+    while (!mDone || !fDone) {
+        i  = round((*uniform)() * (double) (sortedErrors->size() - 2));
+        //printf("i=%d ", i);
+        j = i;
+        while (j == i && max > 0) {
+            j  = round((*uniform)() * (double) (sortedErrors->size() - 2));
+            //printf("j=%d\n", j);
+            max--;
+        }
+
+        // Implicit as it is a sorted list
+        //if (sortedErrors->at(i) < sortedErrors->at(j)) {
+        if (i < j) {
+            winner = i;
+        }
+        else {
+            winner = j;
+        }
+
+        if (!mDone) {
+            if (!fDone || winner != (*father)) {
+                *mother = winner;
+                mDone = true;
+            }
+        }
+        else if (!fDone) {
+            if (!mDone || winner != (*mother)) {
+                *father = winner;
+                fDone = true;
+            }
+        }
+    }
+    //printf("selecttournament: %d, %d\n", *mother, *father);
+}
+
+
 // Safe to remove
 void GeneticNetwork::crossover(boost::variate_generator<boost::mt19937&,
-                               boost::uniform_int<> > *uniform,
+                               boost::uniform_real<> > *uniform,
                                GeneticNetwork* mother,
                                GeneticNetwork* father) {
   // Each individual node is replaced with some probability
@@ -153,11 +252,10 @@ void GeneticNetwork::crossover(boost::variate_generator<boost::mt19937&,
 void GeneticNetwork::mutateWeights(boost::variate_generator<boost::mt19937&,
                                    boost::normal_distribution<double> >* gaussian,
                                    boost::variate_generator<boost::mt19937&,
-                                   boost::uniform_int<> > *uniform,
+                                   boost::uniform_real<> > *uniform,
                                    double mutationChance, double factor,
                                    int deviationHalfPoint, int epoch,
-                                   bool independent, double *mutSmallest,
-                                   double *mutLargest) {
+                                   bool independent) {
 
   double currentFactor = factor;
   if (deviationHalfPoint > 0 && epoch > 0) {
@@ -172,9 +270,7 @@ void GeneticNetwork::mutateWeights(boost::variate_generator<boost::mt19937&,
                                                        mutationChance,
                                                        currentFactor,
                                                        independent,
-                                                       false,
-                                                       mutSmallest,
-                                                       mutLargest);
+                                                       false);
   }
   for (n = 0; n < numOfOutput; n++) {
     ((GeneticNeuron*) outputNeurons[n])->mutateWeights(gaussian,
@@ -182,9 +278,58 @@ void GeneticNetwork::mutateWeights(boost::variate_generator<boost::mt19937&,
                                                        mutationChance,
                                                        currentFactor,
                                                        independent,
-                                                       false,
-                                                       mutSmallest,
-                                                       mutLargest);
+                                                       false);
+    }
+}
+
+selection_method_t GeneticNetwork::getSelectionMethod() const {
+    return selectionMethod;
+}
+
+void GeneticNetwork::setSelectionMethod(long val) {
+    switch(val) {
+    case SELECTION_ROULETTE:
+        selectionMethod = SELECTION_ROULETTE;
+        break;
+    case SELECTION_TOURNAMENT:
+        selectionMethod = SELECTION_TOURNAMENT;
+        break;
+    case SELECTION_GEOMETRIC:
+    default:
+        selectionMethod = SELECTION_GEOMETRIC;
+        break;
+    }
+}
+
+crossover_method_t GeneticNetwork::getCrossoverMethod() const {
+    return crossoverMethod;
+}
+
+void GeneticNetwork::setCrossoverMethod(long val) {
+    switch(val) {
+    case CROSSOVER_TWOPOINT:
+        crossoverMethod = CROSSOVER_TWOPOINT;
+        break;
+    case CROSSOVER_NEURON:
+    default:
+        crossoverMethod = CROSSOVER_NEURON;
+        break;
+    }
+}
+
+insert_method_t GeneticNetwork::getInsertMethod() const {
+    return insertMethod;
+}
+
+void GeneticNetwork::setInsertMethod(long val) {
+    switch(val) {
+    case INSERT_FITTEST:
+        insertMethod = INSERT_FITTEST;
+        break;
+    case INSERT_ALL:
+    default:
+        insertMethod = INSERT_ALL;
+        break;
     }
 }
 
@@ -216,7 +361,8 @@ unsigned int GeneticNetwork::getWeightMutationHalfPoint() const {
   return weightMutationHalfPoint;
 }
 
-void GeneticNetwork::setWeightMutationHalfPoint(unsigned int weightMutationHalfPoint) {
+void GeneticNetwork::setWeightMutationHalfPoint(unsigned int
+                                                weightMutationHalfPoint) {
   this->weightMutationHalfPoint = weightMutationHalfPoint;
 }
 
@@ -270,7 +416,6 @@ void GeneticNetwork::setCrossoverChance(double val) {
   this->crossoverChance = val;
 }
 
-// Safe to remove
 void GeneticNetwork::cloneNetwork(GeneticNetwork* original) {
   unsigned int n;
   for (n = 0; n < numOfHidden; n++) {
@@ -284,7 +429,6 @@ void GeneticNetwork::cloneNetwork(GeneticNetwork* original) {
   }
 }
 
-// Safe to remove
 void GeneticNetwork::cloneNetworkSlow(GeneticNetwork* cloner) {
   resetNodes();
   GeneticNetwork *net = this;
@@ -418,9 +562,9 @@ double GeneticNetwork::evaluateNetwork(GeneticNetwork *net, double *X,
     net->output(X + i*net->getNumOfInputs(),
                 outputs + net->getNumOfOutputs() * i);
     for (n = 0; n < net->getNumOfOutputs(); n++) {
-      error += SSE(Y[i * net->getNumOfOutputs() + n],
-                   outputs[net->getNumOfOutputs() * i + n])
-        / ((double) length * net->getNumOfOutputs());
+        error += sqrt(SSE(Y[i * net->getNumOfOutputs() + n],
+                          outputs[net->getNumOfOutputs() * i + n]))
+            / ((double) length * net->getNumOfOutputs());
     }
   }
 
@@ -447,18 +591,6 @@ double GeneticNetwork::evaluateNetwork(GeneticNetwork *net, double *X,
 }
 
 
-// Safe to remove
-/*
- * This version does not replace the entire population each generation.
- * Two parents are selected at random to create a child.
- * This child is inserted into the list sorted on error. The worst network is
- * destroyed if population exceeds limit.
- * One generation is considered to be the same number of matings as
- * population size.
- * Networks to be mated are selected with the geometric distribution,
- * probability of the top network to be chosen = 0.05
- * Mutation chance dictate the probability of every single weight being mutated.
- */
 void GeneticNetwork::learn(double *X, double *Y,
                            unsigned int length) {
   // Init random number stuff
@@ -467,25 +599,26 @@ void GeneticNetwork::learn(double *X, double *Y,
   // Geometric distribution for selecting parents
   boost::geometric_distribution<int, double> geo_dist(0.95);
   boost::variate_generator<boost::mt19937&,
-                           boost::geometric_distribution<int, double> > geometric(eng,
-                                                                                  geo_dist);
+                           boost::geometric_distribution<int, double> >
+      geometric(eng, geo_dist);
   // Normal distribution for weight mutation, 0 mean and 1 stddev
   // We can then get any normal distribution with y = mean + stddev * x
   boost::normal_distribution<double> gauss_dist(0, 1);
-  boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> > gaussian(
-                                                                                          eng, gauss_dist);
+  boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> >
+      gaussian(eng, gauss_dist);
   // Uniform distribution 0 to 1 (inclusive)
-  boost::uniform_int<> uni_dist(0, 1);
-  boost::variate_generator<boost::mt19937&, boost::uniform_int<> > uniform(
-                                                                           eng, uni_dist);
+  boost::uniform_real<> uni_dist(0.0, 1.0);
+  boost::variate_generator<boost::mt19937&, boost::uniform_real<> >
+      uniform(eng, uni_dist);
 
   // Create a population of networks
   vector<GeneticNetwork*> sortedPopulation;
   vector<double> sortedErrors;
 
-  // Have one throw away network used to create next child
-  sortedPopulation.reserve(populationSize + 1);
-  sortedErrors.reserve(populationSize + 1);
+  // Have throw away network used to create next child(ren)
+  unsigned int extras = 2;
+  sortedPopulation.reserve(populationSize + extras);
+  sortedErrors.reserve(populationSize + extras);
 
   // Rank and insert them in a sorted order
   double error;
@@ -496,7 +629,7 @@ void GeneticNetwork::learn(double *X, double *Y,
 
   printf("Data size: %d\n", length);
 
-  for (i = 0; i < populationSize + 1; i++) {
+  for (i = 0; i < populationSize + extras; i++) {
        GeneticNetwork *net = getGeneticNetwork(this, &gaussian,
                                                &uniform);
     // evaluate error here
@@ -507,16 +640,11 @@ void GeneticNetwork::learn(double *X, double *Y,
   // Save the best network in the population
   GeneticNetwork *best = sortedPopulation.front();
   GeneticNetwork *child;
-
-  // For debug, keep track of every generation's least and biggest mutations
-  double mutSmallest, mutLargest;
+  GeneticNetwork *child2;
 
   // For each generation
   unsigned int curGen, genChild, mother, father;
   for (curGen = 0; curGen < generations; curGen++) {
-    mutSmallest = 1000;
-    mutLargest = 0;
-
     for (genChild = 0; genChild < populationSize; genChild++) {
       // Chance that we we don't do crossover
       if (uniform() < crossoverChance) {
@@ -526,7 +654,19 @@ void GeneticNetwork::learn(double *X, double *Y,
         sortedPopulation.pop_back();
         sortedErrors.pop_back();
         // Select two networks
-        selectParents(&geometric, populationSize, &mother, &father);
+        switch (selectionMethod) {
+        case SELECTION_ROULETTE:
+            selectParentsRoulette(&uniform, &sortedErrors, &mother, &father);
+            break;
+        case SELECTION_TOURNAMENT:
+            selectParentsTournament(&uniform, &sortedErrors, &mother, &father);
+            break;
+        case SELECTION_GEOMETRIC:
+        default:
+            selectParents(&geometric, populationSize, &mother, &father);
+            break;
+        }
+
         // Create new child through crossover
         child->crossover(&uniform, sortedPopulation[mother],
                          sortedPopulation[father]);
@@ -534,7 +674,7 @@ void GeneticNetwork::learn(double *X, double *Y,
         // Mutate child
         child->mutateWeights(&gaussian, &uniform, weightMutationChance,
                              weightMutationFactor, weightMutationHalfPoint,
-                             curGen, false, &mutSmallest, &mutLargest);
+                             curGen, false);
         // evaluate error child
         error = evaluateNetwork(child, X, Y, length, outputs);
         // Insert child into the sorted list
@@ -552,7 +692,7 @@ void GeneticNetwork::learn(double *X, double *Y,
         // Mutate it
         child->mutateWeights(&gaussian, &uniform, weightMutationChance,
                              weightMutationFactor, weightMutationHalfPoint,
-                             curGen, false, &mutSmallest, &mutLargest);
+                             curGen, false);
 
         // If better, it replaces it's source
         error = evaluateNetwork(child, X, Y, length, outputs);
@@ -578,8 +718,8 @@ void GeneticNetwork::learn(double *X, double *Y,
       best = sortedPopulation.front();
     }
     // Add printEpoch check here
-    printf("gen: %d, best: %f, weightSmallest: %f, weightLargest: %f\n", curGen,
-           sortedErrors.front(), mutSmallest, mutLargest);
+    printf("gen: %d, best: %f\n", curGen,
+           sortedErrors.front());
 
     if (decayL2 != 0) {
       printf("L2term = %f * %f\n", decayL2, weightSquaredSum2(best));
@@ -687,11 +827,9 @@ void GeneticNeuron::cloneNeuronSlow(Neuron* original) {
 void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
                                   boost::normal_distribution<double> >* gaussian,
                                   boost::variate_generator<boost::mt19937&,
-                                  boost::uniform_int<> > *uniform,
+                                  boost::uniform_real<> > *uniform,
                                   double mutationChance, double factor,
-                                  bool independent, bool l2scale,
-                                  double *mutSmallest,
-                                  double *mutLargest) {
+                                  bool independent, bool l2scale) {
   unsigned int n;
   // l2 = sqrt( sum( x^2 ) )
   double l2 = 0, mutation = 0;
@@ -707,12 +845,6 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
       //if (fabs(neuronConnections->at(n).second) < 1.0)
       //  mutation *= neuronConnections->at(n).second;
       neuronConnections->at(n).second += mutation;
-      /*
-      if (fabs(mutation) > *mutLargest)
-        *mutLargest = fabs(mutation);
-      else if (fabs(mutation) < *mutSmallest)
-        *mutSmallest = fabs(mutation);
-        */
     }
 
     l2 += neuronConnections->at(n).second * neuronConnections->at(n).second;
@@ -727,13 +859,6 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
       //if (fabs(inputConnections->at(n).second) < 1.0)
       //  mutation *= inputConnections->at(n).second;
       inputConnections->at(n).second += mutation;
-
-      /*
-      if (fabs(mutation) > *mutLargest)
-        *mutLargest = fabs(mutation);
-      else if (fabs(mutation) < *mutSmallest)
-        *mutSmallest = fabs(mutation);
-        */
     }
 
     l2 += inputConnections->at(n).second * inputConnections->at(n).second;
@@ -749,19 +874,5 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
     for (n = 0; n < inputConnections->size(); n++) {
       inputConnections->at(n).second /= l2;
     }
-  }
-  for (n = 0; n < neuronConnections->size(); n++) {
-
-    if (fabs(neuronConnections->at(n).second) > *mutLargest)
-      *mutLargest = fabs(neuronConnections->at(n).second);
-    else if (fabs(neuronConnections->at(n).second) < *mutSmallest)
-      *mutSmallest = fabs(neuronConnections->at(n).second);
-  }
-
-  for (n = 0; n < inputConnections->size(); n++) {
-    if (fabs(inputConnections->at(n).second) > *mutLargest)
-      *mutLargest = fabs(inputConnections->at(n).second);
-    else if (fabs(inputConnections->at(n).second) < *mutSmallest)
-      *mutSmallest = fabs(inputConnections->at(n).second);
   }
 }

@@ -22,7 +22,7 @@ class GeneticSurvivalNetwork: public GeneticNetwork {
                       boost::variate_generator<boost::mt19937&,
                       boost::normal_distribution<double> >* gaussian,
                       boost::variate_generator<boost::mt19937&,
-                      boost::uniform_int<> > *uniform);
+                      boost::uniform_real<> > *uniform);
 
 };
 

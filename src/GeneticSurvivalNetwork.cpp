@@ -22,7 +22,7 @@ GeneticSurvivalNetwork::getGeneticNetwork(GeneticNetwork *cloner,
                                           boost::variate_generator<boost::mt19937&,
                                           boost::normal_distribution<double> >* gaussian,
                                           boost::variate_generator<boost::mt19937&,
-                                          boost::uniform_int<> > *uniform)
+                                          boost::uniform_real<> > *uniform)
 {
   GeneticSurvivalNetwork *net =
     new GeneticSurvivalNetwork(cloner->getNumOfInputs(),
@@ -35,8 +35,7 @@ GeneticSurvivalNetwork::getGeneticNetwork(GeneticNetwork *cloner,
   double dummy = 0;
   // Then mutate the weights. Set halfpoint to irrelevant values
   net->mutateWeights(gaussian, uniform, cloner->weightMutationChance,
-                     cloner->weightMutationFactor, 1, 0, !cloner->getResume(),
-                     &dummy, &dummy);
+                     cloner->weightMutationFactor, 1, 0, !cloner->getResume());
 
   return net;
 }
