@@ -74,7 +74,8 @@ void FFNetwork::initNodes() {
 }
 
 
-double *FFNetwork::output(double *inputs, double *output) {
+double *FFNetwork::output(const double * const inputs,
+                          double * const output) {
 	//double *output = new double[numOfOutput];
 	// Iterate over the neurons in order and calculate their outputs.
 	unsigned int i;
@@ -155,7 +156,7 @@ void FFNetwork::connectOToH(unsigned int outputIndex, unsigned int hiddenIndex,
 	}
 
     unsigned int i;
-    Neuron *from, *to;
+    Neuron *from = NULL, *to = NULL;
     for (i = 0; i < numOfOutput; i++) {
       if ((unsigned int)outputNeurons[i]->getId() == outputIndex) {
         from = outputNeurons[i];
@@ -218,7 +219,7 @@ void FFNetwork::connectHToH(unsigned int firstIndex, unsigned int secondIndex,
 				"Can not connect hiddenIndex which is greater than number of hidden!\n");
 	}
     unsigned int i;
-    Neuron *from, *to;
+    Neuron *from = NULL, *to = NULL;
     for (i = 0; i < numOfHidden; i++) {
       if ((unsigned int)hiddenNeurons[i]->getId() == firstIndex) {
         from = hiddenNeurons[i];
@@ -242,8 +243,10 @@ void FFNetwork::connectHToH(unsigned int firstIndex, unsigned int secondIndex,
 
 }
 
-bool FFNetwork::getNeuronWeightFromHidden(unsigned int fromId, int toId, double *weight) {
-  if (fromId >= numOfHidden || toId > -1 && (unsigned int) toId >= numOfHidden) {
+bool FFNetwork::getNeuronWeightFromHidden(unsigned int fromId, int toId,
+                                          double *weight) {
+    if (fromId >= numOfHidden
+        || (toId > -1 && (unsigned int) toId >= numOfHidden)) {
     throw invalid_argument("Id was larger than number of nodes");
   }
 
@@ -259,7 +262,8 @@ bool FFNetwork::getInputWeightFromHidden(unsigned int fromId, unsigned int toInd
 }
 
 bool FFNetwork::getNeuronWeightFromOutput(unsigned int fromId, int toId, double *weight) {
-  if (fromId >= numOfOutput || toId > -1 && (unsigned int) toId >= numOfHidden) {
+  if (fromId >= numOfOutput
+      || (toId > -1 && (unsigned int) toId >= numOfHidden)) {
     throw invalid_argument("Id was larger than number of nodes");
   }
 

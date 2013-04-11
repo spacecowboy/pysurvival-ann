@@ -47,7 +47,7 @@ double Neuron::output() {
 	return cachedOutput;
 }
 
-double Neuron::output(double *inputs) {
+double Neuron::output(const double * const inputs) {
 	// First calculate the input sum
 	cachedInputSum = 0;
 

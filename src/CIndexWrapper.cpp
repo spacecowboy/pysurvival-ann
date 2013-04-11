@@ -45,8 +45,6 @@ extern "C" {
 	}
 
 	// Arguments are valid!
-    printf("tN: %d, tM: %d, oN: %d\n", targetArray->dimensions[0], targetArray->dimensions[1], outputArray->dimensions[0]);
-
 	double cindex = get_C_index((double *)outputArray->data, (double *)targetArray->data, outputArray->dimensions[0]);
 
 	// Decrement counters for inputArray and targetArray

@@ -52,7 +52,7 @@ public:
 	 * Calculate the output of this neuron.
 	 * Assumes connected nodes have already computed their outputs.
 	 */
-	virtual double output(double *inputs);
+	virtual double output(const double * const inputs);
 	/*
 	 * Returns the derivative of the output which was calculated by the previous call to output(*inputs)
 	 */
@@ -107,7 +107,7 @@ public:
 	virtual double output() {
 		return 1;
 	}
-	virtual double output(double *inputs) {
+	virtual double output(const double * const inputs) {
 		return 1;
 	}
 	virtual double outputDeriv() {

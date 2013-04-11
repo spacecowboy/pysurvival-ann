@@ -132,7 +132,9 @@ if "--with-R" in sys.argv:
 _ann = Extension('ann._ann',
                  sources = sources,
                  include_dirs = [numpy_include],
-                 extra_compile_args = ['-std=c++0x', '-Wall'] + compileargs,
+                 extra_compile_args = ['-std=c++0x',
+                                       '-Wall',
+                                       '-pthread'] + compileargs,
                  extra_link_args = linkargs,
                  libraries=libs, library_dirs=libdirs)
 

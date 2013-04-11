@@ -35,14 +35,14 @@ protected:
 	Neuron **outputNeurons;
 	Neuron *bias;
 
-	unsigned int numOfInputs;
-	unsigned int numOfHidden;
-	unsigned int numOfOutput;
-
     int hiddenActivationFunction;
     int outputActivationFunction;
 
 public:
+    unsigned int numOfInputs;
+	unsigned int numOfHidden;
+	unsigned int numOfOutput;
+
 	FFNetwork();
 	FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
 			unsigned int numOfOutput);
@@ -67,7 +67,8 @@ public:
 	 * Returns the pointer given as output, so pay no attention to return object
 	 * if not wanted.
 	 */
-	virtual double *output(double *inputs, double *output);
+	virtual double *output(const double * const inputs,
+                           double * const output);
 
     /**
      * Sets the activation function of the output layer

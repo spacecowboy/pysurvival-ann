@@ -82,14 +82,40 @@ targets (2d array)");
     Py_DECREF(targetArray);
 
     return NULL;
-  }
+    }
 
     // Arguments are valid!
-
-    ((GeneticNetwork*)self->super.net)->learn((double *)inputArray->data,
-                                              (double *)targetArray->data,
+/*
+    // Make local versions so we don't fuck up Python thread shit
+    double *inputsCopy = new double[inputArray->dimensions[0] *
+                                    inputArray->dimensions[1]];
+    double *targetsCopy = new double[targetArray->dimensions[0] *
+                                    targetArray->dimensions[1]];
+    unsigned int length = inputArray->dimensions[0];
+    // Same length
+    int index;
+    for (int i = 0; i < inputArray->dimensions[0]; i++) {
+        for (int j = 0; j < inputArray->dimensions[1]; j++) {
+            index = j + i * inputArray->dimensions[1];
+            inputsCopy[index] = inputArray->data[index];
+        }
+        for (int j = 0; j < targetArray->dimensions[1]; j++) {
+            index = j + i * targetArray->dimensions[1];
+            targetsCopy[index] = targetArray->data[index];
+        }
+    }
+*/
+    // Release the GIL
+    Py_BEGIN_ALLOW_THREADS;
+    ((GeneticNetwork*)self->super.net)->learn((double *) inputArray->data,
+                                              (double *) targetArray->data,
                                               inputArray->dimensions[0]);
-
+    // Acquire the GIL again
+    Py_END_ALLOW_THREADS;
+/*
+    delete[] inputsCopy;
+    delete[] targetsCopy;
+*/
     // Decrement counters for inputArray and targetArray
     Py_DECREF(inputArray);
     Py_DECREF(targetArray);

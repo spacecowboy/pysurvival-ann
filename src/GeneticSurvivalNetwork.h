@@ -7,22 +7,25 @@
 class GeneticSurvivalNetwork: public GeneticNetwork {
  public:
   // Methods
-  GeneticSurvivalNetwork(unsigned int numOfInputs, unsigned int numOfHidden);
+  GeneticSurvivalNetwork(const unsigned int numOfInputs,
+                         const unsigned int numOfHidden);
 
   /*
    * Evaluates a network, including possible weight decays
    */
-  virtual double evaluateNetwork(GeneticNetwork *net, double *X,
-                                 double *Y, unsigned int length,
-                                 double *outputs);
+    virtual double evaluateNetwork(GeneticNetwork &net,
+                                   const double * const X,
+                                   const double * const Y,
+                                   const unsigned int length,
+                                   double * const outputs);
 
     // Used to build initial population
-  virtual GeneticNetwork*
-    getGeneticNetwork(GeneticNetwork *cloner,
+    virtual GeneticNetwork*
+    getGeneticNetwork(GeneticNetwork &cloner,
                       boost::variate_generator<boost::mt19937&,
-                      boost::normal_distribution<double> >* gaussian,
+                      boost::normal_distribution<double> > &gaussian,
                       boost::variate_generator<boost::mt19937&,
-                      boost::uniform_real<> > *uniform);
+                      boost::uniform_real<> > &uniform);
 
 };
 

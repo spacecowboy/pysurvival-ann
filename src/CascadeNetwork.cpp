@@ -100,7 +100,7 @@ void CascadeNetwork::learn(double *X, double *Y, unsigned int rows) {
   // Also saves outputs
   calcErrors(X, Y, rows, patError, error, outputs);
   printf("Average error so far: %f\n", error[0]);
-  printf("maxError: %d\n", maxError);
+  printf("maxError: %f\n", maxError);
   // While some condition
   unsigned int neuronCount = 0;
   while (neuronCount < maxHidden && error[0] > maxError) {

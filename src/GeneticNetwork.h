@@ -4,6 +4,10 @@
 #include "FFNetwork.h"
 #include "FFNeuron.h"
 #include "boost/random.hpp"
+#include <mutex>
+#include <vector>
+
+using namespace std;
 
 enum selection_method_t { SELECTION_GEOMETRIC,
                           SELECTION_ROULETTE,
@@ -18,6 +22,8 @@ enum insert_method_t { INSERT_ALL,
 
 class GeneticNetwork: public FFNetwork {
  public:
+    // Used to lock stuff to become thread safe
+  std::mutex lockMutex;
   // If the network should resume from its existing weights
   // If false, will generate and independent population
   bool resume;
@@ -58,54 +64,93 @@ class GeneticNetwork: public FFNetwork {
   double weightEliminationLambda;
 
   // Methods
-  GeneticNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
-                 unsigned int numOfOutputs);
+  GeneticNetwork(const unsigned int numOfInputs, const unsigned int numOfHidden,
+                 const unsigned int numOfOutputs);
 
   virtual void initNodes();
 
   /*
    * Evaluates a network, including possible weight decays
    */
-  virtual double evaluateNetwork(GeneticNetwork *net, double *X, double *Y,
-                         unsigned int length, double *outputs);
+virtual double evaluateNetwork(GeneticNetwork &net,
+                                   const double * const X,
+                                   const double * const Y,
+                                   const unsigned int length,
+                                   double * const outputs);
 
-  /*
-   * Expects the X and Y to be of equal number of rows.
-   */
-  virtual void learn(double *X, double *Y, unsigned int length);
+/*
+ * Expects the X and Y to be of equal number of rows.
+ */
+virtual void learn(const double * const X,
+                   const double * const Y,
+                   const unsigned int length);
 
-  // Make this network into a mixture of the mother and father
-  virtual void crossover(
-                 boost::variate_generator<boost::mt19937&,
-                 boost::uniform_real<> > *uniform,
-                 GeneticNetwork *mother, GeneticNetwork *father);
+// Make this network into a mixture of the mother and father
+virtual void crossover(
+    boost::variate_generator<boost::mt19937&,
+    boost::uniform_real<> > &uniform,
+    GeneticNetwork &mother, GeneticNetwork &father);
 
-  // Randomly mutates the weights of the network.
-  // Expects a gaussian distribution with
-  // mean 0 and stdev 1.
-  virtual void mutateWeights(
-                             boost::variate_generator<boost::mt19937&,
-                             boost::normal_distribution<double> > *gaussian,
-                             boost::variate_generator<boost::mt19937&,
-                             boost::uniform_real<> > *uniform,
-                             double mutationChance, double stdDev,
-                             int deviationHalfPoint, int epoch,
-                             bool independent);
+// Randomly mutates the weights of the network.
+// Expects a gaussian distribution with
+// mean 0 and stdev 1.
+virtual void mutateWeights(
+    boost::variate_generator<boost::mt19937&,
+    boost::normal_distribution<double> > &gaussian,
+    boost::variate_generator<boost::mt19937&,
+    boost::uniform_real<> > &uniform,
+    const double mutationChance, const double stdDev,
+    const int deviationHalfPoint, const int epoch,
+    const bool independent);
 
-  // Makes this network into a clone of the original. Assumes equal iteration.
-  virtual void cloneNetwork(GeneticNetwork *original);
-  // Makes this network into a clone of the original. Does NOT assume same order.
-  virtual void cloneNetworkSlow(GeneticNetwork *original);
+// Makes this network into a clone of the original. Assumes equal iteration.
+virtual void cloneNetwork(GeneticNetwork &original);
+// Makes this network into a clone of the original. Does NOT assume same order.
+virtual void cloneNetworkSlow(GeneticNetwork &original);
 
-  // Used to build initial population
-  virtual GeneticNetwork*
-    getGeneticNetwork(GeneticNetwork *cloner,
+// Used to build initial population
+virtual GeneticNetwork*
+getGeneticNetwork(GeneticNetwork &cloner,
                       boost::variate_generator<boost::mt19937&,
-                      boost::normal_distribution<double> >* gaussian,
+                                               boost::normal_distribution<double> >
+                      &gaussian,
                       boost::variate_generator<boost::mt19937&,
-                      boost::uniform_real<> > *uniform);
+                                               boost::uniform_real<> >
+                      &uniform);
 
+// Insert network back into the population
+// Method because of thread stuff
+void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
+                  vector<double> &sortedErrors,
+                  const double error,
+                  GeneticNetwork * const net);
+// Clone Parents thread safe
+void cloneParents(GeneticNetwork &mother,
+                  GeneticNetwork &father,
+                  vector<GeneticNetwork*> &sortedPopulation,
+                  const unsigned int motherIndex,
+                  const unsigned int fatherIndex);
 
+GeneticNetwork *popLastNetwork(
+    vector<GeneticNetwork*> &sortedPopulation,
+    vector<double> &sortedErrors);
+
+// Learning work done by threads here
+/*
+void breedNetworks(
+    boost::variate_generator<boost::mt19937&,
+    boost::normal_distribution<double> > &gaussian,
+    boost::variate_generator<boost::mt19937&,
+    boost::geometric_distribution<int, double> > &geometric,
+    boost::variate_generator<boost::mt19937&,
+    boost::uniform_real<> > &uniform,
+    vector<GeneticNetwork*> &sortedPopulation,
+    vector<double> &sortedErrors,
+    const unsigned int childCount,
+    const unsigned int curGen,
+    const double * const X, const double * const Y,
+    const unsigned int length);
+*/
   unsigned int getGenerations() const;
   void setGenerations(unsigned int generations);
   unsigned int getPopulationSize() const;
@@ -159,11 +204,11 @@ public:
   // If independant is true, will replace all weights and make sure
   // the vector is scaled by the l2 norm.
   virtual void mutateWeights(boost::variate_generator<boost::mt19937&,
-                             boost::normal_distribution<double> > *gaussian,
+                             boost::normal_distribution<double> > &gaussian,
                              boost::variate_generator<boost::mt19937&,
-                             boost::uniform_real<> > *uniform,
-                             double mutationChance, double stdDev,
-                             bool independent, bool l2scale);
+                             boost::uniform_real<> > &uniform,
+                             const double mutationChance, const double stdDev,
+                             const bool independent, const bool l2scale);
 };
 
 class GeneticBias: public GeneticNeuron {
@@ -174,7 +219,7 @@ public:
   virtual double output() {
     return 1;
   }
-  virtual double output(double *inputs) {
+  virtual double output(double * inputs) {
     return 1;
   }
   virtual double outputDeriv() {

@@ -6,7 +6,9 @@
 length*2. Length is the number of rows. The 2 is implicit.
 The Y vector on the other hand is an A[N] array! Be wary of this.
  */
-double get_C_index(double *Y, double *T, unsigned int length)
+double get_C_index(const double * const Y,
+                   const double * const T,
+                   const unsigned int length)
 {
 	double total = 0, sum = 0, Tx1, Ty1, Tx0, Ty0, outputsx0, outputsy0;
 	unsigned int countx,county;
@@ -69,7 +71,10 @@ C index always operates on A[N][2] targets. So total length is actually
 length*2. Length is the number of rows. The 2 is implicit.
 The Y vector on the other hand is an A[N] array! Be wary of this.
  */
-double getPatError(double *Y, double *T, unsigned int length, double *patError)
+double getPatError(const double * const Y,
+                   const double * const T,
+                   const unsigned int length,
+                   double * const patError)
 {
 	double total = 0, sum = 0, Tx1, Ty1, Tx0, Ty0, outputsx0, outputsy0;
 	unsigned int countx,county;

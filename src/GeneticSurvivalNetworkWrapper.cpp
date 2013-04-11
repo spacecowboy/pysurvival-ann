@@ -89,8 +89,12 @@ numOfInputs, numOfHidden");
 	}
 
 	// Arguments are valid!
-    printf("tN: %d, tM: %d, iN: %d, iM: %d\n", targetArray->dimensions[0], targetArray->dimensions[1], inputArray->dimensions[0], inputArray->dimensions[1]);
+    // Release the GIL
+    Py_BEGIN_ALLOW_THREADS;
 	((GeneticSurvivalNetwork*)self->super.super.net)->learn((double *)inputArray->data, (double *)targetArray->data, inputArray->dimensions[0]);
+
+    // Acquire the GIL again
+    Py_END_ALLOW_THREADS;
 
 	// Decrement counters for inputArray and targetArray
 	Py_DECREF(inputArray);
