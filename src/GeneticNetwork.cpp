@@ -137,17 +137,23 @@ double convertErrorToFitness(const double error) {
     return 1.0 / (1.0 + error);
 }
 
-void selectParentsRoulette(boost::variate_generator<boost::mt19937&,
+// This has to be made thread safe
+void selectParentsRoulette(GeneticNetwork &self,
+                           boost::variate_generator<boost::mt19937&,
                            boost::uniform_real<> > &uniform,
                            vector<double> &sortedErrors,
                            unsigned int &mother,
-                           unsigned int &father) {
+                           unsigned int &father,
+                           const unsigned int maximum)
+{
+    std::lock_guard<std::mutex> lock(self.lockMutex);
+
     double sum = 0;
     double incProp, motherRoll, fatherRoll;
     unsigned int i;
     bool mDone = false, fDone = false;
     // First calc sum
-    for (i = 0; i < sortedErrors.size(); i++) {
+    for (i = 0; i < maximum; i++) {
         sum += convertErrorToFitness(sortedErrors.at(i));
     }
     //printf("sum=%f\n", sum);
@@ -160,7 +166,7 @@ void selectParentsRoulette(boost::variate_generator<boost::mt19937&,
         fatherRoll = uniform();
 
         // Find mother and father
-        for (i = 0; i < sortedErrors.size(); i++) {
+        for (i = 0; i < maximum; i++) {
             incProp += convertErrorToFitness(sortedErrors.at(i)) / sum;
             //printf("incProp=%f, mRoll=%f, fRoll=%f\n", incProp,
             //       motherRoll, fatherRoll);
@@ -189,25 +195,24 @@ void selectParentsRoulette(boost::variate_generator<boost::mt19937&,
  */
 void selectParentsTournament(boost::variate_generator<boost::mt19937&,
                              boost::uniform_real<> > &uniform,
-                             vector<double> &sortedErrors,
                              unsigned int &mother,
-                             unsigned int &father) {
+                             unsigned int &father,
+                             const unsigned int maximum) {
     unsigned int i, j, winner, max = 9;
 
     bool mDone = false, fDone = false;
 
     while (!mDone || !fDone) {
-        i  = round(uniform() * (double) (sortedErrors.size() - 2));
+        i  = round(uniform() * (double) maximum);
         //printf("i=%d ", i);
         j = i;
         while (j == i && max > 0) {
-            j  = round(uniform() * (double) (sortedErrors.size() - 2));
+            j  = round(uniform() * (double) maximum);
             //printf("j=%d\n", j);
             max--;
         }
 
         // Implicit as it is a sorted list
-        //if (sortedErrors->at(i) < sortedErrors->at(j)) {
         if (i < j) {
             winner = i;
         }
@@ -228,7 +233,6 @@ void selectParentsTournament(boost::variate_generator<boost::mt19937&,
             }
         }
     }
-    //printf("selecttournament: %d, %d\n", *mother, *father);
 }
 
 
@@ -647,12 +651,14 @@ void breedNetworks(
         // Select two networks
         switch (self->selectionMethod) {
         case SELECTION_ROULETTE:
-            selectParentsRoulette(*uniform, *sortedErrors,
-                                  motherIndex, fatherIndex);
+            selectParentsRoulette(*self, *uniform, *sortedErrors,
+                                  motherIndex, fatherIndex,
+                                  self->populationSize);
             break;
         case SELECTION_TOURNAMENT:
-            selectParentsTournament(*uniform, *sortedErrors,
-                                    motherIndex, fatherIndex);
+            selectParentsTournament(*uniform,
+                                    motherIndex, fatherIndex,
+                                    self->populationSize);
             break;
         case SELECTION_GEOMETRIC:
         default:
