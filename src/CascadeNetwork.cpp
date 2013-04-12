@@ -10,6 +10,7 @@
 #include "boost/random.hpp"
 #include <vector>
 #include <stdio.h>
+#include <cstring>
 #include <cmath>
 #include <stdexcept>
 using namespace std;

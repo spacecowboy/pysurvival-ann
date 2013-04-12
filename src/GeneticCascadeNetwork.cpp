@@ -10,6 +10,7 @@ Trains hidden neurons with RProp, while output neuron is trained genetically.
 #include <vector>
 #include <stdio.h>
 #include <cmath>
+#include <cstring>
 #include <stdexcept>
 #include <time.h>
 #include "boost/random.hpp"
