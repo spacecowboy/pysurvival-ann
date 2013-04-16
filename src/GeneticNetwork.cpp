@@ -27,7 +27,7 @@ GeneticNetwork::getGeneticNetwork(GeneticNetwork &cloner,
                                   boost::normal_distribution<double> >
                                   &gaussian,
                                   boost::variate_generator<boost::mt19937&,
-                                  boost::uniform_real<> >
+                                  boost::uniform_real<double> >
                                   &uniform)
 {
   GeneticNetwork *net = new GeneticNetwork(cloner.getNumOfInputs(),
@@ -140,7 +140,7 @@ double convertErrorToFitness(const double error) {
 // This has to be made thread safe
 void selectParentsRoulette(GeneticNetwork &self,
                            boost::variate_generator<boost::mt19937&,
-                           boost::uniform_real<> > &uniform,
+                           boost::uniform_real<double> > &uniform,
                            vector<double> &sortedErrors,
                            unsigned int &mother,
                            unsigned int &father,
@@ -194,7 +194,7 @@ void selectParentsRoulette(GeneticNetwork &self,
  * Picks two at random adn select the best, for both mother and father.
  */
 void selectParentsTournament(boost::variate_generator<boost::mt19937&,
-                             boost::uniform_real<> > &uniform,
+                             boost::uniform_real<double> > &uniform,
                              unsigned int &mother,
                              unsigned int &father,
                              const unsigned int maximum) {
@@ -238,7 +238,7 @@ void selectParentsTournament(boost::variate_generator<boost::mt19937&,
 
 
 void GeneticNetwork::crossover(boost::variate_generator<boost::mt19937&,
-                               boost::uniform_real<> > &uniform,
+                               boost::uniform_real<double> > &uniform,
                                GeneticNetwork &mother,
                                GeneticNetwork &father) {
   // Each individual node is replaced with some probability
@@ -264,7 +264,7 @@ void GeneticNetwork::mutateWeights(boost::variate_generator<boost::mt19937&,
                                    boost::normal_distribution<double> >
                                    &gaussian,
                                    boost::variate_generator<boost::mt19937&,
-                                   boost::uniform_real<> >
+                                   boost::uniform_real<double> >
                                    &uniform,
                                    const double mutationChance,
                                    const double factor,
@@ -617,7 +617,7 @@ void breedNetworks(
     boost::variate_generator<boost::mt19937&,
     boost::geometric_distribution<int, double> > *geometric,
     boost::variate_generator<boost::mt19937&,
-    boost::uniform_real<> > *uniform,
+    boost::uniform_real<double> > *uniform,
     vector<GeneticNetwork*> *sortedPopulation,
     vector<double> *sortedErrors,
     const unsigned int childCount,
@@ -704,8 +704,8 @@ void GeneticNetwork::learn(const double * const X,
     boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> >
         gaussian(eng, gauss_dist);
     // Uniform distribution 0 to 1 (inclusive)
-    boost::uniform_real<> uni_dist(0.0, 1.0);
-    boost::variate_generator<boost::mt19937&, boost::uniform_real<> >
+    boost::uniform_real<double> uni_dist(0.0, 1.0);
+    boost::variate_generator<boost::mt19937&, boost::uniform_real<double> >
         uniform(eng, uni_dist);
 
     // Create a population of networks
@@ -909,7 +909,7 @@ void GeneticNeuron::cloneNeuronSlow(Neuron* original) {
 void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
                                   boost::normal_distribution<double> > &gaussian,
                                   boost::variate_generator<boost::mt19937&,
-                                  boost::uniform_real<> > &uniform,
+                                  boost::uniform_real<double> > &uniform,
                                   const double mutationChance, const double factor,
                                   const bool independent, const bool l2scale)
 {
@@ -928,7 +928,11 @@ void GeneticNeuron::mutateWeights(boost::variate_generator<boost::mt19937&,
       //if (fabs(neuronConnections->at(n).second) < 1.0)
       //  mutation *= neuronConnections->at(n).second;
       neuronConnections->at(n).second += mutation;
+      //std::cout << "Mutating" << std::endl;
     }
+    //else {
+        //std::cout << "Not mutating" << std::endl;
+    //}
 
     l2 += neuronConnections->at(n).second * neuronConnections->at(n).second;
   }
