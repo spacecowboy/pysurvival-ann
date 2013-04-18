@@ -30,11 +30,17 @@ double get_C_index(const double * const Y,
 
 			if(Tx1 == 1 && Ty1 == 1) {
               //Non-censored, compare with all other non-censored
+                // First time seeing thing pair
 				if (Tx0 < Ty0) {
 					total++;
 					if (outputsx0 < outputsy0) {
 						sum++;
+                        //printf("noncbah outputs: %f == %f\n", outputsx0, outputsy0);
 					}
+                    else if (outputsx0 == outputsy0) {
+                        sum += 0.5;
+                        //printf("nonc outputs: %f == %f\n", outputsx0, outputsy0);
+                    }
 				}
 			}
 			else if(Tx1 == 1) { //Non-censored and censored. Compare if
@@ -42,17 +48,24 @@ double get_C_index(const double * const Y,
 				// X noncensored
 				if(Tx0 < Ty0) {
 					total++;
-					if(outputsx0 < outputsy0)
+					if(outputsx0 < outputsy0) {
 						sum++;
+                        //printf("yescbah outputs: %f == %f\n", outputsx0, outputsy0);
+                    }
+                    else if (outputsx0 == outputsy0) {
+                        sum += 0.5;
+                        //printf("yesc outputs %f == %f\n", outputsx0, outputsy0);
+                    }
 				}
 			}
 		}
 	}
 
-    if (sum == 0) {
+    if (total == 0) {
       //printf("Nothing was in concordance\n");
       return 0;
     } else {
+        //printf("%f / %f\n", sum, total);
       return sum / total;
     }
 };
@@ -111,6 +124,10 @@ double getPatError(const double * const Y,
 						sum++;
                         patSum++;
 					}
+                    else if (outputsx0 == outputsy0) {
+                        sum += 0.5;
+                        patSum += 0.5;
+                    }
 				}
 			}
 			else if(Tx1 == 1) { //Non-censored and censored. Compare if
@@ -122,6 +139,10 @@ double getPatError(const double * const Y,
 					if(outputsx0 < outputsy0) {
 						sum++;
                         patSum++;
+                    }
+                    else if (outputsx0 == outputsy0) {
+                        sum += 0.5;
+                        patSum += 05;
                     }
 				}
 			}
