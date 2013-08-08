@@ -227,4 +227,14 @@ public:
   }
 };
 
+// Calculate the sum of all weights squared (L2 norm)
+double weightSquaredSum(FFNetwork &net);
+
+// Calculate the sum of absolute values of weights (L1 norm)
+double weightAbsoluteSum(FFNetwork &net);
+
+// Calculate the sum of soft weight elimination terms
+double weightEliminationSum(FFNetwork &net, double lambda);
+
+
 #endif /* _GENETICNETWORK_H_ */

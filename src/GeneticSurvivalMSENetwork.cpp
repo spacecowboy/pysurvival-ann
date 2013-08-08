@@ -35,49 +35,9 @@ GeneticSurvivalMSENetwork::GeneticSurvivalMSENetwork(const unsigned int numOfInp
   GeneticNetwork(numOfInputs, numOfHidden, 1) {
 }
 
-// Calculate the sum of all weights squared (L2 norm)
-double weightSquaredSum(FFNetwork &net) {
-  double sum = 0;
-  unsigned int n, numOfCons = 0;
-  for (n = 0; n < net.getNumOfHidden(); n++) {
-    // neuron weights
-    sum += net.getHiddenNeuron(n)->getWeightsSquaredSum();
-    numOfCons += net.getHiddenNeuron(n)->getNumOfConnections();
-  }
-  //printf("Weight squared sum: %f\n", sum / (double) numOfCons);
-  return sum / (double) numOfCons;
-}
-
-// Calculate the sum of absolute values of weights (L1 norm)
-double weightAbsoluteSum(FFNetwork &net) {
-  double sum = 0;
-  unsigned int n, numOfCons = 0;
-  for (n = 0; n < net.getNumOfHidden(); n++) {
-    // neuron weights
-    sum += net.getHiddenNeuron(n)->getWeightsAbsoluteSum();
-    numOfCons += net.getHiddenNeuron(n)->getNumOfConnections();
-  }
-  //printf("Weight absolute sum: %f\n", sum / (double) numOfCons);
-  return sum / (double) numOfCons;
-}
-
-// Calculate the sum of soft weight elimination terms
-double weightEliminationSum(FFNetwork &net, double lambda) {
-  double sum = 0;
-  unsigned int n, numOfCons = 0;
-  for (n = 0; n < net.getNumOfHidden(); n++) {
-    // neuron weights
-    sum += net.getHiddenNeuron(n)->
-      getWeightEliminationSum(lambda);
-    numOfCons += net.getHiddenNeuron(n)->getNumOfConnections();
-  }
-  //printf("Weight elimination sum: %f\n", sum / (double) numOfCons);
-  return sum / (double) numOfCons;
-}
-
 // Calculate censored MSE
 double censMSE(const double * const outputs,
-               donst double * const targets,
+               const double * const targets,
                const unsigned int length)
 {
   double sum = 0, q, time, event, output;

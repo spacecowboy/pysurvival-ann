@@ -46,6 +46,8 @@ GeneticSurvivalNetwork::GeneticSurvivalNetwork(const unsigned int numOfInputs,
   GeneticNetwork(numOfInputs, numOfHidden, 1) {
 }
 
+/*
+
 // Calculate the sum of all weights squared (L2 norm)
 double weightSquaredSum(FFNetwork &net) {
   double sum = 0;
@@ -55,13 +57,6 @@ double weightSquaredSum(FFNetwork &net) {
     sum += net.getHiddenNeuron(n)->getWeightsSquaredSum();
     numOfCons += net.getHiddenNeuron(n)->getNumOfConnections();
   }
-  /*
-    for (n = 0; n < net.getNumOfOutputs(); n++) {
-    // Input weights
-    sum += net.getOutputNeuron(n)->getWeightsSquaredSum();
-    numOfCons += net.getOutputNeuron(n)->getNumOfConnections();
-    }
-  */
   //printf("Weight squared sum: %f\n", sum / (double) numOfCons);
   return sum / (double) numOfCons;
 }
@@ -75,12 +70,6 @@ double weightAbsoluteSum(FFNetwork &net) {
     sum += net.getHiddenNeuron(n)->getWeightsAbsoluteSum();
     numOfCons += net.getHiddenNeuron(n)->getNumOfConnections();
   }
-  /*
-    for (n = 0; n < net->getNumOfOutputs(); n++) {
-    // Input weights
-    sum += net->getOutputNeuron(n)->getWeightsAbsoluteSum();
-    numOfCons += net->getOutputNeuron(n)->getNumOfConnections();
-    }*/
   //printf("Weight absolute sum: %f\n", sum / (double) numOfCons);
   return sum / (double) numOfCons;
 }
@@ -95,16 +84,10 @@ double weightEliminationSum(FFNetwork &net, double lambda) {
       getWeightEliminationSum(lambda);
     numOfCons += net.getHiddenNeuron(n)->getNumOfConnections();
   }
-  /*
-    for (n = 0; n < net->getNumOfOutputs(); n++) {
-    // Input weights
-    sum += net->getOutputNeuron(n)->
-    getWeightEliminationSum(lambda);
-    numOfCons += net->getOutputNeuron(n)->getNumOfConnections();
-    }*/
-  //printf("Weight elimination sum: %f\n", sum / (double) numOfCons);
+    //printf("Weight elimination sum: %f\n", sum / (double) numOfCons);
   return sum / (double) numOfCons;
 }
+*/
 
 double GeneticSurvivalNetwork::
 evaluateNetwork(GeneticNetwork &net,

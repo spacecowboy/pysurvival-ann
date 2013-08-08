@@ -11,7 +11,8 @@ from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
                    gensurvnetwork as _gensurvnetwork, get_C_index,
                    cascadenetwork as _cascadenetwork,
                    geneticcascadenetwork as _geneticcascadenetwork,
-                   geneticladdernetwork as _geneticladdernetwork)
+                   geneticladdernetwork as _geneticladdernetwork,
+                   gensurvmsenetwork as _gensurvmsenetwork)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
@@ -54,6 +55,11 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=None):
     with the L2-norm.
     '''
     net = gensurvnetwork(numOfInputs, numOfHidden)
+
+    return _connect_single_layer_genetic(net, variance)
+
+def getSingleLayerGenSurvMSE(numOfInputs, numOfHidden, variance=None):
+    net = gensurvmsenetwork(numOfInputs, numOfHidden)
 
     return _connect_single_layer_genetic(net, variance)
 
@@ -448,5 +454,30 @@ class gensurvnetwork(_gensurvnetwork):
     def learn(self, trninputs, trntargets):
         '''Trains the network using a genetic algorithm'''
         super(gensurvnetwork, self).learn(trninputs, trntargets)
+        # Evaluate and store outputs for training data
+        self.trnoutputs = np.array([self.output(x) for x in trninputs]).ravel()
+
+@UtilFuncs
+class gensurvmsenetwork(_gensurvmsenetwork):
+    __doc__ = _gensurvmsenetwork.__doc__
+
+    def riskeval(self, inputdata):
+        '''Given the inputs for a patient, returns its normalized
+        relative rank, compared to the training data.
+
+        Input: An array of equal length as numOfInputs
+        Returns: A value between 0 and 1
+        '''
+        if not hasattr(self, 'trnoutputs'):
+            raise ValueError('You have to train the network first')
+
+        out = self.output(inputdata)
+        # How many have better expected survival
+        idx = len(self.trnoutputs[self.trnoutputs > out])
+        return idx / len(self.trnoutputs)
+
+    def learn(self, trninputs, trntargets):
+        '''Trains the network using a genetic algorithm'''
+        super(gensurvmsenetwork, self).learn(trninputs, trntargets)
         # Evaluate and store outputs for training data
         self.trnoutputs = np.array([self.output(x) for x in trninputs]).ravel()
