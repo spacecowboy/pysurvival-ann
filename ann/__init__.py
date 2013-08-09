@@ -60,9 +60,9 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=None):
 
 def getSingleLayerGenSurvMSE(numOfInputs, numOfHidden, variance=None):
     net = gensurvmsenetwork(numOfInputs, numOfHidden)
-
-    return _connect_single_layer_genetic(net, variance)
-
+    _connect_single_layer_genetic(net, variance)
+    net.outputActivationFunction = net.LINEAR
+    return net
 
 def getSingleLayerGenetic(numOfInputs, numOfHidden, numOfOutputs,
                           variance=None):

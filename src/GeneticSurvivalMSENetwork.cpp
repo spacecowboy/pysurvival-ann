@@ -1,5 +1,6 @@
 #include "GeneticSurvivalMSENetwork.h"
 #include "GeneticNetwork.h"
+#include "activationfunctions.h"
 #include <stdio.h>
 #include "boost/random.hpp"
 #include <cmath>
@@ -19,6 +20,8 @@ GeneticSurvivalMSENetwork::getGeneticNetwork(GeneticNetwork &cloner,
     new GeneticSurvivalMSENetwork(cloner.getNumOfInputs(),
                                   cloner.getNumOfHidden());
   net->initNodes();
+
+  //net->setOutputActivationFunction(LINEAR);
 
   // First clone all the weights as initial values
   net->cloneNetworkSlow(cloner);
