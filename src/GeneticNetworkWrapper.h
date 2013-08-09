@@ -95,22 +95,28 @@ extern "C" {
                                     void *closure);
 
 
-    PyObject *GenNetwork_getSelectionMethod(PyGenNetwork *self,
-                                            void *closure);
-    int GenNetwork_setSelectionMethod(PyGenNetwork *self,
-                                      PyObject *value,
-                                      void *closure);
+  PyObject *GenNetwork_getSelectionMethod(PyGenNetwork *self,
+                                          void *closure);
+  int GenNetwork_setSelectionMethod(PyGenNetwork *self,
+                                    PyObject *value,
+                                    void *closure);
 
-    PyObject *GenNetwork_getCrossoverMethod(PyGenNetwork *self,
-                                            void *closure);
-    int GenNetwork_setCrossoverMethod(PyGenNetwork *self,
-                                      PyObject *value,
-                                      void *closure);
-    PyObject *GenNetwork_getInsertMethod(PyGenNetwork *self,
-                                         void *closure);
-    int GenNetwork_setInsertMethod(PyGenNetwork *self,
-                                   PyObject *value,
-                                   void *closure);
+  PyObject *GenNetwork_getCrossoverMethod(PyGenNetwork *self,
+                                          void *closure);
+  int GenNetwork_setCrossoverMethod(PyGenNetwork *self,
+                                    PyObject *value,
+                                    void *closure);
+  PyObject *GenNetwork_getInsertMethod(PyGenNetwork *self,
+                                       void *closure);
+  int GenNetwork_setInsertMethod(PyGenNetwork *self,
+                                 PyObject *value,
+                                 void *closure);
+
+  PyObject *GenNetwork_getFitnessFunction(PyGenNetwork *self,
+                                          void *closure);
+  int GenNetwork_setFitnessFunction(PyGenNetwork *self,
+                                    PyObject *value,
+                                    void *closure);
 
 
 

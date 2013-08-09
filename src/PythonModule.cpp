@@ -21,6 +21,7 @@
 //#include "CoxCascadeNetworkWrapper.h"
 #include "GeneticCascadeNetworkWrapper.h"
 #include "GeneticNetwork.h"
+#include "GeneticFitness.h"
 
 /*
  * FFNetwork
@@ -302,9 +303,12 @@ for the population. Default False.", NULL},
    (getter)GenNetwork_getInsertMethod, \
    (setter)GenNetwork_setInsertMethod,                      \
    (char*)"Way to insert parent and children into population after crossover.",\
-   NULL},
+      NULL},
 
-
+  {(char*)"fitness_function",              \
+   (getter)GenNetwork_getFitnessFunction, \
+   (setter)GenNetwork_setFitnessFunction,                      \
+   (char*)"Fitness function to use during evolution.", NULL},
 
   {NULL} // Sentinel
 };
@@ -361,7 +365,10 @@ Nothing is done with the parents. \n\
 *Insert fittest* on the other hand makes a choice between the children\n\
 and the parents. The fittest of the two is (re)inserted in the\n\
 population. The exception is if the parent is the best current member,\n\
-then it is always kept in the population.\n", /* tp_doc */
+then it is always kept in the population.\n\
+\n\
+**fitness_function** - The function that will judge the performance \n\
+of the networks.\n", /* tp_doc */
     0,                                              /* tp_traverse */
     0,                                              /* tp_clear */
     0,                                              /* tp_richcompare */
@@ -901,6 +908,11 @@ extern "C" {
     PyDict_SetItemString(GenNetworkType.tp_dict, "INSERT_FITTEST",
                          Py_BuildValue("i", INSERT_FITTEST));
 
+
+    PyDict_SetItemString(GenNetworkType.tp_dict, "FITNESS_CINDEX",
+                         Py_BuildValue("i", FITNESS_CINDEX));
+    PyDict_SetItemString(GenNetworkType.tp_dict, "FITNESS_MSE_CENS",
+                         Py_BuildValue("i", FITNESS_MSE_CENS));
 
 
     Py_INCREF(&GenNetworkType);

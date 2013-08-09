@@ -3,6 +3,7 @@
 
 #include "FFNetwork.h"
 #include "FFNeuron.h"
+#include "GeneticFitness.h"
 #include "boost/random.hpp"
 #include <mutex>
 #include <vector>
@@ -18,7 +19,6 @@ enum crossover_method_t { CROSSOVER_NEURON,
 
 enum insert_method_t { INSERT_ALL,
                        INSERT_FITTEST };
-
 
 class GeneticNetwork: public FFNetwork {
  public:
@@ -47,6 +47,8 @@ class GeneticNetwork: public FFNetwork {
   selection_method_t selectionMethod;
   crossover_method_t crossoverMethod;
   insert_method_t insertMethod;
+  fitness_function_t fitnessFunctionType;
+  fitness_func_ptr pFitnessFunction;
 
   // If this is non zero, it is interpreted as the generation where the stddev
   // should have decreased to half its value.
@@ -186,6 +188,9 @@ void breedNetworks(
 
   insert_method_t getInsertMethod() const;
   void setInsertMethod(long val);
+
+  fitness_function_t getFitnessFunction() const;
+  void setFitnessFunction(long val);
 };
 
 class GeneticNeuron: public Neuron {

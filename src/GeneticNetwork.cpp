@@ -6,6 +6,7 @@
  */
 
 #include "GeneticNetwork.h"
+#include "GeneticFitness.h"
 #include "FFNeuron.h"
 #include "FFNetwork.h"
 #include "activationfunctions.h"
@@ -64,6 +65,7 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
   selectionMethod = SELECTION_GEOMETRIC;
   crossoverMethod = CROSSOVER_NEURON;
   insertMethod = INSERT_ALL;
+  fitnessFunctionType = FITNESS_CINDEX;
 }
 
 void GeneticNetwork::initNodes() {
@@ -346,6 +348,14 @@ void GeneticNetwork::setInsertMethod(long val) {
         insertMethod = INSERT_ALL;
         break;
     }
+}
+
+fitness_function_t GeneticNetwork::getFitnessFunction() const {
+    return fitnessFunctionType;
+}
+
+void GeneticNetwork::setFitnessFunction(long val) {
+  fitnessFunctionType = (fitness_function_t) val;
 }
 
 unsigned int GeneticNetwork::getGenerations() const {
@@ -679,7 +689,7 @@ void breedNetworks(
                               self->weightMutationHalfPoint,
                               curGen, false);
         // evaluate error child
-        error = self->evaluateNetwork(*pChild, X, Y, length, outputs);
+        error = -(*(self->pFitnessFunction))(*pChild, X, Y, length, outputs);
         // Insert child into the sorted list
         self->insertSorted(*sortedPopulation, *sortedErrors, error, pChild);
     }
@@ -690,124 +700,129 @@ void breedNetworks(
 void GeneticNetwork::learn(const double * const X,
                            const double * const Y,
                            const unsigned int length) {
-    // Init random number stuff
-    boost::mt19937 eng; // a core engine class
-    eng.seed(time(NULL));
-    // Geometric distribution for selecting parents
-    boost::geometric_distribution<int, double> geo_dist(0.95);
-    boost::variate_generator<boost::mt19937&,
-                             boost::geometric_distribution<int, double> >
-        geometric(eng, geo_dist);
-    // Normal distribution for weight mutation, 0 mean and 1 stddev
-    // We can then get any normal distribution with y = mean + stddev * x
-    boost::normal_distribution<double> gauss_dist(0, 1);
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> >
-        gaussian(eng, gauss_dist);
-    // Uniform distribution 0 to 1 (inclusive)
-    boost::uniform_real<double> uni_dist(0.0, 1.0);
-    boost::variate_generator<boost::mt19937&, boost::uniform_real<double> >
-        uniform(eng, uni_dist);
+  // Setup algorithm stuff
+  this->pFitnessFunction =
+    getFitnessFunctionPtr(fitnessFunctionType);
 
-    // Create a population of networks
-    vector<GeneticNetwork*> sortedPopulation;
-    vector<double> sortedErrors;
+  // Init random number stuff
+  boost::mt19937 eng; // a core engine class
+  eng.seed(time(NULL));
+  // Geometric distribution for selecting parents
+  boost::geometric_distribution<int, double> geo_dist(0.95);
+  boost::variate_generator<boost::mt19937&,
+                           boost::geometric_distribution<int, double> >
+    geometric(eng, geo_dist);
+  // Normal distribution for weight mutation, 0 mean and 1 stddev
+  // We can then get any normal distribution with y = mean + stddev * x
+  boost::normal_distribution<double> gauss_dist(0, 1);
+  boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> >
+    gaussian(eng, gauss_dist);
+  // Uniform distribution 0 to 1 (inclusive)
+  boost::uniform_real<double> uni_dist(0.0, 1.0);
+  boost::variate_generator<boost::mt19937&, boost::uniform_real<double> >
+    uniform(eng, uni_dist);
 
-    // Number of threads to use, TODO, dont hardcode this
-    unsigned int num_threads = 8;
-    unsigned int extras = num_threads;
-    std::thread threads[num_threads];
-    // Each thread will breed these many networks each generation
-    unsigned int breedCount = round((double) populationSize / num_threads);
-    if (breedCount < 1) {
-        breedCount = 1;
+  // Create a population of networks
+  vector<GeneticNetwork*> sortedPopulation;
+  vector<double> sortedErrors;
+
+  // Number of threads to use, TODO, dont hardcode this
+  unsigned int num_threads = 8;
+  unsigned int extras = num_threads;
+  std::thread threads[num_threads];
+  // Each thread will breed these many networks each generation
+  unsigned int breedCount = round((double) populationSize / num_threads);
+  if (breedCount < 1) {
+    breedCount = 1;
+  }
+
+  printf("Breed count: %d\n", breedCount);
+
+  // Pre-allocate space
+  sortedPopulation.reserve(populationSize + extras);
+  sortedErrors.reserve(populationSize + extras);
+
+  // Rank and insert them in a sorted order
+  unsigned int i;
+  vector<GeneticNetwork*>::iterator netIt;
+  vector<double>::iterator errorIt;
+
+  printf("Data size: %d\n", length);
+
+  double error;
+  double *outputs = new double[numOfOutput*length];
+  for (i = 0; i < populationSize + extras; i++) {
+    // use references
+    GeneticNetwork *pNet = getGeneticNetwork(*this, gaussian,
+                                             uniform);
+    // evaluate error here
+    error = -(*pFitnessFunction)(*pNet, X, Y, length, outputs);
+    //    error = evaluateNetwork(*pNet, X, Y, length, outputs);
+    // TODO use references on lists
+    insertSorted(sortedPopulation, sortedErrors, error, pNet);
+  }
+
+  // Save the best network in the population
+  GeneticNetwork *best = sortedPopulation.front();
+
+  // For each generation
+  unsigned int curGen;
+  for (curGen = 0; curGen < generations; curGen++) {
+    time_t start, end;
+    time(&start);
+    for (i = 0; i < num_threads; ++i) {
+      threads[i] = std::thread(breedNetworks, this, &gaussian, &geometric,
+                               &uniform, &sortedPopulation,
+                               &sortedErrors, breedCount, curGen,
+                               X, Y, length);
     }
 
-    printf("Breed count: %d\n", breedCount);
-
-    // Pre-allocate space
-    sortedPopulation.reserve(populationSize + extras);
-    sortedErrors.reserve(populationSize + extras);
-
-    // Rank and insert them in a sorted order
-    unsigned int i;
-    vector<GeneticNetwork*>::iterator netIt;
-    vector<double>::iterator errorIt;
-
-    printf("Data size: %d\n", length);
-
-    double error;
-    double *outputs = new double[numOfOutput*length];
-    for (i = 0; i < populationSize + extras; i++) {
-        // use references
-        GeneticNetwork *pNet = getGeneticNetwork(*this, gaussian,
-                                                 uniform);
-        // evaluate error here
-        error = evaluateNetwork(*pNet, X, Y, length, outputs);
-        // TODO use references on lists
-        insertSorted(sortedPopulation, sortedErrors, error, pNet);
+    // Wait for the threads to finish their work
+    for (i = 0; i < num_threads; ++i) {
+      threads[i].join();
     }
 
-    // Save the best network in the population
-    GeneticNetwork *best = sortedPopulation.front();
+    time(&end);
+    std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
 
-    // For each generation
-    unsigned int curGen;
-    for (curGen = 0; curGen < generations; curGen++) {
-        time_t start, end;
-        time(&start);
-        for (i = 0; i < num_threads; ++i) {
-            threads[i] = std::thread(breedNetworks, this, &gaussian, &geometric,
-                                     &uniform, &sortedPopulation,
-                                     &sortedErrors, breedCount, curGen,
-                                     X, Y, length);
-        }
+    // Print some stats about the current best
+    best = sortedPopulation.front();
 
-        // Wait for the threads to finish their work
-        for (i = 0; i < num_threads; ++i) {
-            threads[i].join();
-        }
+    // Add printEpoch check here
+    printf("gen: %d, best: %f\n", curGen,
+           sortedErrors.front());
 
-        time(&end);
-        std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
-
-        // Print some stats about the current best
-        best = sortedPopulation.front();
-
-        // Add printEpoch check here
-        printf("gen: %d, best: %f\n", curGen,
-               sortedErrors.front());
-
-        if (decayL2 != 0) {
-            printf("L2term = %f * %f\n", decayL2, weightSquaredSum2(*best));
-        }
-        // L1 weight decay
-        if (decayL1 != 0) {
-            printf("L1term = %f * %f\n", decayL1, weightAbsoluteSum2(*best));
-        }
-        // Weight elimination
-        if (weightElimination != 0 &&
-            weightEliminationLambda != 0) {
-            printf("Decayterm(%f) = %f * %f\n",weightEliminationLambda,
-                   weightElimination,
-                   weightEliminationSum2(*best, weightEliminationLambda));
-        }
+    if (decayL2 != 0) {
+      printf("L2term = %f * %f\n", decayL2, weightSquaredSum2(*best));
     }
+    // L1 weight decay
+    if (decayL1 != 0) {
+      printf("L1term = %f * %f\n", decayL1, weightAbsoluteSum2(*best));
+    }
+    // Weight elimination
+    if (weightElimination != 0 &&
+        weightEliminationLambda != 0) {
+      printf("Decayterm(%f) = %f * %f\n",weightEliminationLambda,
+             weightElimination,
+             weightEliminationSum2(*best, weightEliminationLambda));
+    }
+  }
 
-    // When done, make this network into the best network
-    printf("best eval error: %f\n", (evaluateNetwork(*best, X, Y,
+  // When done, make this network into the best network
+  printf("best eval fitness: %f\n", ((*pFitnessFunction)(*best, X, Y,
                                                      length, outputs)));
-    this->cloneNetworkSlow(*best);
-    printf("this eval error: %f\n", (evaluateNetwork(*this, X, Y,
+  this->cloneNetworkSlow(*best);
+  printf("this eval fitness: %f\n", ((*pFitnessFunction)(*this, X, Y,
                                                      length, outputs)));
 
-    // And destroy population
-    // do this last of all!
-    best = NULL;
-    for (netIt = sortedPopulation.begin(); netIt < sortedPopulation.end();
-         netIt++) {
-        delete *netIt;
-    }
-    delete[] outputs;
+  // And destroy population
+  // do this last of all!
+  best = NULL;
+  for (netIt = sortedPopulation.begin(); netIt < sortedPopulation.end();
+       netIt++) {
+    delete *netIt;
+  }
+  delete[] outputs;
 }
 
 /**

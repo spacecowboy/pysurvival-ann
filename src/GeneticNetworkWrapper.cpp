@@ -458,4 +458,32 @@ targets (2d array)");
         return 0;
     }
 
+
+  PyObject *GenNetwork_getFitnessFunction(PyGenNetwork *self,
+                                          void *closure) {
+    return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
+                         getFitnessFunction());
+    }
+
+    int GenNetwork_setFitnessFunction(PyGenNetwork *self, PyObject *value,
+                                      void *closure) {
+      if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+        return -1;
+      }
+
+      if (! PyInt_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
+        return 1;
+      }
+
+      long i = PyInt_AsLong(value);
+
+      if (PyErr_Occurred()) {
+        return -1;
+      }
+
+      ((GeneticNetwork*)self->super.net)->setFitnessFunction(i);
+      return 0;
+    }
 }
