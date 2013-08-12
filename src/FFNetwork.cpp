@@ -17,38 +17,45 @@
 using namespace std;
 
 FFNetwork::FFNetwork() {
-		this->numOfInputs = 0;
-		this->numOfHidden = 0;
-		this->numOfOutput = 0;
+  this->numOfInputs = 0;
+  this->numOfHidden = 0;
+  this->numOfOutput = 0;
+
+  this->aLogPerf = NULL;
+  this->logPerfLength = 0;
 }
 
 FFNetwork::FFNetwork(unsigned int numOfInputs, unsigned int numOfHidden,
-		unsigned int numOfOutput) {
-	this->numOfInputs = numOfInputs;
-	this->numOfHidden = numOfHidden;
-	this->numOfOutput = numOfOutput;
+                     unsigned int numOfOutput) {
+  this->numOfInputs = numOfInputs;
+  this->numOfHidden = numOfHidden;
+  this->numOfOutput = numOfOutput;
 
-    this->hiddenActivationFunction = TANH;
-    this->outputActivationFunction = LOGSIG;
+  this->hiddenActivationFunction = TANH;
+  this->outputActivationFunction = LOGSIG;
+
+  this->aLogPerf = NULL;
+  this->logPerfLength = 0;
 }
 
 FFNetwork::~FFNetwork() {
+  delete[] this->aLogPerf;
   deleteNeurons();
 }
 
 void FFNetwork::deleteNeurons() {
-  	delete this->bias;
+  delete this->bias;
 
-	unsigned int i;
-	for (i = 0; i < this->numOfHidden; i++) {
-		delete this->hiddenNeurons[i];
-	}
-	delete[] this->hiddenNeurons;
+  unsigned int i;
+  for (i = 0; i < this->numOfHidden; i++) {
+    delete this->hiddenNeurons[i];
+  }
+  delete[] this->hiddenNeurons;
 
-	for (i = 0; i < this->numOfOutput; i++) {
-		delete this->outputNeurons[i];
-	}
-	delete[] this->outputNeurons;
+  for (i = 0; i < this->numOfOutput; i++) {
+    delete this->outputNeurons[i];
+  }
+  delete[] this->outputNeurons;
 }
 
 void FFNetwork::resetNodes() {
@@ -58,102 +65,109 @@ void FFNetwork::resetNodes() {
 
 void FFNetwork::initNodes() {
   hiddenActivationFunction = TANH;
-	this->hiddenNeurons = new Neuron*[this->numOfHidden];
-	unsigned int i;
-	for (i = 0; i < this->numOfHidden; i++) {
-      this->hiddenNeurons[i] = new Neuron(i, &hyperbole, &hyperboleDeriv);
-	}
+  this->hiddenNeurons = new Neuron*[this->numOfHidden];
+  unsigned int i;
+  for (i = 0; i < this->numOfHidden; i++) {
+    this->hiddenNeurons[i] = new Neuron(i, &hyperbole, &hyperboleDeriv);
+  }
 
-    outputActivationFunction = LOGSIG;
-	this->outputNeurons = new Neuron*[this->numOfOutput];
-	for (i = 0; i < this->numOfOutput; i++) {
-      this->outputNeurons[i] = new Neuron(i, &sigmoid, &sigmoidDeriv);
-	}
+  outputActivationFunction = LOGSIG;
+  this->outputNeurons = new Neuron*[this->numOfOutput];
+  for (i = 0; i < this->numOfOutput; i++) {
+    this->outputNeurons[i] = new Neuron(i, &sigmoid, &sigmoidDeriv);
+  }
 
-	this->bias = new Bias();
+  this->bias = new Bias();
 }
 
+double *FFNetwork::getLogPerf() {
+  return this->aLogPerf;
+}
+
+unsigned int FFNetwork::getLogPerfLength() {
+  return this->logPerfLength;
+}
 
 double *FFNetwork::output(const double * const inputs,
                           double * const output) {
-	//double *output = new double[numOfOutput];
-	// Iterate over the neurons in order and calculate their outputs.
-	unsigned int i;
-	for (i = 0; i < numOfHidden; i++) {
-		hiddenNeurons[i]->output(inputs);
-	}
-	// Finally the output neurons
-	for (i = 0; i < numOfOutput; i++) {
-		output[i] = outputNeurons[i]->output(inputs);
-	}
+  //double *output = new double[numOfOutput];
+  // Iterate over the neurons in order and calculate their outputs.
+  unsigned int i;
+  for (i = 0; i < numOfHidden; i++) {
+    hiddenNeurons[i]->output(inputs);
+  }
+  // Finally the output neurons
+  for (i = 0; i < numOfOutput; i++) {
+    output[i] = outputNeurons[i]->output(inputs);
+  }
 
-	return output;
+  return output;
 }
 
 Neuron* FFNetwork::getHiddenNeuron(unsigned int id) const {
-	return hiddenNeurons[id];
+  return hiddenNeurons[id];
 }
 
 unsigned int FFNetwork::getNumOfHidden() const {
-	return numOfHidden;
+  return numOfHidden;
 }
 
 unsigned int FFNetwork::getNumOfInputs() const {
-	return numOfInputs;
+  return numOfInputs;
 }
 
 unsigned int FFNetwork::getNumOfOutputs() const {
-	return numOfOutput;
+  return numOfOutput;
 }
 
 Neuron* FFNetwork::getOutputNeuron(unsigned int id) const {
-	return outputNeurons[id];
+  return outputNeurons[id];
 }
 
 void FFNetwork::connectOToB(unsigned int outputIndex, double weight) {
-	if (outputIndex >= numOfOutput) {
-		throw invalid_argument(
-				"Can not connect to outputIndex which is greater than number of outputs!\n");
-	}
-    unsigned int i;
-    for (i = 0; i < numOfOutput; i++) {
-      if ((unsigned int)outputNeurons[i]->getId() == outputIndex) {
-        outputNeurons[i]->connectToNeuron(bias, weight);
-        break;
-      }
+  if (outputIndex >= numOfOutput) {
+    throw invalid_argument(
+                           "Can not connect to outputIndex which is greater than number of outputs!\n");
+  }
+  unsigned int i;
+  for (i = 0; i < numOfOutput; i++) {
+    if ((unsigned int)outputNeurons[i]->getId() == outputIndex) {
+      outputNeurons[i]->connectToNeuron(bias, weight);
+      break;
     }
+  }
 }
 
 void FFNetwork::connectOToI(unsigned int outputIndex, unsigned int inputIndex,
-		double weight) {
-	if (inputIndex >= numOfInputs) {
-		throw invalid_argument(
-				"Can not connect to inputIndex which is greater than number of inputs!\n");
-	}
-	if (outputIndex >= numOfOutput) {
-		throw invalid_argument(
-				"Can not connect to outputIndex which is greater than number of outputs!\n");
-	}
+                            double weight) {
+  if (inputIndex >= numOfInputs) {
+    throw invalid_argument(
+                           "Can not connect to inputIndex which is greater than number of inputs!\n");
+  }
+  if (outputIndex >= numOfOutput) {
+    throw invalid_argument(
+                           "Can not connect to outputIndex which is greater than number of outputs!\n");
+  }
 
-    unsigned int i;
-    for (i = 0; i < numOfOutput; i++) {
-      if ((unsigned int)outputNeurons[i]->getId() == outputIndex) {
-        outputNeurons[i]->connectToInput(inputIndex, weight);
-        break;
-      }
+  unsigned int i;
+  for (i = 0; i < numOfOutput; i++) {
+    if ((unsigned int)outputNeurons[i]->getId() == outputIndex) {
+      outputNeurons[i]->connectToInput(inputIndex, weight);
+      break;
     }
+  }
 }
 
 void FFNetwork::connectOToH(unsigned int outputIndex, unsigned int hiddenIndex,
-		double weight) {
-	if (hiddenIndex >= numOfHidden) {
-		throw invalid_argument(
-				"Can not connect to hiddenIndex which is greater than number of hidden!\n");
-	}
-	if (outputIndex >= numOfOutput) {
-		throw invalid_argument(
-				"Can not connect to outputIndex which is greater than number of outputs!\n");
-	}
+                            double weight) {
+  if (hiddenIndex >= numOfHidden) {
+    throw invalid_argument(
+                           "Can not connect to hiddenIndex which is greater than number of hidden!\n");
+  }
+  if (outputIndex >= numOfOutput) {
+    throw invalid_argument(
+                           "Can not connect to outputIndex which is greater than number of outputs!\n");
+  }
 
     unsigned int i;
     Neuron *from = NULL, *to = NULL;

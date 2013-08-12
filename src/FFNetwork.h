@@ -38,6 +38,9 @@ protected:
     int hiddenActivationFunction;
     int outputActivationFunction;
 
+    double *aLogPerf;
+    unsigned int logPerfLength;
+
 public:
     unsigned int numOfInputs;
 	unsigned int numOfHidden;
@@ -48,6 +51,10 @@ public:
 			unsigned int numOfOutput);
 
 	virtual ~FFNetwork();
+
+    // NULL if not trained
+    double *getLogPerf();
+    unsigned int getLogPerfLength();
 
 	/**
 	 * Derived classes must implement this and initialize internal neuron lists

@@ -704,6 +704,17 @@ void GeneticNetwork::learn(const double * const X,
   this->pFitnessFunction =
     getFitnessFunctionPtr(fitnessFunctionType);
 
+  // Reset LOG
+  if (this->aLogPerf != NULL) {
+    delete[] this->aLogPerf;
+    this->aLogPerf = NULL;
+  }
+  // Allocate new LOG
+  this->logPerfLength = generations * this->getNumOfOutputs();
+  // //Parenthesis initializes to zero
+  this->aLogPerf = new double[this->logPerfLength]();
+  //memset(& this->aLogPerf, 0, sizeof(double) * this->logPerfLength);
+
   // Init random number stuff
   boost::mt19937 eng; // a core engine class
   eng.seed(time(NULL));
@@ -791,6 +802,9 @@ void GeneticNetwork::learn(const double * const X,
     // Add printEpoch check here
     printf("gen: %d, best: %f\n", curGen,
            sortedErrors.front());
+
+    // Save in log
+    this->aLogPerf[curGen] = sortedErrors.front();
 
     if (decayL2 != 0) {
       printf("L2term = %f * %f\n", decayL2, weightSquaredSum2(*best));

@@ -83,6 +83,8 @@ PyObject *FFNetwork_connectHToH(PyFFNetwork *self, PyObject *args, PyObject *kwa
   int FFNetwork_setOutputActivationFunction(PyFFNetwork *self, PyObject *value, void *closure);
   int FFNetwork_setHiddenActivationFunction(PyFFNetwork *self, PyObject *value, void *closure);
 
+  PyObject *FFNetwork_getLogPerf(PyFFNetwork *self, void *closure);
+
 /*
  * Pickle methods
  * ==============

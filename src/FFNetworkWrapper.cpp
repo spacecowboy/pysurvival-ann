@@ -455,4 +455,32 @@ extern "C" {
     return 0;
   }
 
+
+  PyObject *FFNetwork_getLogPerf(PyFFNetwork *self, void *closure) {
+    double *aLogPerf = self->net->getLogPerf();
+
+    if (NULL == aLogPerf || 1 > self->net->getLogPerfLength()) {
+      PyErr_Format(PyExc_ValueError,
+                   "You need to train first!");
+      return NULL;
+    }
+
+	// Now convert to numpy array
+    int outNeurons = (int) self->net->getNumOfOutputs();
+    int epochs = (int) self->net->getLogPerfLength() / outNeurons;
+	npy_intp dims[2] = { epochs , outNeurons };
+	PyObject *result = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    double *ptr;
+
+    for (int j = 0; j < epochs; j++) {
+      for (int i = 0; i < outNeurons; i++)
+        {
+          ptr = (double *) PyArray_GETPTR2((PyArrayObject*) result, j, i);
+          *ptr = aLogPerf[j * outNeurons + i];
+        }
+    }
+
+	return result;
+  }
+
 }

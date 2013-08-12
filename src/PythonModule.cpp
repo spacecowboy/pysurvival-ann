@@ -74,6 +74,10 @@ static PyGetSetDef FFNetworkGetSetters[] = {
     {(char*)"numOfOutputs", (getter)FFNetwork_getNumOfOutputs, NULL,    \
      (char*)"Number of output neurons", NULL},
 
+    {(char*)"logPerf", (getter)FFNetwork_getLogPerf, NULL,    \
+     (char*)"Get a log of the training performance, [epochs, outputs]", NULL},
+
+
     {(char*)"outputActivationFunction", \
      (getter)FFNetwork_getOutputActivationFunction, \
      (setter)FFNetwork_setOutputActivationFunction, \
