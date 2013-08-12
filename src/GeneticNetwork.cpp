@@ -804,7 +804,7 @@ void GeneticNetwork::learn(const double * const X,
            sortedErrors.front());
 
     // Save in log
-    this->aLogPerf[curGen] = sortedErrors.front();
+    this->aLogPerf[curGen] = -sortedErrors.front();
 
     if (decayL2 != 0) {
       printf("L2term = %f * %f\n", decayL2, weightSquaredSum2(*best));
