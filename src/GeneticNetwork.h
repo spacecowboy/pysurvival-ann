@@ -71,15 +71,6 @@ class GeneticNetwork: public FFNetwork {
 
   virtual void initNodes();
 
-  /*
-   * Evaluates a network, including possible weight decays
-   */
-virtual double evaluateNetwork(GeneticNetwork &net,
-                                   const double * const X,
-                                   const double * const Y,
-                                   const unsigned int length,
-                                   double * const outputs);
-
 /*
  * Expects the X and Y to be of equal number of rows.
  */

@@ -574,48 +574,6 @@ double weightEliminationSum2(FFNetwork &net, double lambda) {
   return sum / (double) numOfCons;
 }
 
-double GeneticNetwork::evaluateNetwork(GeneticNetwork &net, const double *X,
-                                       const double * const Y,
-                                       const unsigned int length,
-                                       double * const outputs) {
-  unsigned int i, n;
-  double error = 0;
-
-  // Evaluate each input set
-  // Average over all inputs and number of outputs
-  for (i = 0; i < length; i++) {
-    // Place output in correct position here
-    net.output(X + i*net.getNumOfInputs(),
-                outputs + net.getNumOfOutputs() * i);
-    for (n = 0; n < net.getNumOfOutputs(); n++) {
-        error += sqrt(SSE(Y[i * net.getNumOfOutputs() + n],
-                          outputs[net.getNumOfOutputs() * i + n]))
-            / ((double) length * net.getNumOfOutputs());
-    }
-  }
-
-  // Weight decay terms
-  // Up to the user to (not) mix these
-  // L2 weight decay
-  if (decayL2 != 0) {
-    error += decayL2 * weightSquaredSum2(net);
-  }
-
-  // L1 weight decay
-  if (decayL1 != 0) {
-    error += decayL1 * weightAbsoluteSum2(net);
-  }
-
-  // Weight elimination
-  if (weightElimination != 0 &&
-      weightEliminationLambda != 0) {
-    error += weightElimination *
-      weightEliminationSum2(net, weightEliminationLambda);
-  }
-
-  return error;
-}
-
 /**
  * Does the actual work in an epoch. Designed to be launched in parallell
  * in many threads.
@@ -690,6 +648,26 @@ void breedNetworks(
                               curGen, false);
         // evaluate error child
         error = -(*(self->pFitnessFunction))(*pChild, X, Y, length, outputs);
+
+        // Weight decay terms
+        // Up to the user to (not) mix these
+        // L2 weight decay
+        if (self->decayL2 != 0) {
+          error += self->decayL2 * weightSquaredSum2(*pChild);
+        }
+
+        // L1 weight decay
+        if (self->decayL1 != 0) {
+          error += self->decayL1 * weightAbsoluteSum2(*pChild);
+        }
+
+        // Weight elimination
+        if (self->weightElimination != 0 &&
+            self->weightEliminationLambda != 0) {
+          error += self->weightElimination *
+            weightEliminationSum2(*pChild, self->weightEliminationLambda);
+        }
+
         // Insert child into the sorted list
         self->insertSorted(*sortedPopulation, *sortedErrors, error, pChild);
     }

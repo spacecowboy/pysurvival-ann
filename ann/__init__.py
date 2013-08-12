@@ -8,11 +8,10 @@ Should write intended usage here...
 from __future__ import division
 from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
                    gennetwork as _gennetwork,
-                   gensurvnetwork as _gensurvnetwork, get_C_index,
+                    get_C_index,
                    cascadenetwork as _cascadenetwork,
                    geneticcascadenetwork as _geneticcascadenetwork,
-                   geneticladdernetwork as _geneticladdernetwork,
-                   gensurvmsenetwork as _gensurvmsenetwork)
+                   geneticladdernetwork as _geneticladdernetwork)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
@@ -54,15 +53,10 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=None):
     variance=None - How to scale the weights. If None, will scale
     with the L2-norm.
     '''
-    net = gensurvnetwork(numOfInputs, numOfHidden)
+    net = gensurvnetwork(numOfInputs, numOfHidden, 1)
 
     return _connect_single_layer_genetic(net, variance)
 
-def getSingleLayerGenSurvMSE(numOfInputs, numOfHidden, variance=None):
-    net = gensurvmsenetwork(numOfInputs, numOfHidden)
-    _connect_single_layer_genetic(net, variance)
-    net.outputActivationFunction = net.LINEAR
-    return net
 
 def getSingleLayerGenetic(numOfInputs, numOfHidden, numOfOutputs,
                           variance=None):
@@ -384,6 +378,7 @@ Output: {}""".format(net.__class__.__name__,
     funcVals.get(net.hiddenActivationFunction),
     funcVals.get(net.outputActivationFunction))
 
+
 ### These should be at the bottom of file ###
 
 def UtilFuncs(cls):
@@ -433,8 +428,8 @@ class geneticnetwork(_gennetwork):
     pass
 
 @UtilFuncs
-class gensurvnetwork(_gensurvnetwork):
-    __doc__ = _gensurvnetwork.__doc__
+class gensurvnetwork(_gennetwork):
+    __doc__ = _gennetwork.__doc__
 
     def riskeval(self, inputdata):
         '''Given the inputs for a patient, returns its normalized
@@ -454,30 +449,5 @@ class gensurvnetwork(_gensurvnetwork):
     def learn(self, trninputs, trntargets):
         '''Trains the network using a genetic algorithm'''
         super(gensurvnetwork, self).learn(trninputs, trntargets)
-        # Evaluate and store outputs for training data
-        self.trnoutputs = np.array([self.output(x) for x in trninputs]).ravel()
-
-@UtilFuncs
-class gensurvmsenetwork(_gensurvmsenetwork):
-    __doc__ = _gensurvmsenetwork.__doc__
-
-    def riskeval(self, inputdata):
-        '''Given the inputs for a patient, returns its normalized
-        relative rank, compared to the training data.
-
-        Input: An array of equal length as numOfInputs
-        Returns: A value between 0 and 1
-        '''
-        if not hasattr(self, 'trnoutputs'):
-            raise ValueError('You have to train the network first')
-
-        out = self.output(inputdata)
-        # How many have better expected survival
-        idx = len(self.trnoutputs[self.trnoutputs > out])
-        return idx / len(self.trnoutputs)
-
-    def learn(self, trninputs, trntargets):
-        '''Trains the network using a genetic algorithm'''
-        super(gensurvmsenetwork, self).learn(trninputs, trntargets)
         # Evaluate and store outputs for training data
         self.trnoutputs = np.array([self.output(x) for x in trninputs]).ravel()
