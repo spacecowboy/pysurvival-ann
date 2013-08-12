@@ -909,6 +909,8 @@ extern "C" {
                          Py_BuildValue("i", INSERT_FITTEST));
 
 
+    PyDict_SetItemString(GenNetworkType.tp_dict, "FITNESS_MSE",
+                         Py_BuildValue("i", FITNESS_MSE));
     PyDict_SetItemString(GenNetworkType.tp_dict, "FITNESS_CINDEX",
                          Py_BuildValue("i", FITNESS_CINDEX));
     PyDict_SetItemString(GenNetworkType.tp_dict, "FITNESS_MSE_CENS",

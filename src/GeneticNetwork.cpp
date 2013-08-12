@@ -65,7 +65,7 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
   selectionMethod = SELECTION_GEOMETRIC;
   crossoverMethod = CROSSOVER_NEURON;
   insertMethod = INSERT_ALL;
-  fitnessFunctionType = FITNESS_CINDEX;
+  fitnessFunctionType = FITNESS_MSE;
 }
 
 void GeneticNetwork::initNodes() {

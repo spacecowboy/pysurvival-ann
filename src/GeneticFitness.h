@@ -6,7 +6,8 @@ class GeneticNetwork;
 /*
  * A fitness function returns a number where higher is better
  */
-enum fitness_function_t { FITNESS_CINDEX,
+enum fitness_function_t { FITNESS_MSE,
+                          FITNESS_CINDEX,
                           FITNESS_MSE_CENS };
 
 /*
@@ -21,7 +22,13 @@ typedef double (*fitness_func_ptr)(GeneticNetwork &net,
 /*
  * Given an enum value, returns appropriate function pointer
  */
-fitness_func_ptr getFitnessFunctionPtr(const long val);
+fitness_func_ptr getFitnessFunctionPtr(const fitness_function_t val);
+
+double fitness_mse(GeneticNetwork &net,
+                      const double * const X,
+                      const double * const Y,
+                      const unsigned int length,
+                      double * const outputs);
 
 double fitness_cindex(GeneticNetwork &net,
                       const double * const X,

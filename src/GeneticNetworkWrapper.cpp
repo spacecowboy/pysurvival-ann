@@ -75,9 +75,9 @@ targets (2d array)");
 
     if (inputArray->dimensions[0] != targetArray->dimensions[0] ||
       (unsigned int)inputArray->dimensions[1] != self->super.net->getNumOfInputs() ||
-      (unsigned int)targetArray->dimensions[1] != self->super.net->getNumOfOutputs()) {
+      (unsigned int)targetArray->dimensions[1] < self->super.net->getNumOfOutputs()) {
     // Decrement, set error and return
-    PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same number of rows. Also the columns must match number of input/output neurons respectively.");
+    PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same number of rows. Also the target columns cannot be less than the number of output neurons.");
     Py_DECREF(inputArray);
     Py_DECREF(targetArray);
 

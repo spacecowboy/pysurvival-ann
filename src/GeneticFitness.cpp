@@ -1,30 +1,52 @@
 #include "GeneticFitness.h"
 #include "GeneticNetwork.h"
+#include "ErrorFunctions.h"
 #include "c_index.h"
+#include <math.h>
 
-fitness_func getFitnessFunction(fitness_function_t)
+
+fitness_func_ptr getFitnessFunctionPtr(fitness_function_t val)
 {
-  fitness_func retval;
+  fitness_func_ptr retval;
   switch(val) {
   case FITNESS_MSE_CENS:
     retval = &fitness_mse_cens;
     break;
   case FITNESS_CINDEX:
-  default:
     retval = &fitness_cindex;
+    break;
+  case FITNESS_MSE:
+  default:
+    retval = &fitness_mse;
     break;
   }
   return retval;
 }
-/*
-fitness_func_t longToFitnessType(long val)
-{
-  fitness_func_t retval;
-  switch(val) {
-  case MSE_CENS:
-    retval = MSE_CENS;
+
+double fitness_mse(GeneticNetwork &net,
+                   const double * const X,
+                   const double * const Y,
+                   const unsigned int length,
+                   double * const outputs) {
+  unsigned int i, n;
+  double error = 0;
+
+  // Evaluate each input set
+  // Average over all inputs and number of outputs
+  for (i = 0; i < length; i++) {
+    // Place output in correct position here
+    net.output(X + i*net.getNumOfInputs(),
+               outputs + net.getNumOfOutputs() * i);
+    for (n = 0; n < net.getNumOfOutputs(); n++) {
+      error += sqrt(SSE(Y[i * net.getNumOfOutputs() + n],
+                        outputs[net.getNumOfOutputs() * i + n]))
+        / ((double) length * net.getNumOfOutputs());
+    }
   }
-  }*/
+
+  return -error;
+}
+
 
 // Returns the C-index of the network output
 double fitness_cindex(GeneticNetwork &net,
@@ -58,8 +80,8 @@ double fitness_mse_cens(GeneticNetwork &net,
     net.output(X + n*net.getNumOfInputs(), outputs + n);
 
     // Relevant data for this evaluation
-    time = targets[2 * n];
-    event = targets[2 * n + 1];
+    time = Y[2 * n];
+    event = Y[2 * n + 1];
     output = outputs[n];
     //   calc q, which penalizes under-estimation
     q = event;
