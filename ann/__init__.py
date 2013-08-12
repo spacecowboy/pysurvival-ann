@@ -55,8 +55,10 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=None):
     '''
     net = gensurvnetwork(numOfInputs, numOfHidden, 1)
 
-    return _connect_single_layer_genetic(net, variance)
+    _connect_single_layer_genetic(net, variance)
+    net.fitness_function = net.FITNESS_CINDEX
 
+    return net
 
 def getSingleLayerGenetic(numOfInputs, numOfHidden, numOfOutputs,
                           variance=None):
