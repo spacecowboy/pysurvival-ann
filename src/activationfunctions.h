@@ -8,7 +8,13 @@
 #ifndef ACTIVATIONFUNCTIONS_H_
 #define ACTIVATIONFUNCTIONS_H_
 
-enum ActivationFuncEnum { LINEAR, LOGSIG, TANH };
+enum ActivationFuncEnum { LINEAR=0, LOGSIG, TANH };
+
+// Accepts input sum
+double evaluateActFunction(ActivationFuncEnum func, double x);
+
+// Accepts output of evaluateFunction
+double evaluteActFuncDerivative(ActivationFuncEnum func, double y);
 
 /*
  * Linear, y = x, derivative = 1
