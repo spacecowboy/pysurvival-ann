@@ -23,4 +23,4 @@ Random.o: Random.h Random.cpp
 	$(CPP) $(CPPFLAGS) -c Random.cpp
 
 clean:
-	rm -f MatrixNetwork.o matrix test.o activationfunctions.o
+	rm -f MatrixNetwork.o matrix test.o activationfunctions.o Random.o
