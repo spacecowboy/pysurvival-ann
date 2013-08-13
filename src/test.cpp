@@ -1,6 +1,7 @@
 #include "MatrixNetwork.h"
 #include "activationfunctions.h"
 #include <stdio.h>
+#include "Random.h"
 
 void matrixtest() {
   	printf( "\nStarting matrix test...\n\n" );
@@ -68,7 +69,19 @@ void matrixtest() {
     delete[] inputs;
 }
 
+void randomtest() {
+  Random r;
+
+  printf("\n\nRandom numbers:");
+  printf("\nUniform: %f", r.uniform());
+  printf("\nNormal: %f", r.normal());
+  printf("\nGeometric(10): %d", r.geometric(10));
+
+}
+
 int main( int argc, const char* argv[] )
 {
   matrixtest();
+  randomtest();
+  printf("\nEND OF TEST\n");
 }
