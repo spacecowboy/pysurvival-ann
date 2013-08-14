@@ -27,12 +27,21 @@ class Random {
   Random();
   virtual ~Random();
 
-  /*
-   * All functions range from 0 to 1, except geometric
-   * which returns 0 to max (exclusive)
-   */
+  // 0 - Max (exclusive)
   int geometric(const int max);
+  // 0 - 1
   double uniform();
+  // mean 0, stddev 1
   double normal();
+
+  // min - max (exclusive)
+  unsigned int uniformNumber(const unsigned int min,
+                             const unsigned int max);
+
+  // min - max (exclusive)
+  // max must be at most the same as the length of weights
+  unsigned int weightedNumber(const double * const weights,
+                              const unsigned int min,
+                              const unsigned int max);
 
 };

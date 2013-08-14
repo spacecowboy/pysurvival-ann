@@ -1,6 +1,7 @@
 #include "Random.h"
 #include "boost/random.hpp"
 #include <time.h>
+#include <algorithm> // std::fill
 
 Random::Random()
 {
@@ -56,4 +57,35 @@ double Random::uniform() {
 
 double Random::normal() {
   return (*gaussian_num)();
+}
+
+unsigned int Random::uniformNumber(const unsigned int min,
+                                   const unsigned int max) {
+  double weights[max];
+  std::fill(weights, weights + max, 1);
+
+  return weightedNumber(weights, min, max);
+}
+
+unsigned int Random::weightedNumber(const double * const weights,
+                                    const unsigned int min,
+                                    const unsigned int max) {
+  double sum = 0, inc = 0, roll;
+  unsigned int i, result = min;
+  for (i = min; i < max; i++) {
+    sum += weights[i];
+  }
+
+  roll = uniform() * sum;
+  for (i = min; i < max; i++) {
+    result = i;
+    inc += weights[i];
+
+    if (inc >= roll) {
+      // Done
+      break;
+    }
+  }
+
+  return result;
 }
