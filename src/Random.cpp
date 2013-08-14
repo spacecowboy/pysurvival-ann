@@ -1,7 +1,8 @@
-#include "Random.h"
+#include "Random.hpp"
 #include "boost/random.hpp"
 #include <time.h>
 #include <algorithm> // std::fill
+#include <stdio.h>
 
 Random::Random()
 {
@@ -72,11 +73,13 @@ unsigned int Random::weightedNumber(const double * const weights,
                                     const unsigned int max) {
   double sum = 0, inc = 0, roll;
   unsigned int i, result = min;
+
   for (i = min; i < max; i++) {
     sum += weights[i];
   }
 
   roll = uniform() * sum;
+
   for (i = min; i < max; i++) {
     result = i;
     inc += weights[i];

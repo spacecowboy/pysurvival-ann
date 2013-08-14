@@ -1,7 +1,7 @@
-#include "MatrixNetwork.h"
-#include "activationfunctions.h"
+#include "MatrixNetwork.hpp"
+#include "activationfunctions.hpp"
 #include <stdio.h>
-#include "Random.h"
+#include "Random.hpp"
 
 void matrixtest() {
   	printf( "\nStarting matrix test...\n\n" );
@@ -76,6 +76,8 @@ void randomtest() {
   printf("\nUniform: %f", r.uniform());
   printf("\nNormal: %f", r.normal());
   printf("\nGeometric(10): %d", r.geometric(10));
+
+  printf("\nUniform number: %d", r.uniformNumber(1, 10));
 
 }
 

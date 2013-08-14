@@ -1,3 +1,6 @@
+#ifndef RANDOM_H_
+#define RANDOM_H_
+
 #include "boost/random.hpp"
 #include <time.h>
 //#include <ctime>
@@ -45,3 +48,6 @@ class Random {
                               const unsigned int max);
 
 };
+
+
+#endif // RANDOM_H_

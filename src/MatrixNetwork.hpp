@@ -1,7 +1,7 @@
 #ifndef MATRIXNETWORK_H_
 #define MATRIXNETWORK_H_
 
-#include "activationfunctions.h"
+#include "activationfunctions.hpp"
 
 /*
  * The network is not connected upon construction. After

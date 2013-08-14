@@ -1,5 +1,5 @@
-#include "MatrixNetwork.h"
-#include "activationfunctions.h"
+#include "MatrixNetwork.hpp"
+#include "activationfunctions.hpp"
 #include <stdexcept>
 #include <stdio.h>
 #include <algorithm>

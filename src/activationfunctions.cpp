@@ -6,7 +6,7 @@
  */
 
 #include <math.h>
-#include "activationfunctions.h"
+#include "activationfunctions.hpp"
 
 double evaluateActFunction(ActivationFuncEnum func, double x) {
   double retval;
