@@ -2,6 +2,7 @@
 #include "activationfunctions.hpp"
 #include <stdio.h>
 #include "Random.hpp"
+#include "global.hpp"
 
 void matrixtest() {
   	printf( "\nStarting matrix test...\n\n" );
@@ -81,9 +82,22 @@ void randomtest() {
 
 }
 
+void lockTest() {
+    printf("\n\nLocking mutex...");
+    lockPopulation();
+    printf("\nMutex locked");
+
+    int a = 5 + 7;
+
+    printf("\nUnlocking mutex...");
+    unlockPopulation();
+    printf("\nMutex unlocked");
+}
+
 int main( int argc, const char* argv[] )
 {
   matrixtest();
   randomtest();
+  lockTest();
   printf("\nEND OF TEST\n");
 }

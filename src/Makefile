@@ -6,7 +6,7 @@ LDFLAGS = -lm
 
 matrix: MatrixNetwork.o test.o activationfunctions.o Random.o GeneticSelection.o
 	$(CPP) $(CPPFLAGS) -o matrix MatrixNetwork.o test.o Random.o \
-GeneticSelection.o activationfunctions.o
+GeneticSelection.o activationfunctions.o global.o
 
 test: matrix
 	./matrix
@@ -26,6 +26,9 @@ Random.o: Random.hpp Random.cpp
 GeneticSelection.o: GeneticSelection.hpp GeneticSelection.cpp
 	$(CPP) $(CPPFLAGS) -c GeneticSelection.cpp
 
+global.o: global.hpp global.cpp
+	$(CPP) $(CPPFLAGS) -c global.cpp
+
 clean:
 	rm -f MatrixNetwork.o matrix test.o activationfunctions.o Random.o \
-GeneticSelection.o
+GeneticSelection.o global.o
