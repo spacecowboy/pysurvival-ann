@@ -1,5 +1,5 @@
-#ifndef _GENETICFITNESS_H_
-#define _GENETICFITNESS_H_
+#ifndef _GENETICFITNESS_HPP_
+#define _GENETICFITNESS_HPP_
 
 class GeneticNetwork;
 
@@ -14,10 +14,10 @@ enum fitness_function_t { FITNESS_MSE,
  * Signature for a fitness function
  */
 typedef double (*fitness_func_ptr)(GeneticNetwork &net,
-                                 const double * const X,
-                                 const double * const Y,
-                                 const unsigned int length,
-                                 double * const outputs);
+                                   const double * const X,
+                                   const double * const Y,
+                                   const unsigned int length,
+                                   double * const outputs);
 
 /*
  * Given an enum value, returns appropriate function pointer
@@ -25,10 +25,10 @@ typedef double (*fitness_func_ptr)(GeneticNetwork &net,
 fitness_func_ptr getFitnessFunctionPtr(const fitness_function_t val);
 
 double fitness_mse(GeneticNetwork &net,
-                      const double * const X,
-                      const double * const Y,
-                      const unsigned int length,
-                      double * const outputs);
+                   const double * const X,
+                   const double * const Y,
+                   const unsigned int length,
+                   double * const outputs);
 
 double fitness_cindex(GeneticNetwork &net,
                       const double * const X,

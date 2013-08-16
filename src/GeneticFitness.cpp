@@ -1,5 +1,5 @@
-#include "GeneticFitness.h"
-#include "GeneticNetwork.h"
+#include "GeneticFitness.hpp"
+#include "GeneticNetwork.hpp"
 #include "ErrorFunctions.h"
 #include "c_index.h"
 #include <math.h>

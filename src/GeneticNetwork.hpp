@@ -1,10 +1,10 @@
-#ifndef _GENETICNETWORK_H_
-#define _GENETICNETWORK_H_
+#ifndef _GENETICNETWORK_HPP_
+#define _GENETICNETWORK_HPP_
 
 #include "FFNetwork.h"
 #include "FFNeuron.h"
-#include "GeneticFitness.h"
-#include "boost/random.hpp"
+#include "GeneticFitness.hpp"
+#include "Random.hpp"
 #include <mutex>
 #include <vector>
 
@@ -233,4 +233,4 @@ double weightAbsoluteSum(FFNetwork &net);
 double weightEliminationSum(FFNetwork &net, double lambda);
 
 
-#endif /* _GENETICNETWORK_H_ */
+#endif /* _GENETICNETWORK_HPP_ */

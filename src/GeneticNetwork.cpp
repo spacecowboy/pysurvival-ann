@@ -5,20 +5,17 @@
  *      Author: jonas
  */
 
-#include "GeneticNetwork.h"
-#include "GeneticFitness.h"
+#include "GeneticNetwork.hpp"
+#include "GeneticFitness.hpp"
 #include "FFNeuron.h"
 #include "FFNetwork.h"
-#include "activationfunctions.h"
+#include "Random.hpp"
 #include <vector>
 #include <stdio.h>
-#include "boost/random.hpp"
 #include <time.h>
 #include <math.h>
-#include <mutex>
 #include <thread>
 #include <ctime>
-#include "ErrorFunctions.h"
 
 using namespace std;
 
