@@ -12,7 +12,6 @@ enum class SelectionMethod {SELECTION_GEOMETRIC,
  * Signature for a selection function.
  */
 typedef void (*selection_func_ptr)(
-    Random &random,
     std::vector<double> &sortedFitness,
     const unsigned int max,
     unsigned int &first,
@@ -22,26 +21,22 @@ typedef void (*selection_func_ptr)(
  * Evaluates the specified function
  */
 void getSelection(SelectionMethod method,
-                  Random &random,
                   std::vector<double> &sortedFitness,
                   const unsigned int max,
                   unsigned int &first,
                   unsigned int &second);
 
-void selectTournament(Random &random,
-                      std::vector<double> &sortedFitness,
+void selectTournament(std::vector<double> &sortedFitness,
                       const unsigned int max,
                       unsigned int &first,
                       unsigned int &second);
 
-void selectRoulette(Random &random,
-                    std::vector<double> &sortedFitness,
+void selectRoulette(std::vector<double> &sortedFitness,
                     const unsigned int max,
                     unsigned int &first,
                     unsigned int &second);
 
-void selectGeometric(Random &random,
-                     std::vector<double> &sortedFitness,
+void selectGeometric(std::vector<double> &sortedFitness,
                      const unsigned int max,
                      unsigned int &first,
                      unsigned int &second);

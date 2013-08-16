@@ -4,16 +4,18 @@
 #include "Random.hpp"
 #include <mutex>
 
+// All global variables should use prefix JGN_
+
 // GLobal random number generator
-extern Random randNum;
+extern Random JGN_rand;
 
 // extern tells compiler it is delcared elsewhere (global.cpp)
 // Used to lock threads accessing the population data
-extern std::mutex mutexPopulation;
+extern std::mutex JGN_mutexPopulation;
 
 // Blocks until mutex is locked
-void lockPopulation();
+void JGN_lockPopulation();
 
-void unlockPopulation();
+void JGN_unlockPopulation();
 
 #endif // GLOBAL_HPP_

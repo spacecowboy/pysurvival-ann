@@ -74,21 +74,21 @@ void randomtest() {
     //Random r;
 
   printf("\n\nRandom numbers:");
-  printf("\nUniform: %f", randNum.uniform());
-  printf("\nNormal: %f", randNum.normal());
-  printf("\nGeometric(10): %d", randNum.geometric(10));
+  printf("\nUniform: %f", JGN_rand.uniform());
+  printf("\nNormal: %f", JGN_rand.normal());
+  printf("\nGeometric(10): %d", JGN_rand.geometric(10));
 
-  printf("\nUniform number: %d", randNum.uniformNumber(1, 10));
+  printf("\nUniform number: %d", JGN_rand.uniformNumber(1, 10));
 
 }
 
 void lockTest() {
     printf("\n\nLocking mutex...");
-    lockPopulation();
+    JGN_lockPopulation();
     printf("\nMutex locked");
 
     printf("\nUnlocking mutex...");
-    unlockPopulation();
+    JGN_unlockPopulation();
     printf("\nMutex unlocked");
 }
 

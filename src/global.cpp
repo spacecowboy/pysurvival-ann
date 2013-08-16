@@ -3,7 +3,7 @@
 #include <mutex>
 
 // Global random number generator
-Random randNum;
+Random JGN_rand;
 
 /*
 To lock:
@@ -12,13 +12,13 @@ To lock:
 To unlock:
     mutexPopulation.unlock();
 */
-std::mutex mutexPopulation;
+std::mutex JGN_mutexPopulation;
 
 
-void lockPopulation() {
-  std::lock_guard<std::mutex> lock(mutexPopulation);
+void JGN_lockPopulation() {
+  std::lock_guard<std::mutex> lock(JGN_mutexPopulation);
 }
 
-void unlockPopulation() {
-  mutexPopulation.unlock();
+void JGN_unlockPopulation() {
+  JGN_mutexPopulation.unlock();
 }

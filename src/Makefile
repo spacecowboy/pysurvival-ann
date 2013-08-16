@@ -10,10 +10,10 @@ test: matrix
 
 ### Main test program is linked here###
 matrix: MatrixNetwork.o test.o activationfunctions.o Random.o \
-GeneticSelection.o global.o
+GeneticSelection.o global.o GeneticNetwork.o
 #### Build command ####
 	$(CPP) $(CPPFLAGS) -o matrix MatrixNetwork.o test.o Random.o \
-GeneticSelection.o activationfunctions.o global.o
+GeneticSelection.o activationfunctions.o global.o GeneticNetwork.o
 
 
 ### Dependencies ###
@@ -35,6 +35,9 @@ GeneticSelection.o: GeneticSelection.hpp GeneticSelection.cpp
 global.o: global.hpp global.cpp
 	$(CPP) $(CPPFLAGS) -c global.cpp
 
+GeneticNetwork.o: GeneticNetwork.cpp GeneticNetwork.hpp
+	$(CPP) $(CPPFLAGS) -c GeneticNetwork.cpp
+
 clean:
 	rm -f MatrixNetwork.o matrix test.o activationfunctions.o Random.o \
-GeneticSelection.o global.o
+GeneticSelection.o global.o GeneticNetwork.o

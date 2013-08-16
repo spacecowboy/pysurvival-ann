@@ -35,7 +35,6 @@ GeneticNetwork::getGeneticNetwork(GeneticNetwork &cloner,
 
   // First clone all the weights as initial values
   net->cloneNetworkSlow(cloner);
-
   // Then mutate the weights. Set halfpoint to irrelevant values
   // Reverse of resume is independent
   net->mutateWeights(gaussian, uniform, cloner.weightMutationChance,

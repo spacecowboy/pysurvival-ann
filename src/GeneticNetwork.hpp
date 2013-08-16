@@ -1,31 +1,18 @@
 #ifndef _GENETICNETWORK_HPP_
 #define _GENETICNETWORK_HPP_
 
-#include "FFNetwork.h"
-#include "FFNeuron.h"
+#include "MatrixNetwork.hpp"
 #include "GeneticFitness.hpp"
-#include "Random.hpp"
-#include <mutex>
+#include "GeneticSelection.hpp"
+#include "GeneticCrossover.hpp"
 #include <vector>
 
 using namespace std;
 
-enum selection_method_t { SELECTION_GEOMETRIC,
-                          SELECTION_ROULETTE,
-                          SELECTION_TOURNAMENT };
-
-enum crossover_method_t { CROSSOVER_NEURON,
-                          CROSSOVER_TWOPOINT };
-
-enum insert_method_t { INSERT_ALL,
-                       INSERT_FITTEST };
-
-class GeneticNetwork: public FFNetwork {
+class GeneticNetwork: public MatrixNetwork {
  public:
-    // Used to lock stuff to become thread safe
-  std::mutex lockMutex;
   // If the network should resume from its existing weights
-  // If false, will generate and independent population
+  // If false, will generate an independent population
   bool resume;
 
   // Training variables
@@ -44,9 +31,8 @@ class GeneticNetwork: public FFNetwork {
   // Chance of doing crossover
   double crossoverChance;
 
-  selection_method_t selectionMethod;
-  crossover_method_t crossoverMethod;
-  insert_method_t insertMethod;
+  SelectionMethd selectionMethod;
+  CrossoverMethod crossoverMethod;
   fitness_function_t fitnessFunctionType;
   fitness_func_ptr pFitnessFunction;
 
@@ -66,7 +52,8 @@ class GeneticNetwork: public FFNetwork {
   double weightEliminationLambda;
 
   // Methods
-  GeneticNetwork(const unsigned int numOfInputs, const unsigned int numOfHidden,
+  GeneticNetwork(const unsigned int numOfInputs,
+                 const unsigned int numOfHidden,
                  const unsigned int numOfOutputs);
 
   virtual void initNodes();
@@ -78,38 +65,12 @@ virtual void learn(const double * const X,
                    const double * const Y,
                    const unsigned int length);
 
-// Make this network into a mixture of the mother and father
-virtual void crossover(
-    boost::variate_generator<boost::mt19937&,
-    boost::uniform_real<> > &uniform,
-    GeneticNetwork &mother, GeneticNetwork &father);
-
-// Randomly mutates the weights of the network.
-// Expects a gaussian distribution with
-// mean 0 and stdev 1.
-virtual void mutateWeights(
-    boost::variate_generator<boost::mt19937&,
-    boost::normal_distribution<double> > &gaussian,
-    boost::variate_generator<boost::mt19937&,
-    boost::uniform_real<> > &uniform,
-    const double mutationChance, const double stdDev,
-    const int deviationHalfPoint, const int epoch,
-    const bool independent);
-
 // Makes this network into a clone of the original. Assumes equal iteration.
 virtual void cloneNetwork(GeneticNetwork &original);
-// Makes this network into a clone of the original. Does NOT assume same order.
-virtual void cloneNetworkSlow(GeneticNetwork &original);
 
 // Used to build initial population
 virtual GeneticNetwork*
-getGeneticNetwork(GeneticNetwork &cloner,
-                      boost::variate_generator<boost::mt19937&,
-                                               boost::normal_distribution<double> >
-                      &gaussian,
-                      boost::variate_generator<boost::mt19937&,
-                                               boost::uniform_real<> >
-                      &uniform);
+getGeneticNetwork(GeneticNetwork &cloner);
 
 // Insert network back into the population
 // Method because of thread stuff
@@ -117,12 +78,6 @@ void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
                   vector<double> &sortedErrors,
                   const double error,
                   GeneticNetwork * const net);
-// Clone Parents thread safe
-void cloneParents(GeneticNetwork &mother,
-                  GeneticNetwork &father,
-                  vector<GeneticNetwork*> &sortedPopulation,
-                  const unsigned int motherIndex,
-                  const unsigned int fatherIndex);
 
 GeneticNetwork *popLastNetwork(
     vector<GeneticNetwork*> &sortedPopulation,
@@ -184,44 +139,6 @@ void breedNetworks(
   void setFitnessFunction(long val);
 };
 
-class GeneticNeuron: public Neuron {
-public:
-  GeneticNeuron(int id);
-  GeneticNeuron(int id, double (*activationFunction)(double),
-                double (*activationDerivative)(double));
-  virtual ~GeneticNeuron();
-
-  // Makes this neuron into a copy of the original. Assumes equal structure
-  // Only copies the weights for the connections with equal number
-  virtual void cloneNeuron(Neuron *original);
-  // Does not assume equal iteration order
-  virtual void cloneNeuronSlow(Neuron *original);
-  // With some probability will change the weights.
-  // If independant is true, will replace all weights and make sure
-  // the vector is scaled by the l2 norm.
-  virtual void mutateWeights(boost::variate_generator<boost::mt19937&,
-                             boost::normal_distribution<double> > &gaussian,
-                             boost::variate_generator<boost::mt19937&,
-                             boost::uniform_real<> > &uniform,
-                             const double mutationChance, const double stdDev,
-                             const bool independent, const bool l2scale);
-};
-
-class GeneticBias: public GeneticNeuron {
-public:
- GeneticBias() :
-  GeneticNeuron(-1) {
-  }
-  virtual double output() {
-    return 1;
-  }
-  virtual double output(double * inputs) {
-    return 1;
-  }
-  virtual double outputDeriv() {
-    return 0;
-  }
-};
 
 // Calculate the sum of all weights squared (L2 norm)
 double weightSquaredSum(FFNetwork &net);
