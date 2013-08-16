@@ -1,5 +1,9 @@
 #include "global.hpp"
+#include "Random.hpp"
 #include <mutex>
+
+// Global random number generator
+Random randNum;
 
 /*
 To lock:
@@ -12,9 +16,9 @@ std::mutex mutexPopulation;
 
 
 void lockPopulation() {
-    std::lock_guard<std::mutex> lock(mutexPopulation);
+  std::lock_guard<std::mutex> lock(mutexPopulation);
 }
 
 void unlockPopulation() {
-    mutexPopulation.unlock();
+  mutexPopulation.unlock();
 }

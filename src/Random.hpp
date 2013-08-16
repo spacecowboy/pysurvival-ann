@@ -1,5 +1,5 @@
-#ifndef RANDOM_H_
-#define RANDOM_H_
+#ifndef RANDOM_HPP_
+#define RANDOM_HPP_
 
 #include "boost/random.hpp"
 #include <time.h>
@@ -7,7 +7,7 @@
 
 class Random {
 
- protected:
+protected:
   boost::mt19937 *eng; // a core engine class
 
   // Normal distribution for weight mutation, 0 mean and 1 stddev
@@ -18,12 +18,12 @@ class Random {
   // Uniform distribution 0 to 1 (inclusive)
   boost::uniform_real<double> *uni_dist;
   boost::variate_generator<boost::mt19937&, boost::uniform_real<double> >
-    *uniform_num;
+  *uniform_num;
   // Geometric
   boost::geometric_distribution<int, double> *geo_dist;
   boost::variate_generator<boost::mt19937&,
                            boost::geometric_distribution<int, double> >
-    *geometric_num;
+  *geometric_num;
 
  public:
 
@@ -50,4 +50,4 @@ class Random {
 };
 
 
-#endif // RANDOM_H_
+#endif // RANDOM_HPP_

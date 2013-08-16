@@ -1,7 +1,7 @@
 #include "MatrixNetwork.hpp"
 #include "activationfunctions.hpp"
 #include <stdio.h>
-#include "Random.hpp"
+//#include "Random.hpp"
 #include "global.hpp"
 
 void matrixtest() {
@@ -71,14 +71,14 @@ void matrixtest() {
 }
 
 void randomtest() {
-  Random r;
+    //Random r;
 
   printf("\n\nRandom numbers:");
-  printf("\nUniform: %f", r.uniform());
-  printf("\nNormal: %f", r.normal());
-  printf("\nGeometric(10): %d", r.geometric(10));
+  printf("\nUniform: %f", randNum.uniform());
+  printf("\nNormal: %f", randNum.normal());
+  printf("\nGeometric(10): %d", randNum.geometric(10));
 
-  printf("\nUniform number: %d", r.uniformNumber(1, 10));
+  printf("\nUniform number: %d", randNum.uniformNumber(1, 10));
 
 }
 
@@ -86,8 +86,6 @@ void lockTest() {
     printf("\n\nLocking mutex...");
     lockPopulation();
     printf("\nMutex locked");
-
-    int a = 5 + 7;
 
     printf("\nUnlocking mutex...");
     unlockPopulation();

@@ -4,13 +4,19 @@ CPP = g++
 CPPFLAGS = -g -Wall -std=c++0x -O2 -pthread
 LDFLAGS = -lm
 
-matrix: MatrixNetwork.o test.o activationfunctions.o Random.o GeneticSelection.o
-	$(CPP) $(CPPFLAGS) -o matrix MatrixNetwork.o test.o Random.o \
-GeneticSelection.o activationfunctions.o global.o
-
+### Test program ###
 test: matrix
 	./matrix
 
+### Main test program is linked here###
+matrix: MatrixNetwork.o test.o activationfunctions.o Random.o \
+GeneticSelection.o global.o
+#### Build command ####
+	$(CPP) $(CPPFLAGS) -o matrix MatrixNetwork.o test.o Random.o \
+GeneticSelection.o activationfunctions.o global.o
+
+
+### Dependencies ###
 test.o: test.cpp
 	$(CPP) $(CPPFLAGS) -c test.cpp
 
