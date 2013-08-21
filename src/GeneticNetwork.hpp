@@ -61,8 +61,6 @@ class GeneticNetwork: public MatrixNetwork {
                  const unsigned int numOfHidden,
                  const unsigned int numOfOutputs);
 
-  virtual void initNodes();
-
 /*
  * Expects the X and Y to be of equal number of rows.
  */
@@ -136,8 +134,8 @@ void breedNetworks(
   CrossoverMethod getCrossoverMethod() const;
   void setCrossoverMethod(CrossoverMethod val);
 
-  insert_method_t getInsertMethod() const;
-  void setInsertMethod(long val);
+  //  insert_method_t getInsertMethod() const;
+  //  void setInsertMethod(long val);
 
   FitnessFunction getFitnessFunction() const;
   void setFitnessFunction(FitnessFunction val);
