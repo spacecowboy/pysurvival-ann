@@ -27,14 +27,19 @@ class GeneticNetwork: public MatrixNetwork {
   double weightMutationChance;
   // Scales the mutation variance.
   double weightMutationFactor;
+  // Chance to flip a bit
+  double connsMutationChance;
+  // Chance to change activationFunction
+  // ex: 10% means 90% chance to stay the same (linear for ex.),
+  // and 5% chance to select logsig and 5% tanh.
+  double actFuncMutationChance;
 
   // Chance of doing crossover
   double crossoverChance;
 
-  SelectionMethd selectionMethod;
+  SelectionMethod selectionMethod;
   CrossoverMethod crossoverMethod;
-  fitness_function_t fitnessFunctionType;
-  fitness_func_ptr pFitnessFunction;
+  FitnessFunction fitnessFunction;
 
   // If this is non zero, it is interpreted as the generation where the stddev
   // should have decreased to half its value.
@@ -61,27 +66,26 @@ class GeneticNetwork: public MatrixNetwork {
 /*
  * Expects the X and Y to be of equal number of rows.
  */
-virtual void learn(const double * const X,
-                   const double * const Y,
-                   const unsigned int length);
+  virtual void learn(const double * const X,
+                     const double * const Y,
+                     const unsigned int length);
 
 // Makes this network into a clone of the original. Assumes equal iteration.
-virtual void cloneNetwork(GeneticNetwork &original);
+  virtual void cloneNetwork(GeneticNetwork &original);
 
 // Used to build initial population
-virtual GeneticNetwork*
-getGeneticNetwork(GeneticNetwork &cloner);
+  virtual GeneticNetwork*
+  getGeneticNetwork(GeneticNetwork &cloner);
 
-// Insert network back into the population
-// Method because of thread stuff
-void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
-                  vector<double> &sortedErrors,
-                  const double error,
-                  GeneticNetwork * const net);
+  // Insert network back into the population
+  // Method because of thread stuff
+  void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
+                    vector<double> &sortedErrors,
+                    const double error,
+                    GeneticNetwork * const net);
 
-GeneticNetwork *popLastNetwork(
-    vector<GeneticNetwork*> &sortedPopulation,
-    vector<double> &sortedErrors);
+  GeneticNetwork *popLastNetwork(vector<GeneticNetwork*> &sortedPopulation,
+                                 vector<double> &sortedErrors);
 
 // Learning work done by threads here
 /*
@@ -126,28 +130,28 @@ void breedNetworks(
   double getCrossoverChance() const;
   void setCrossoverChance(double val);
 
-  selection_method_t getSelectionMethod() const;
-  void setSelectionMethod(long val);
+  SelectionMethod getSelectionMethod() const;
+  void setSelectionMethod(SelectionMethod val);
 
-  crossover_method_t getCrossoverMethod() const;
-  void setCrossoverMethod(long val);
+  CrossoverMethod getCrossoverMethod() const;
+  void setCrossoverMethod(CrossoverMethod val);
 
   insert_method_t getInsertMethod() const;
   void setInsertMethod(long val);
 
-  fitness_function_t getFitnessFunction() const;
-  void setFitnessFunction(long val);
+  FitnessFunction getFitnessFunction() const;
+  void setFitnessFunction(FitnessFunction val);
 };
 
 
 // Calculate the sum of all weights squared (L2 norm)
-double weightSquaredSum(FFNetwork &net);
+//double weightSquaredSum(FFNetwork &net);
 
 // Calculate the sum of absolute values of weights (L1 norm)
-double weightAbsoluteSum(FFNetwork &net);
+//double weightAbsoluteSum(FFNetwork &net);
 
 // Calculate the sum of soft weight elimination terms
-double weightEliminationSum(FFNetwork &net, double lambda);
+//double weightEliminationSum(FFNetwork &net, double lambda);
 
 
 #endif /* _GENETICNETWORK_HPP_ */
