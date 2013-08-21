@@ -36,20 +36,17 @@ void selectTournament(vector<double> &sortedFitness,
                       const unsigned int max,
                       unsigned int &first,
                       unsigned int &second) {
-  JGN_lockPopulation();
   selectTournament(sortedFitness, max, first);
   second = first;
   while (first == second) {
     selectTournament(sortedFitness, max, second);
   }
-  JGN_unlockPopulation();
 }
 
 void selectRoulette(vector<double> &sortedFitness,
                     const unsigned int max,
                     unsigned int &first,
                     unsigned int &second) {
-  JGN_lockPopulation();
   first = JGN_rand.weightedNumber(&sortedFitness[0],
                                 0, max);
   second = first;
@@ -57,7 +54,6 @@ void selectRoulette(vector<double> &sortedFitness,
     second = JGN_rand.weightedNumber(&sortedFitness[0],
                                    0, max);
   }
-  JGN_unlockPopulation();
 }
 
 void selectGeometric(vector<double> &sortedFitness,
