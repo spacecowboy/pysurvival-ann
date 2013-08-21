@@ -3,6 +3,14 @@
 #include "activationfunctions.hpp"
 #include "global.hpp"
 
+void randomize(MatrixNetwork &net,
+               const double weightStdDev)
+{
+  mutateWeights(net, 1.0, weightStdDev);
+  mutateConns(net, 1.0);
+  mutateActFuncs(net, 1.0);
+}
+
 void mutateWeights(MatrixNetwork &net,
                    const double chance,
                    const double stddev)
