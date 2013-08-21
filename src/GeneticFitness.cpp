@@ -22,6 +22,35 @@ FitnessFunctionPtr getFitnessFunctionPtr(FitnessFunction val)
   return retval;
 }
 
+double getFitness(FitnessFunction func,
+                  const double * const X,
+                  const double * const Y,
+                  const unsigned int length,
+                  const unsigned int numOfOutput,
+                  const double * const outputs)
+{
+  double retval;
+  switch(func) {
+  case FitnessFunction::FITNESS_MSE_CENS:
+    retval = fitnessMSECens(X, Y, length,
+                            numOfOutput,
+                            outputs);
+    break;
+  case FitnessFunction::FITNESS_CINDEX:
+    retval = fitnessCIndex(X, Y, length,
+                           numOfOutput,
+                           outputs);
+    break;
+  case FitnessFunction::FITNESS_MSE:
+  default:
+    retval = fitnessMSE(X, Y, length,
+                        numOfOutput,
+                        outputs);
+    break;
+  }
+  return retval;
+}
+
 double fitnessMSE(const double * const X,
                   const double * const Y,
                   const unsigned int length,

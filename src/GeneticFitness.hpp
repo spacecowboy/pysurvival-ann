@@ -23,6 +23,14 @@ typedef double (*FitnessFunctionPtr)(const double * const X,
  */
 FitnessFunctionPtr getFitnessFunctionPtr(const FitnessFunction val);
 
+// Evaluate the specified function
+double getFitness(FitnessFunction func,
+                  const double * const X,
+                  const double * const Y,
+                  const unsigned int length,
+                  const unsigned int numOfOutput,
+                  const double * const outputs);
+
 double fitnessMSE(const double * const X,
                   const double * const Y,
                   const unsigned int length,
