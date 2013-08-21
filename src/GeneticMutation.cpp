@@ -3,7 +3,7 @@
 #include "activationfunctions.hpp"
 #include "global.hpp"
 
-void randomize(MatrixNetwork &net,
+void randomizeNetwork(MatrixNetwork &net,
                const double weightStdDev)
 {
   mutateWeights(net, 1.0, weightStdDev);
