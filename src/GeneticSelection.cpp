@@ -18,10 +18,10 @@ void selectTournament(vector<double> &sortedFitness,
                       unsigned int &first) {
   unsigned int i, j;
 
-  i = JGN_randNum.uniformNumber(0, max);
+  i = JGN_rand.uniformNumber(0, max);
   j = i;
   while (j == i) {
-    j = JGN_randNum.uniformNumber(0, max);
+    j = JGN_rand.uniformNumber(0, max);
   }
 
   // sorted list, so first wins
@@ -50,11 +50,11 @@ void selectRoulette(vector<double> &sortedFitness,
                     unsigned int &first,
                     unsigned int &second) {
   JGN_lockPopulation();
-  first = JGN_randNum.weightedNumber(&sortedFitness[0],
+  first = JGN_rand.weightedNumber(&sortedFitness[0],
                                 0, max);
   second = first;
   while (second == first) {
-    second = JGN_randNum.weightedNumber(&sortedFitness[0],
+    second = JGN_rand.weightedNumber(&sortedFitness[0],
                                    0, max);
   }
   JGN_unlockPopulation();
@@ -64,9 +64,9 @@ void selectGeometric(vector<double> &sortedFitness,
                      const unsigned int max,
                      unsigned int &first,
                      unsigned int &second) {
-  first = JGN_randNum.geometric(max);
+  first = JGN_rand.geometric(max);
   second = first;
   while (first == second) {
-    second = JGN_randNum.geometric(max);
+    second = JGN_rand.geometric(max);
   }
 }
