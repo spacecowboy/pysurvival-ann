@@ -12,6 +12,7 @@
 #include "GeneticCrossover.hpp"
 #include "GeneticMutation.hpp"
 #include "global.hpp"
+#include <algorithm>
 #include <vector>
 #include <stdio.h>
 #include <time.h>
@@ -85,9 +86,18 @@ void GeneticNetwork::insertLast(vector<GeneticNetwork*>  &sortedPopulation,
   sortedErrors.push_back(9999999999.0);
 }
 
-void GeneticNetwork::cloneNetwork(GeneticNetwork &original)
-{
-  // TODO
+void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
+  std::copy(original.weights,
+            original.weights + original.LENGTH * original.LENGTH,
+            this->weights);
+
+  std::copy(original.conns,
+            original.conns + original.LENGTH * original.LENGTH,
+            this->conns);
+
+  std::copy(original.actFuncs,
+            original.actFuncs + original.LENGTH * original.LENGTH,
+            this->actFuncs);
 }
 
 
