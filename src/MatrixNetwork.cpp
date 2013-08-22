@@ -41,6 +41,7 @@ MatrixNetwork::~MatrixNetwork() {
   delete[] actFuncs;
   delete[] conns;
   delete[] weights;
+  delete[] outputs;
   delete[] aLogPerf;
 }
 
@@ -98,9 +99,9 @@ double *MatrixNetwork::output(const double * const inputs,
       target = LENGTH * i + j;
       sum += ((double) conns[target]) * weights[target] * outputs[j];
     }
-    printf("\nSum = %f", sum);
+    //printf("\nSum = %f", sum);
     outputs[i] = evaluateActFunction(actFuncs[i], sum);
-    printf("\nOut = %f", outputs[i]);
+    //printf("\nOut = %f", outputs[i]);
   }
 
   // Copy values to output array

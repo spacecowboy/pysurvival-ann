@@ -36,7 +36,6 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
   crossoverChance(1.0),
   selectionMethod(SelectionMethod::SELECTION_GEOMETRIC),
   crossoverMethod(CrossoverMethod::CROSSOVER_ONEPOINT),
-//insertMethod(INSERT_ALL),
   fitnessFunction(FitnessFunction::FITNESS_MSE),
   weightMutationHalfPoint(0),
   decayL2(0),
@@ -44,26 +43,27 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
   weightElimination(0),
   weightEliminationLambda(0)
 {
+printf("\n Gen Net Constructor\n");
 }
 
 void GeneticNetwork::insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
-                                  vector<double> &sortedErrors,
-                                  const double error,
+                                  vector<double> &sortedFitness,
+                                  const double fitness,
                                   GeneticNetwork * const net)
 {
   vector<GeneticNetwork*>::iterator netIt;
-  vector<double>::iterator errorIt;
+  vector<double>::iterator fitnessIt;
   bool inserted = false;
   unsigned int j;
 
   netIt = sortedPopulation.begin();
-  errorIt = sortedErrors.begin();
+  fitnessIt = sortedFitness.begin();
   // Insert in sorted position
   for (j = 0; j < sortedPopulation.size(); j++) {
-    if (error < errorIt[j]) {
+    if (fitness >= fitnessIt[j]) {
       //printf("Inserting at %d, error = %f\n", j, error);
       sortedPopulation.insert(netIt + j, net);
-      sortedErrors.insert(errorIt + j, error);
+      sortedFitness.insert(fitnessIt + j, fitness);
       inserted = true;
       break;
     }
@@ -72,18 +72,18 @@ void GeneticNetwork::insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
   if (!inserted) {
     //printf("Inserting last, error = %f\n", error);
     sortedPopulation.push_back(net);
-    sortedErrors.push_back(error);
+    sortedFitness.push_back(fitness);
     inserted = true;
   }
 }
 
 void GeneticNetwork::insertLast(vector<GeneticNetwork*>  &sortedPopulation,
-                                vector<double> &sortedErrors,
+                                vector<double> &sortedFitness,
                                 GeneticNetwork * const net)
 {
   //printf("Inserting last, error = %f\n", error);
   sortedPopulation.push_back(net);
-  sortedErrors.push_back(9999999999.0);
+  sortedFitness.push_back(-99999999999.0);
 }
 
 void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
@@ -96,7 +96,7 @@ void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
             this->conns);
 
   std::copy(original.actFuncs,
-            original.actFuncs + original.LENGTH * original.LENGTH,
+            original.actFuncs + original.LENGTH,
             this->actFuncs);
 }
 

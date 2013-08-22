@@ -30,19 +30,21 @@ void mutateWeights(MatrixNetwork &net,
 void mutateConns(MatrixNetwork &net,
                  const double chance)
 {
-  unsigned int i;
+  unsigned int i, bit;
   double roll;
 
   for (i = 0; i < net.LENGTH * net.LENGTH; i++) {
     roll = JGN_rand.uniform();
     if (roll < chance) {
+      bit = JGN_rand.uniformNumber(0, 2);
+      net.conns[i] = bit;
       // Shift the bit
-      if (net.conns[i] == 0) {
-        net.conns[i] = 1;
-      }
-      else {
-        net.conns[i] = 0;
-      }
+      //if (net.conns[i] == 0) {
+      //  net.conns[i] = 1;
+      //}
+      //else {
+      //  net.conns[i] = 0;
+      //}
     }
   }
 }

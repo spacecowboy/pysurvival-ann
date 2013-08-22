@@ -3,6 +3,8 @@
 #include <stdio.h>
 //#include "Random.hpp"
 #include "global.hpp"
+#include "GeneticNetwork.hpp"
+#include "GeneticMutation.hpp"
 
 void matrixtest() {
   	printf( "\nStarting matrix test...\n\n" );
@@ -92,10 +94,78 @@ void lockTest() {
     printf("\nMutex unlocked");
 }
 
+void geneticTest1() {
+  printf("\n\nCreating genetic networks...");
+
+  GeneticNetwork net1(5, 3, 1);
+  GeneticNetwork net2(net1.INPUT_COUNT,
+                      net1.HIDDEN_COUNT,
+                      net1.OUTPUT_COUNT);
+
+  printf("\n5 = %d\n3 = %d\n1 = %d",
+         net2.INPUT_COUNT,
+         net2.HIDDEN_COUNT,
+         net2.OUTPUT_COUNT);
+
+  randomizeNetwork(net1, 1.0);
+
+  randomizeNetwork(net2, 1.0);
+
+  printf("\nWeight diff: %f vs %f \
+\nConn diff: %d vs %d\
+\nActF diff: %d vs %d",
+         net1.weights[9],
+         net2.weights[9],
+         net1.conns[9],
+         net2.conns[9],
+         net1.actFuncs[3],
+         net2.actFuncs[3]);
+
+  printf("\nCloning...");
+  net2.cloneNetwork(net1);
+
+  printf("\nWeight diff: %f vs %f \
+\nConn diff: %d vs %d\
+\nActF diff: %d vs %d",
+         net1.weights[9],
+         net2.weights[9],
+         net1.conns[9],
+         net2.conns[9],
+         net1.actFuncs[3],
+         net2.actFuncs[3]);
+
+
+  printf("\nGenetic test 1 done.");
+}
+
+void geneticXOR() {
+  GeneticNetwork net(2, 10, 1);
+  net.setGenerations(20);
+  net.setWeightMutationChance(0.05);
+  net.setWeightMutationFactor(0.3);
+  net.connsMutationChance = 0.05;
+  net.actFuncMutationChance = 0.05;
+
+  // define inputs
+  double X[2*4]{0,0,
+      0,1,
+      1,0,
+      1,1};
+  printf("\nbah %f", X[7]);
+
+  // define targets
+  double Y[4]{0, 1, 1, 0};
+  printf("\nbah %f", Y[2]);
+
+  net.learn(X, Y, 4);
+}
+
 int main( int argc, const char* argv[] )
 {
   matrixtest();
   randomtest();
   lockTest();
+  geneticTest1();
+  geneticXOR();
   printf("\nEND OF TEST\n");
 }
