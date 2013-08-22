@@ -1,7 +1,7 @@
 # Makefile
 
 CPP = g++
-CPPFLAGS = -g -Wall -std=c++0x -O2 -pthread
+CPPFLAGS = -g -Wall -Werror -std=c++0x -O2 -pthread
 LDFLAGS = -lm
 
 ### Test program ###
