@@ -17,11 +17,11 @@ crossover_func_ptr getCrossoverFunctionPtr(const CrossoverMethod val) {
 }
 
 // Runs the specific method
-void evaluteCrossoverFunction(const CrossoverMethod val,
-                              MatrixNetwork &mother,
-                              MatrixNetwork &father,
-                              MatrixNetwork &brother,
-                              MatrixNetwork &sister) {
+void evaluateCrossoverFunction(const CrossoverMethod val,
+                               MatrixNetwork &mother,
+                               MatrixNetwork &father,
+                               MatrixNetwork &brother,
+                               MatrixNetwork &sister) {
   crossover_func_ptr func = getCrossoverFunctionPtr(val);
   (*func)(mother, father, brother, sister);
 }

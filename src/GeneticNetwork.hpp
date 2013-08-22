@@ -11,10 +11,6 @@ using namespace std;
 
 class GeneticNetwork: public MatrixNetwork {
  public:
-  // If the network should resume from its existing weights
-  // If false, will generate an independent population
-  bool resume;
-
   // Training variables
   // How many networks should be created/mutated and compared in one generation
   unsigned int populationSize;
@@ -71,10 +67,6 @@ class GeneticNetwork: public MatrixNetwork {
 // Makes this network into a clone of the original. Assumes equal iteration.
   virtual void cloneNetwork(GeneticNetwork &original);
 
-// Used to build initial population
-  virtual GeneticNetwork*
-  getGeneticNetwork(GeneticNetwork &cloner);
-
   // Insert network back into the population
   // Method because of thread stuff
   void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
@@ -82,10 +74,20 @@ class GeneticNetwork: public MatrixNetwork {
                     const double error,
                     GeneticNetwork * const net);
 
+  // Using dummy fitness value
+  void insertLast(vector<GeneticNetwork*>  &sortedPopulation,
+                  vector<double> &sortedErrors,
+                  GeneticNetwork * const net);
+
   GeneticNetwork *popLastNetwork(vector<GeneticNetwork*> &sortedPopulation,
                                  vector<double> &sortedErrors);
 
-// Learning work done by threads here
+  // If i >= size, then pops last
+  GeneticNetwork *popNetwork(unsigned int i,
+                             vector<GeneticNetwork*> &sortedPopulation,
+                             vector<double> &sortedErrors);
+
+
 /*
 void breedNetworks(
     boost::variate_generator<boost::mt19937&,
@@ -140,7 +142,6 @@ void breedNetworks(
   FitnessFunction getFitnessFunction() const;
   void setFitnessFunction(FitnessFunction val);
 };
-
 
 // Calculate the sum of all weights squared (L2 norm)
 //double weightSquaredSum(FFNetwork &net);

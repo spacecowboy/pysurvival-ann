@@ -23,7 +23,6 @@ FitnessFunctionPtr getFitnessFunctionPtr(FitnessFunction val)
 }
 
 double getFitness(FitnessFunction func,
-                  const double * const X,
                   const double * const Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
@@ -32,18 +31,18 @@ double getFitness(FitnessFunction func,
   double retval;
   switch(func) {
   case FitnessFunction::FITNESS_MSE_CENS:
-    retval = fitnessMSECens(X, Y, length,
+    retval = fitnessMSECens(Y, length,
                             numOfOutput,
                             outputs);
     break;
   case FitnessFunction::FITNESS_CINDEX:
-    retval = fitnessCIndex(X, Y, length,
+    retval = fitnessCIndex(Y, length,
                            numOfOutput,
                            outputs);
     break;
   case FitnessFunction::FITNESS_MSE:
   default:
-    retval = fitnessMSE(X, Y, length,
+    retval = fitnessMSE(Y, length,
                         numOfOutput,
                         outputs);
     break;
@@ -51,8 +50,7 @@ double getFitness(FitnessFunction func,
   return retval;
 }
 
-double fitnessMSE(const double * const X,
-                  const double * const Y,
+double fitnessMSE(const double * const Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
                   const double * const outputs) {
@@ -77,8 +75,7 @@ double fitnessMSE(const double * const X,
 
 
 // Returns the C-index of the network output
-double fitnessCIndex(const double * const X,
-                     const double * const Y,
+double fitnessCIndex(const double * const Y,
                      const unsigned int length,
                      const unsigned int numOfOutput,
                      const double * const outputs)
@@ -94,8 +91,7 @@ double fitnessCIndex(const double * const X,
 
 // Returns the MSE of the network output, giving credit
 // for censored points that are over-estimated.
-double fitnessMSECens(const double * const X,
-                      const double * const Y,
+double fitnessMSECens(const double * const Y,
                       const unsigned int length,
                       const unsigned int numOfOutput,
                       const double * const outputs)

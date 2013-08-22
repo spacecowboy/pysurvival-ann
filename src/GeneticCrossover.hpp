@@ -20,7 +20,7 @@ typedef void (*crossover_func_ptr)(MatrixNetwork &mother,
 crossover_func_ptr getCrossoverFunctionPtr(const CrossoverMethod val);
 
 // Runs the specific method
-void evaluteCrossoverFunction(const CrossoverMethod val,
+void evaluateCrossoverFunction(const CrossoverMethod val,
                               MatrixNetwork &mother,
                               MatrixNetwork &father,
                               MatrixNetwork &brother,

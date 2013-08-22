@@ -12,8 +12,7 @@ enum class FitnessFunction { FITNESS_MSE,
 /*
  * Signature for a fitness function
  */
-typedef double (*FitnessFunctionPtr)(const double * const X,
-                                     const double * const Y,
+typedef double (*FitnessFunctionPtr)(const double * const Y,
                                      const unsigned int length,
                                      const unsigned int numOfOutput,
                                      const double * const outputs);
@@ -25,26 +24,22 @@ FitnessFunctionPtr getFitnessFunctionPtr(const FitnessFunction val);
 
 // Evaluate the specified function
 double getFitness(FitnessFunction func,
-                  const double * const X,
                   const double * const Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
                   const double * const outputs);
 
-double fitnessMSE(const double * const X,
-                  const double * const Y,
+double fitnessMSE(const double * const Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
                   const double * const outputs);
 
-double fitnessCIndex(const double * const X,
-                     const double * const Y,
+double fitnessCIndex(const double * const Y,
                      const unsigned int length,
                      const unsigned int numOfOutput,
                      const double * const outputs);
 
-double fitnessMSECens(const double * const X,
-                      const double * const Y,
+double fitnessMSECens(const double * const Y,
                       const unsigned int length,
                       const unsigned int numOfOutput,
                       const double * const outputs);

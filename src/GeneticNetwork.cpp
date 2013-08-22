@@ -32,28 +32,24 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
   weightMutationFactor(1.0),
   connsMutationChance(0.1),
   actFuncMutationChance(0.1),
-  weightMutationHalfPoint(0),
-  decayL2(0),
-  decayL1(0),
-  weightElimination(0),
-  weightEliminationLambda(0),
-  resume(false),
   crossoverChance(1.0),
   selectionMethod(SelectionMethod::SELECTION_GEOMETRIC),
   crossoverMethod(CrossoverMethod::CROSSOVER_ONEPOINT),
 //insertMethod(INSERT_ALL),
-  fitnessFunction(FitnessFunction::FITNESS_MSE)
+  fitnessFunction(FitnessFunction::FITNESS_MSE),
+  weightMutationHalfPoint(0),
+  decayL2(0),
+  decayL1(0),
+  weightElimination(0),
+  weightEliminationLambda(0)
 {
 }
 
-// Thread safe
 void GeneticNetwork::insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
                                   vector<double> &sortedErrors,
                                   const double error,
                                   GeneticNetwork * const net)
 {
-  JGN_lockPopulation();
-
   vector<GeneticNetwork*>::iterator netIt;
   vector<double>::iterator errorIt;
   bool inserted = false;
@@ -78,9 +74,22 @@ void GeneticNetwork::insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
     sortedErrors.push_back(error);
     inserted = true;
   }
-
-  JGN_unlockPopulation();
 }
+
+void GeneticNetwork::insertLast(vector<GeneticNetwork*>  &sortedPopulation,
+                                vector<double> &sortedErrors,
+                                GeneticNetwork * const net)
+{
+  //printf("Inserting last, error = %f\n", error);
+  sortedPopulation.push_back(net);
+  sortedErrors.push_back(9999999999.0);
+}
+
+void GeneticNetwork::cloneNetwork(GeneticNetwork &original)
+{
+  // TODO
+}
+
 
 /**
  * Does the actual work in an epoch. Designed to be launched in parallell
@@ -95,95 +104,132 @@ void breedNetworks(GeneticNetwork *self,
                    const double * const Y,
                    const unsigned int length)
 {
-    //std::cout << "Launched by thread " << std::this_thread::get_id() << std::endl;
+  //std::cout << "Launched by thread " << std::this_thread::get_id() << std::endl;
 
-    GeneticNetwork motherNet(self->getNumOfInputs(),
-                             self->getNumOfHidden(),
-                             self->getNumOfOutputs());
-    GeneticNetwork fatherNet(self->getNumOfInputs(),
-                             self->getNumOfHidden(),
-                             self->getNumOfOutputs());
-    motherNet.initNodes();
-    fatherNet.initNodes();
+  unsigned int motherIndex, fatherIndex;
 
-    unsigned int motherIndex, fatherIndex;
+  GeneticNetwork *pBrother, *pSister, *pMother, *pFather;
 
-    GeneticNetwork *pChild;
+  double bFitness, sFitness;
+  double *outputs = new double[self->OUTPUT_COUNT * length];
 
-    double error;
-    double *outputs = new double[self->numOfOutput*length];
+  unsigned int threadChild, i;
+  for (threadChild = 0; threadChild < childCount; threadChild++) {
+    // We recycle the worst networks
+    //pChild = self->popLastNetwork(*sortedPopulation, *sortedErrors);
 
-    unsigned int threadChild;
-    for (threadChild = 0; threadChild < childCount; threadChild++) {
-        // We recycle the worst network
-        pChild = self->popLastNetwork(*sortedPopulation, *sortedErrors);
+    // Select two networks
+    getSelection(self->selectionMethod,
+                 *sortedErrors,
+                 self->populationSize,
+                 motherIndex, fatherIndex);
 
-        // Select two networks
-        switch (self->selectionMethod) {
-        case SELECTION_ROULETTE:
-            selectParentsRoulette(*self, *uniform, *sortedErrors,
-                                  motherIndex, fatherIndex,
-                                  self->populationSize);
-            break;
-        case SELECTION_TOURNAMENT:
-            selectParentsTournament(*uniform,
-                                    motherIndex, fatherIndex,
-                                    self->populationSize);
-            break;
-        case SELECTION_GEOMETRIC:
-        default:
-            selectParents(*geometric, self->populationSize,
-                          motherIndex, fatherIndex);
-            break;
-        }
-        // get mother and father in a thread safe way
-        self->cloneParents(motherNet, fatherNet, *sortedPopulation,
-                           motherIndex, fatherIndex);
+    // get mother and father in a thread safe way
+    JGN_lockPopulation();
 
-        // Create new child through crossover
-        pChild->crossover(*uniform, motherNet, fatherNet);
+    pMother = self->popNetwork(motherIndex, *sortedPopulation, *sortedErrors);
+    pFather = self->popNetwork(fatherIndex, *sortedPopulation, *sortedErrors);
 
-        // Mutate child
-        pChild->mutateWeights(*gaussian, *uniform, self->weightMutationChance,
-                              self->weightMutationFactor,
-                              self->weightMutationHalfPoint,
-                              curGen, false);
-        // evaluate error child
-        error = -(*(self->pFitnessFunction))(*pChild, X, Y, length, outputs);
+    pBrother = self->popLastNetwork(*sortedPopulation, *sortedErrors);
+    pSister = self->popLastNetwork(*sortedPopulation, *sortedErrors);
 
-        // Weight decay terms
-        // Up to the user to (not) mix these
-        // L2 weight decay
-        if (self->decayL2 != 0) {
-          error += self->decayL2 * weightSquaredSum2(*pChild);
-        }
+    JGN_unlockPopulation();
 
-        // L1 weight decay
-        if (self->decayL1 != 0) {
-          error += self->decayL1 * weightAbsoluteSum2(*pChild);
-        }
-
-        // Weight elimination
-        if (self->weightElimination != 0 &&
-            self->weightEliminationLambda != 0) {
-          error += self->weightElimination *
-            weightEliminationSum2(*pChild, self->weightEliminationLambda);
-        }
-
-        // Insert child into the sorted list
-        self->insertSorted(*sortedPopulation, *sortedErrors, error, pChild);
+    // Crossover
+    if (JGN_rand.uniform() < self->crossoverChance) {
+      evaluateCrossoverFunction(self->crossoverMethod,
+                                *pMother, *pFather,
+                                *pBrother, *pSister);
     }
-    delete[] outputs;
+    // No crossover, work with clones
+    else {
+      pSister->cloneNetwork(*pMother);
+      pBrother->cloneNetwork(*pFather);
+    }
+
+
+    // Mutation brother
+    mutateWeights(*pBrother,
+                  self->weightMutationChance,
+                  self->weightMutationFactor);
+    mutateConns(*pBrother,
+                self->connsMutationChance);
+    mutateActFuncs(*pBrother,
+                   self->actFuncMutationChance);
+    // Mutation sister
+    mutateWeights(*pSister,
+                  self->weightMutationChance,
+                  self->weightMutationFactor);
+    mutateConns(*pSister,
+                self->connsMutationChance);
+    mutateActFuncs(*pSister,
+                   self->actFuncMutationChance);
+
+    // evaluate error of brother
+    // TODO multiple outputs
+    for (i = 0; i < length; i++) {
+      pBrother->output(X + i * pBrother->INPUT_COUNT,
+                       outputs + i * pBrother->INPUT_COUNT);
+    }
+    bFitness = getFitness(self->fitnessFunction,
+                          Y, length,
+                          self->OUTPUT_COUNT,
+                          outputs);
+
+    // evaluate error of sister
+    // TODO multiple outputs
+    for (i = 0; i < length; i++) {
+      pSister->output(X + i * pSister->INPUT_COUNT,
+                      outputs + i * pSister->INPUT_COUNT);
+    }
+    sFitness = getFitness(self->fitnessFunction,
+                          Y, length,
+                          self->OUTPUT_COUNT,
+                          outputs);
+
+
+    //    error = -(*(self->pFitnessFunction))(*pChild, X, Y, length, outputs);
+
+    // Weight decay terms
+    // Up to the user to (not) mix these
+    // L2 weight decay
+    /*
+    if (self->decayL2 != 0) {
+      error += self->decayL2 * weightSquaredSum2(*pChild);
+    }
+
+    // L1 weight decay
+    if (self->decayL1 != 0) {
+      error += self->decayL1 * weightAbsoluteSum2(*pChild);
+    }
+
+    // Weight elimination
+    if (self->weightElimination != 0 &&
+        self->weightEliminationLambda != 0) {
+      error += self->weightElimination *
+        weightEliminationSum2(*pChild, self->weightEliminationLambda);
+    }
+    */
+    // Insert into the sorted list
+    JGN_lockPopulation();
+
+    // Place parents back as dummies
+    self->insertLast(*sortedPopulation, *sortedErrors, pMother);
+    self->insertLast(*sortedPopulation, *sortedErrors, pFather);
+
+    // Place children at correct positions
+    self->insertSorted(*sortedPopulation, *sortedErrors, bFitness, pBrother);
+    self->insertSorted(*sortedPopulation, *sortedErrors, sFitness, pSister);
+
+    JGN_unlockPopulation();
+  }
+  delete[] outputs;
 }
 
 
 void GeneticNetwork::learn(const double * const X,
                            const double * const Y,
                            const unsigned int length) {
-  // Setup algorithm stuff
-  this->pFitnessFunction =
-    getFitnessFunctionPtr(fitnessFunctionType);
-
   // Reset LOG
   if (this->aLogPerf != NULL) {
     delete[] this->aLogPerf;
@@ -201,7 +247,7 @@ void GeneticNetwork::learn(const double * const X,
 
   // Number of threads to use, TODO, dont hardcode this
   unsigned int num_threads = 8;
-  unsigned int extras = num_threads;
+  unsigned int extras = num_threads * 4;
   std::thread threads[num_threads];
   // Each thread will breed these many networks each generation
   unsigned int breedCount = round((double) populationSize / num_threads);
@@ -216,14 +262,14 @@ void GeneticNetwork::learn(const double * const X,
   sortedErrors.reserve(populationSize + extras);
 
   // Rank and insert them in a sorted order
-  unsigned int i;
+  unsigned int i, j;
   vector<GeneticNetwork*>::iterator netIt;
   vector<double>::iterator errorIt;
 
   printf("Data size: %d\n", length);
 
-  double error;
-  double *outputs = new double[numOfOutput*length];
+  double fitness;
+  double *outputs = new double[OUTPUT_COUNT * length];
   for (i = 0; i < populationSize + extras; i++) {
     // use references
     GeneticNetwork *pNet = new GeneticNetwork(INPUT_COUNT,
@@ -233,10 +279,19 @@ void GeneticNetwork::learn(const double * const X,
     randomizeNetwork(*pNet, weightMutationFactor);
 
     // evaluate error here
-    error = -(*pFitnessFunction)(*pNet, X, Y, length, outputs);
+    for (j = 0; j < length; j++) {
+      pNet->output(X + j * pNet->INPUT_COUNT,
+                   outputs + j * pNet->INPUT_COUNT);
+    }
+    fitness = getFitness(fitnessFunction,
+                         Y, length,
+                         pNet->OUTPUT_COUNT,
+                         outputs);
+
+    //    error = -(*pFitnessFunction)(*pNet, X, Y, length, outputs);
     //    error = evaluateNetwork(*pNet, X, Y, length, outputs);
-    // TODO use references on lists
-    insertSorted(sortedPopulation, sortedErrors, error, pNet);
+
+    insertSorted(sortedPopulation, sortedErrors, fitness, pNet);
   }
 
   // Save the best network in the population
@@ -248,8 +303,8 @@ void GeneticNetwork::learn(const double * const X,
     time_t start, end;
     time(&start);
     for (i = 0; i < num_threads; ++i) {
-      threads[i] = std::thread(breedNetworks, this, &gaussian, &geometric,
-                               &uniform, &sortedPopulation,
+      threads[i] = std::thread(breedNetworks, this,
+                               &sortedPopulation,
                                &sortedErrors, breedCount, curGen,
                                X, Y, length);
     }
@@ -270,8 +325,9 @@ void GeneticNetwork::learn(const double * const X,
            sortedErrors.front());
 
     // Save in log
-    this->aLogPerf[curGen] = -sortedErrors.front();
+    this->aLogPerf[curGen] = sortedErrors.front();
 
+    /*
     if (decayL2 != 0) {
       printf("L2term = %f * %f\n", decayL2, weightSquaredSum2(*best));
     }
@@ -286,14 +342,28 @@ void GeneticNetwork::learn(const double * const X,
              weightElimination,
              weightEliminationSum2(*best, weightEliminationLambda));
     }
+    */
   }
 
   // When done, make this network into the best network
-  printf("best eval fitness: %f\n", ((*pFitnessFunction)(*best, X, Y,
-                                                     length, outputs)));
-  this->cloneNetworkSlow(*best);
-  printf("this eval fitness: %f\n", ((*pFitnessFunction)(*this, X, Y,
-                                                     length, outputs)));
+  for (j = 0; j < length; j++) {
+    best->output(X + j * best->INPUT_COUNT,
+                 outputs + j * best->INPUT_COUNT);
+  }
+
+  printf("best eval fitness: %f\n", getFitness(fitnessFunction,
+                                               Y, length,
+                                               best->OUTPUT_COUNT,
+                                               outputs));
+  this->cloneNetwork(*best);
+  for (j = 0; j < length; j++) {
+    this->output(X + j * this->INPUT_COUNT,
+                 outputs + j * this->INPUT_COUNT);
+  }
+  printf("this eval fitness: %f\n", getFitness(fitnessFunction,
+                                               Y, length,
+                                               this->OUTPUT_COUNT,
+                                               outputs));
 
   // And destroy population
   // do this last of all!
@@ -309,11 +379,25 @@ GeneticNetwork *GeneticNetwork::popLastNetwork(
     vector<GeneticNetwork*> &sortedPopulation,
     vector<double> &sortedErrors)
 {
-  JGN_lockPopulation();
   GeneticNetwork *pChild = sortedPopulation.back();
   sortedPopulation.pop_back();
   sortedErrors.pop_back();
-  JGN_unlockPopulation();
+
+  return pChild;
+}
+
+GeneticNetwork *GeneticNetwork::popNetwork(unsigned int i,
+                                           vector<GeneticNetwork*> &sortedPopulation,
+                                           vector<double> &sortedErrors)
+{
+  // Just in case
+  if (i >= sortedPopulation.size()) {
+    i = sortedPopulation.size() - 1;
+  }
+  GeneticNetwork *pChild = sortedPopulation.at(i);
+  sortedPopulation.erase(sortedPopulation.begin() + i);
+  sortedErrors.erase(sortedErrors.begin() + i);
+
   return pChild;
 }
 
@@ -445,13 +529,6 @@ void GeneticNetwork::setWeightEliminationLambda(double val) {
   this->weightEliminationLambda = val;
 }
 
-bool GeneticNetwork::getResume()const {
-  return resume;
-}
-void GeneticNetwork::setResume(bool val) {
-  this->resume = val;
-}
-
 double GeneticNetwork::getCrossoverChance() const {
   return crossoverChance;
 }
@@ -463,7 +540,7 @@ void GeneticNetwork::setCrossoverChance(double val) {
 double weightSquaredSum2(FFNetwork &net) {
   double sum = 0;
   unsigned int n, numOfCons = 0;
-  for (n = 0; n < net.getNumOfHidden(); n++) {
+  for (n = 0; n < net.getumOfHidden(); n++) {
     // neuron weights
     sum += net.getHiddenNeuron(n)->getWeightsSquaredSum();
     numOfCons += net.getHiddenNeuron(n)->getNumOfConnections();
