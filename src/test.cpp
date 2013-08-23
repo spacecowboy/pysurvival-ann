@@ -139,12 +139,13 @@ void geneticTest1() {
 }
 
 void geneticXOR() {
-  GeneticNetwork net(2, 10, 1);
-  net.setGenerations(3);
-  net.setWeightMutationChance(0.05);
+  GeneticNetwork net(2, 1, 1);
+  net.setGenerations(10000);
+  net.setWeightMutationChance(0.25);
   net.setWeightMutationFactor(0.3);
-  net.connsMutationChance = 0.05;
-  net.actFuncMutationChance = 0.05;
+  net.connsMutationChance = 0.35;
+  net.actFuncMutationChance = 0.35;
+  net.setCrossoverChance(0.6);
 
   // define inputs
   double X[2*4]{0,0,
@@ -158,6 +159,39 @@ void geneticXOR() {
   printf("\nbah %f", Y[2]);
 
   net.learn(X, Y, 4);
+
+  double preds[1];
+
+
+  std::cout << "\nPredictions\n";
+  for (int i = 0; i < 4; i++) {
+    net.output(X + 2 * i, preds);
+    std::cout << X[2*i] << " "<< X[2*i + 1]
+              << " : " << preds[0] << "\n";
+  }
+
+  // Print structure
+  std::cout << "\n\nWeights";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j < i; j++) {
+      std::cout << " " << net.weights[j + i*net.LENGTH];
+    }
+  }
+
+  std::cout << "\n\nConss";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j < i; j++) {
+      std::cout << " " << net.conns[j + i*net.LENGTH];
+    }
+  }
+
+  std::cout << "\n\nActFuncs";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    std::cout << "\nN" << i << ": " << net.actFuncs[i];
+  }
+
 }
 
 int main( int argc, const char* argv[] )
