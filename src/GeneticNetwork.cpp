@@ -122,9 +122,9 @@ void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
  * Does the actual work in an epoch. Designed to be launched in parallell
  * in many threads.
  */
-void breedNetworks(GeneticNetwork *self,
-                   vector<GeneticNetwork*> *sortedPopulation,
-                   vector<double> *sortedFitness,
+void breedNetworks(GeneticNetwork &self,
+                   vector<GeneticNetwork*> &sortedPopulation,
+                   vector<double> &sortedFitness,
                    const unsigned int childCount,
                    const unsigned int curGen,
                    const double * const X,
@@ -138,7 +138,7 @@ void breedNetworks(GeneticNetwork *self,
   GeneticNetwork *pBrother, *pSister, *pMother, *pFather;
 
   double bFitness, sFitness, mFitness, fFitness;
-  double *outputs = new double[self->OUTPUT_COUNT * length];
+  double *outputs = new double[self.OUTPUT_COUNT * length];
 
   unsigned int threadChild;
   for (threadChild = 0; threadChild < childCount; threadChild++) {
@@ -148,20 +148,20 @@ void breedNetworks(GeneticNetwork *self,
     JGN_lockPopulation();
 
     // Select two networks
-    getSelection(self->selectionMethod,
-                 *sortedFitness,
-                 self->populationSize,
+    getSelection(self.selectionMethod,
+                 sortedFitness,
+                 self.populationSize,
                  &motherIndex, &fatherIndex);
 
     //cout << "\nindices: " << motherIndex << " - " << fatherIndex << "\n";
     // get mother and father in a thread safe way
     //cout << "\n size: " << sortedPopulation->size() << "\n";
 
-    pMother = self->popNetwork(motherIndex, *sortedPopulation, *sortedFitness);
-    pFather = self->popNetwork(fatherIndex, *sortedPopulation, *sortedFitness);
+    pMother = self.popNetwork(motherIndex, sortedPopulation, sortedFitness);
+    pFather = self.popNetwork(fatherIndex, sortedPopulation, sortedFitness);
 
-    pBrother = self->popLastNetwork(*sortedPopulation, *sortedFitness);
-    pSister = self->popLastNetwork(*sortedPopulation, *sortedFitness);
+    pBrother = self.popLastNetwork(sortedPopulation, sortedFitness);
+    pSister = self.popLastNetwork(sortedPopulation, sortedFitness);
 
     //cout << "\nSelected Nets\n" << pMother << pFather << pSister
     //     << pBrother << "\n";
@@ -169,8 +169,8 @@ void breedNetworks(GeneticNetwork *self,
     JGN_unlockPopulation();
 
     // Crossover
-    if (JGN_rand.uniform() < self->crossoverChance) {
-      evaluateCrossoverFunction(self->crossoverMethod,
+    if (JGN_rand.uniform() < self.crossoverChance) {
+      evaluateCrossoverFunction(self.crossoverMethod,
                                 *pMother, *pFather,
                                 *pBrother, *pSister);
     }
@@ -183,33 +183,33 @@ void breedNetworks(GeneticNetwork *self,
 
     // Mutation brother
     mutateWeights(*pBrother,
-                  self->weightMutationChance,
-                  self->weightMutationFactor);
+                  self.weightMutationChance,
+                  self.weightMutationFactor);
     mutateConns(*pBrother,
-                self->connsMutationChance);
+                self.connsMutationChance);
     mutateActFuncs(*pBrother,
-                   self->actFuncMutationChance);
+                   self.actFuncMutationChance);
     // Mutation sister
     mutateWeights(*pSister,
-                  self->weightMutationChance,
-                  self->weightMutationFactor);
+                  self.weightMutationChance,
+                  self.weightMutationFactor);
     mutateConns(*pSister,
-                self->connsMutationChance);
+                self.connsMutationChance);
     mutateActFuncs(*pSister,
-                   self->actFuncMutationChance);
+                   self.actFuncMutationChance);
 
     // evaluate fitness and insert back
     // TODO multiple outputs
-    bFitness = evaluateNetwork(self->fitnessFunction,
+    bFitness = evaluateNetwork(self.fitnessFunction,
                                pBrother, X, Y, length,
                                outputs);
-    sFitness = evaluateNetwork(self->fitnessFunction,
+    sFitness = evaluateNetwork(self.fitnessFunction,
                                pSister, X, Y, length,
                                outputs);
-    mFitness = evaluateNetwork(self->fitnessFunction,
+    mFitness = evaluateNetwork(self.fitnessFunction,
                                pMother, X, Y, length,
                                outputs);
-    fFitness = evaluateNetwork(self->fitnessFunction,
+    fFitness = evaluateNetwork(self.fitnessFunction,
                                pFather, X, Y, length,
                                outputs);
 
@@ -237,12 +237,12 @@ void breedNetworks(GeneticNetwork *self,
     JGN_lockPopulation();
 
     // Place parents back
-    self->insertSorted(*sortedPopulation, *sortedFitness, mFitness, pMother);
-    self->insertSorted(*sortedPopulation, *sortedFitness, fFitness, pFather);
+    self.insertSorted(sortedPopulation, sortedFitness, mFitness, pMother);
+    self.insertSorted(sortedPopulation, sortedFitness, fFitness, pFather);
 
     // Place children back
-    self->insertSorted(*sortedPopulation, *sortedFitness, bFitness, pBrother);
-    self->insertSorted(*sortedPopulation, *sortedFitness, sFitness, pSister);
+    self.insertSorted(sortedPopulation, sortedFitness, bFitness, pBrother);
+    self.insertSorted(sortedPopulation, sortedFitness, sFitness, pSister);
 
     JGN_unlockPopulation();
   }
@@ -322,18 +322,21 @@ void GeneticNetwork::learn(const double * const X,
     time_t start, end;
     time(&start);
 
+    cout << "\nStarting threads...\n";
     for (i = 0; i < num_threads; ++i) {
-      threads[i] = std::thread(breedNetworks, this,
-                               &sortedPopulation,
-                               &sortedFitness, breedCount, curGen,
+      threads[i] = std::thread(breedNetworks, std::ref(*this),
+                               std::ref(sortedPopulation),
+                               std::ref(sortedFitness), breedCount, curGen,
                                X, Y, length);
     }
+
+    cout << "\nJoining threads...\n";
 
     // Wait for the threads to finish their work
     for (i = 0; i < num_threads; ++i) {
       threads[i].join();
     }
-
+    cout << "\nJoined threads\n";
     time(&end);
     std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
 
@@ -345,7 +348,9 @@ void GeneticNetwork::learn(const double * const X,
          << sortedFitness.front() << "\n";
 
     // Save in log
+    cout << "\nLogging...\n";
     this->aLogPerf[curGen] = sortedFitness.front();
+    cout << "\nLogged\n";
 
     JGN_unlockPopulation();
     /*
@@ -365,6 +370,7 @@ void GeneticNetwork::learn(const double * const X,
     }
     */
   }
+  cout << "\nDone\n";
 
   // When done, make this network into the best network
   printf("best eval fitness: %f\n", evaluateNetwork(fitnessFunction,
