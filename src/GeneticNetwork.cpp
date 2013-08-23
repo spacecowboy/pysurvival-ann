@@ -247,6 +247,7 @@ void breedNetworks(GeneticNetwork &self,
     JGN_unlockPopulation();
   }
   delete[] outputs;
+  cout << "\nBreeding done.";
 }
 
 
@@ -324,6 +325,7 @@ void GeneticNetwork::learn(const double * const X,
 
     cout << "\nStarting threads...\n";
     for (i = 0; i < num_threads; ++i) {
+      cout << " T" << i;
       threads[i] = std::thread(breedNetworks, std::ref(*this),
                                std::ref(sortedPopulation),
                                std::ref(sortedFitness), breedCount, curGen,
@@ -334,6 +336,7 @@ void GeneticNetwork::learn(const double * const X,
 
     // Wait for the threads to finish their work
     for (i = 0; i < num_threads; ++i) {
+      cout << " T" << i;
       threads[i].join();
     }
     cout << "\nJoined threads\n";
