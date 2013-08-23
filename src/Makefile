@@ -2,7 +2,7 @@
 
 ### Compilar and flags ###
 CPP = g++
-CPPFLAGS = -g -Wall -Werror -std=c++0x -O2 -pthread
+CPPFLAGS = -g -Wall -Werror -std=c++0x -O2 -lpthread
 LDFLAGS = -lm
 
 ### List source files ###

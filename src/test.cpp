@@ -139,7 +139,7 @@ void geneticTest1() {
 }
 
 void geneticXOR() {
-  GeneticNetwork net(2, 1, 1);
+  GeneticNetwork net(2, 8, 1);
   net.setGenerations(10000);
   net.setWeightMutationChance(0.25);
   net.setWeightMutationFactor(0.3);
