@@ -70,22 +70,22 @@ class GeneticNetwork: public MatrixNetwork {
   // Insert network back into the population
   // Method because of thread stuff
   void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
-                    vector<double> &sortedErrors,
+                    vector<double> &sortedFitness,
                     const double error,
                     GeneticNetwork * const net);
 
   // Using dummy fitness value
   void insertLast(vector<GeneticNetwork*>  &sortedPopulation,
-                  vector<double> &sortedErrors,
+                  vector<double> &sortedFitness,
                   GeneticNetwork * const net);
 
   GeneticNetwork *popLastNetwork(vector<GeneticNetwork*> &sortedPopulation,
-                                 vector<double> &sortedErrors);
+                                 vector<double> &sortedFitness);
 
   // If i >= size, then pops last
   GeneticNetwork *popNetwork(unsigned int i,
                              vector<GeneticNetwork*> &sortedPopulation,
-                             vector<double> &sortedErrors);
+                             vector<double> &sortedFitness);
 
 
 /*
@@ -97,7 +97,7 @@ void breedNetworks(
     boost::variate_generator<boost::mt19937&,
     boost::uniform_real<> > &uniform,
     vector<GeneticNetwork*> &sortedPopulation,
-    vector<double> &sortedErrors,
+    vector<double> &sortedFitness,
     const unsigned int childCount,
     const unsigned int curGen,
     const double * const X, const double * const Y,

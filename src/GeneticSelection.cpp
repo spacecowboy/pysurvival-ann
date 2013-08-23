@@ -7,15 +7,27 @@ using namespace std;
 void getSelection(SelectionMethod method,
                   vector<double> &sortedFitness,
                   const unsigned int max,
-                  unsigned int &first,
-                  unsigned int &second) {
+                  unsigned int *first,
+                  unsigned int *second) {
+  switch (method) {
+  case SelectionMethod::SELECTION_ROULETTE:
+    selectRoulette(sortedFitness, max, first, second);
+    break;
+  case SelectionMethod::SELECTION_GEOMETRIC:
+    selectGeometric(sortedFitness, max, first, second);
+    break;
+  case SelectionMethod::SELECTION_TOURNAMENT:
+  default:
+    selectTournament(sortedFitness, max, first, second);
+    break;
+  }
 }
 
 // This should be private, or made thread safe.
 // Remember to not lock twice, see other selectTournament
 void selectTournament(vector<double> &sortedFitness,
                       const unsigned int max,
-                      unsigned int &first) {
+                      unsigned int *first) {
   unsigned int i, j;
 
   i = JGN_rand.uniformNumber(0, max);
@@ -26,43 +38,43 @@ void selectTournament(vector<double> &sortedFitness,
 
   // sorted list, so first wins
   if (i < j) {
-    first = i;
+    *first = i;
   }
   else {
-    first = j;
+    *first = j;
   }
 }
 void selectTournament(vector<double> &sortedFitness,
                       const unsigned int max,
-                      unsigned int &first,
-                      unsigned int &second) {
+                      unsigned int *first,
+                      unsigned int *second) {
   selectTournament(sortedFitness, max, first);
-  second = first;
-  while (first == second) {
+  *second = *first;
+  while (*first == *second) {
     selectTournament(sortedFitness, max, second);
   }
 }
 
 void selectRoulette(vector<double> &sortedFitness,
                     const unsigned int max,
-                    unsigned int &first,
-                    unsigned int &second) {
-  first = JGN_rand.weightedNumber(&sortedFitness[0],
-                                0, max);
-  second = first;
-  while (second == first) {
-    second = JGN_rand.weightedNumber(&sortedFitness[0],
+                    unsigned int *first,
+                    unsigned int *second) {
+  *first = JGN_rand.weightedNumber(&sortedFitness[0],
                                    0, max);
+  *second = *first;
+  while (second == first) {
+    *second = JGN_rand.weightedNumber(&sortedFitness[0],
+                                      0, max);
   }
 }
 
 void selectGeometric(vector<double> &sortedFitness,
                      const unsigned int max,
-                     unsigned int &first,
-                     unsigned int &second) {
-  first = JGN_rand.geometric(max);
-  second = first;
-  while (first == second) {
-    second = JGN_rand.geometric(max);
+                     unsigned int *first,
+                     unsigned int *second) {
+  *first = JGN_rand.geometric(max);
+  *second = *first;
+  while (*first == *second) {
+    *second = JGN_rand.geometric(max);
   }
 }

@@ -14,8 +14,8 @@ enum class SelectionMethod {SELECTION_GEOMETRIC,
 typedef void (*selection_func_ptr)(
     std::vector<double> &sortedFitness,
     const unsigned int max,
-    unsigned int &first,
-    unsigned int &second);
+    unsigned int *first,
+    unsigned int *second);
 
 /*
  * Evaluates the specified function
@@ -23,22 +23,22 @@ typedef void (*selection_func_ptr)(
 void getSelection(SelectionMethod method,
                   std::vector<double> &sortedFitness,
                   const unsigned int max,
-                  unsigned int &first,
-                  unsigned int &second);
+                  unsigned int *first,
+                  unsigned int *second);
 
 void selectTournament(std::vector<double> &sortedFitness,
                       const unsigned int max,
-                      unsigned int &first,
-                      unsigned int &second);
+                      unsigned int *first,
+                      unsigned int *second);
 
 void selectRoulette(std::vector<double> &sortedFitness,
                     const unsigned int max,
-                    unsigned int &first,
-                    unsigned int &second);
+                    unsigned int *first,
+                    unsigned int *second);
 
 void selectGeometric(std::vector<double> &sortedFitness,
                      const unsigned int max,
-                     unsigned int &first,
-                     unsigned int &second);
+                     unsigned int *first,
+                     unsigned int *second);
 
 #endif /* _GENETICSELECTION_H_ */

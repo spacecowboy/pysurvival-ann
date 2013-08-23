@@ -21,11 +21,11 @@ OBJ = $(addsuffix .o, $(basename $(SRC)))
 
 ### Main task ###
 valgrind: matrix
-	valgrind --tool=memcheck --leak-check=yes ./matrix
+	valgrind --tool=memcheck --leak-check=yes --track-origins=yes ./matrix
 
 ### Clean task ###
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJ) matrix
 
 ### Main test program is linked here###
 matrix: $(OBJ)
