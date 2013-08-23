@@ -2,7 +2,7 @@
 
 ### Compilar and flags ###
 CPP = g++
-CPPFLAGS = -g -Wall -Werror -std=c++0x -O2 -lpthread
+CPPFLAGS = -g -Wall -Werror -std=c++0x -O2 -pthread
 LDFLAGS = -lm
 
 ### List source files ###
@@ -22,6 +22,12 @@ OBJ = $(addsuffix .o, $(basename $(SRC)))
 ### Main task ###
 valgrind: matrix
 	valgrind --tool=memcheck --leak-check=yes --track-origins=yes ./matrix
+
+helgrind: matrix
+	valgrind --tool=helgrind --read-var-info=yes --log-file=helgrind.txt ./matrix
+
+test: matrix
+	./matrix
 
 ### Clean task ###
 clean:

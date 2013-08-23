@@ -63,10 +63,10 @@ double evaluateNetwork(const FitnessFunction fitnessFunction,
                     outputs);
 }
 
-void GeneticNetwork::insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
-                                  vector<double> &sortedFitness,
-                                  const double fitness,
-                                  GeneticNetwork * const net)
+void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
+                  vector<double> &sortedFitness,
+                  const double fitness,
+                  GeneticNetwork * const net)
 {
   vector<GeneticNetwork*>::iterator netIt;
   vector<double>::iterator fitnessIt;
@@ -94,29 +94,39 @@ void GeneticNetwork::insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
   }
 }
 
-void GeneticNetwork::insertLast(vector<GeneticNetwork*>  &sortedPopulation,
-                                vector<double> &sortedFitness,
-                                GeneticNetwork * const net)
+void insertLast(vector<GeneticNetwork*>  &sortedPopulation,
+                vector<double> &sortedFitness,
+                GeneticNetwork * const net)
 {
   //printf("Inserting last, error = %f\n", error);
   sortedPopulation.push_back(net);
   sortedFitness.push_back(-99999999999.0);
 }
 
-void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
-  std::copy(original.weights,
-            original.weights + original.LENGTH * original.LENGTH,
-            this->weights);
+GeneticNetwork *popLastNetwork(vector<GeneticNetwork*> &sortedPopulation,
+                               vector<double> &sortedFitness)
+{
+  GeneticNetwork *pChild = sortedPopulation.back();
+  sortedPopulation.pop_back();
+  sortedFitness.pop_back();
 
-  std::copy(original.conns,
-            original.conns + original.LENGTH * original.LENGTH,
-            this->conns);
-
-  std::copy(original.actFuncs,
-            original.actFuncs + original.LENGTH,
-            this->actFuncs);
+  return pChild;
 }
 
+GeneticNetwork *popNetwork(unsigned int i,
+                           vector<GeneticNetwork*> &sortedPopulation,
+                           vector<double> &sortedFitness)
+{
+  // Just in case
+  if (i >= sortedPopulation.size()) {
+    i = sortedPopulation.size() - 1;
+  }
+  GeneticNetwork *pChild = sortedPopulation.at(i);
+  sortedPopulation.erase(sortedPopulation.begin() + i);
+  sortedFitness.erase(sortedFitness.begin() + i);
+
+  return pChild;
+}
 
 /**
  * Does the actual work in an epoch. Designed to be launched in parallell
@@ -155,13 +165,13 @@ void breedNetworks(GeneticNetwork &self,
 
     //cout << "\nindices: " << motherIndex << " - " << fatherIndex << "\n";
     // get mother and father in a thread safe way
-    //cout << "\n size: " << sortedPopulation->size() << "\n";
+    //cout << "size: " << sortedPopulation.size() << "\n";
 
-    pMother = self.popNetwork(motherIndex, sortedPopulation, sortedFitness);
-    pFather = self.popNetwork(fatherIndex, sortedPopulation, sortedFitness);
+    pMother = popNetwork(motherIndex, sortedPopulation, sortedFitness);
+    pFather = popNetwork(fatherIndex, sortedPopulation, sortedFitness);
 
-    pBrother = self.popLastNetwork(sortedPopulation, sortedFitness);
-    pSister = self.popLastNetwork(sortedPopulation, sortedFitness);
+    pBrother = popLastNetwork(sortedPopulation, sortedFitness);
+    pSister = popLastNetwork(sortedPopulation, sortedFitness);
 
     //cout << "\nSelected Nets\n" << pMother << pFather << pSister
     //     << pBrother << "\n";
@@ -237,17 +247,17 @@ void breedNetworks(GeneticNetwork &self,
     JGN_lockPopulation();
 
     // Place parents back
-    self.insertSorted(sortedPopulation, sortedFitness, mFitness, pMother);
-    self.insertSorted(sortedPopulation, sortedFitness, fFitness, pFather);
+    insertSorted(sortedPopulation, sortedFitness, mFitness, pMother);
+    insertSorted(sortedPopulation, sortedFitness, fFitness, pFather);
 
     // Place children back
-    self.insertSorted(sortedPopulation, sortedFitness, bFitness, pBrother);
-    self.insertSorted(sortedPopulation, sortedFitness, sFitness, pSister);
+    insertSorted(sortedPopulation, sortedFitness, bFitness, pBrother);
+    insertSorted(sortedPopulation, sortedFitness, sFitness, pSister);
 
     JGN_unlockPopulation();
   }
   delete[] outputs;
-  cout << "\nBreeding done.";
+  //cout << "\nBreeding done.";
 }
 
 
@@ -295,6 +305,9 @@ void GeneticNetwork::learn(const double * const X,
   double fitness = 0;
   // predictions
   double *preds = new double[OUTPUT_COUNT * length]();
+
+  JGN_lockPopulation();
+
   for (i = 0; i < populationSize + extras; i++) {
     // use references
     GeneticNetwork *pNet = new GeneticNetwork(INPUT_COUNT,
@@ -317,6 +330,8 @@ void GeneticNetwork::learn(const double * const X,
   // Save the best network in the population
   GeneticNetwork *best = sortedPopulation.front();
 
+  JGN_unlockPopulation();
+
   // For each generation
   unsigned int curGen;
   for (curGen = 0; curGen < generations; curGen++) {
@@ -324,18 +339,26 @@ void GeneticNetwork::learn(const double * const X,
     time(&start);
 
     cout << "\nStarting threads...\n";
-    for (i = 0; i < num_threads; ++i) {
+    for (i = 0; i < num_threads; i++) {
       cout << " T" << i;
-      threads[i] = std::thread(breedNetworks, std::ref(*this),
-                               std::ref(sortedPopulation),
-                               std::ref(sortedFitness), breedCount, curGen,
-                               X, Y, length);
+      try {
+        threads[i] = std::thread(breedNetworks, std::ref(*this),
+                                 std::ref(sortedPopulation),
+                                 std::ref(sortedFitness),
+                                 breedCount, curGen,
+                                 X, Y, length);
+      }
+      catch (const std::system_error& e) {
+        std::cout << "Caught system_error with code " << e.code()
+                  << " meaning " << e.what() << '\n';
+        throw(e);
+      }
     }
 
     cout << "\nJoining threads...\n";
 
     // Wait for the threads to finish their work
-    for (i = 0; i < num_threads; ++i) {
+    for (i = 0; i < num_threads; i++) {
       cout << " T" << i;
       threads[i].join();
     }
@@ -344,6 +367,7 @@ void GeneticNetwork::learn(const double * const X,
     std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
 
     JGN_lockPopulation();
+
     // Print some stats about the current best
     best = sortedPopulation.front();
 
@@ -356,6 +380,7 @@ void GeneticNetwork::learn(const double * const X,
     cout << "\nLogged\n";
 
     JGN_unlockPopulation();
+
     /*
     if (decayL2 != 0) {
       printf("L2term = %f * %f\n", decayL2, weightSquaredSum2(*best));
@@ -394,32 +419,6 @@ void GeneticNetwork::learn(const double * const X,
     delete *netIt;
   }
   delete[] preds;
-}
-
-GeneticNetwork *GeneticNetwork::popLastNetwork(
-    vector<GeneticNetwork*> &sortedPopulation,
-    vector<double> &sortedFitness)
-{
-  GeneticNetwork *pChild = sortedPopulation.back();
-  sortedPopulation.pop_back();
-  sortedFitness.pop_back();
-
-  return pChild;
-}
-
-GeneticNetwork *GeneticNetwork::popNetwork(unsigned int i,
-                                           vector<GeneticNetwork*> &sortedPopulation,
-                                           vector<double> &sortedFitness)
-{
-  // Just in case
-  if (i >= sortedPopulation.size()) {
-    i = sortedPopulation.size() - 1;
-  }
-  GeneticNetwork *pChild = sortedPopulation.at(i);
-  sortedPopulation.erase(sortedPopulation.begin() + i);
-  sortedFitness.erase(sortedFitness.begin() + i);
-
-  return pChild;
 }
 
 
@@ -462,6 +461,20 @@ GeneticNetwork::mutateWeights(boost::variate_generator<boost::mt19937&,
     }
     }*/
 
+
+void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
+  std::copy(original.weights,
+            original.weights + original.LENGTH * original.LENGTH,
+            this->weights);
+
+  std::copy(original.conns,
+            original.conns + original.LENGTH * original.LENGTH,
+            this->conns);
+
+  std::copy(original.actFuncs,
+            original.actFuncs + original.LENGTH,
+            this->actFuncs);
+}
 
 
 // Getters Setters

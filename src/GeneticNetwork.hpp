@@ -67,27 +67,6 @@ class GeneticNetwork: public MatrixNetwork {
 // Makes this network into a clone of the original. Assumes equal iteration.
   virtual void cloneNetwork(GeneticNetwork &original);
 
-  // Insert network back into the population
-  // Method because of thread stuff
-  void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
-                    vector<double> &sortedFitness,
-                    const double error,
-                    GeneticNetwork * const net);
-
-  // Using dummy fitness value
-  void insertLast(vector<GeneticNetwork*>  &sortedPopulation,
-                  vector<double> &sortedFitness,
-                  GeneticNetwork * const net);
-
-  GeneticNetwork *popLastNetwork(vector<GeneticNetwork*> &sortedPopulation,
-                                 vector<double> &sortedFitness);
-
-  // If i >= size, then pops last
-  GeneticNetwork *popNetwork(unsigned int i,
-                             vector<GeneticNetwork*> &sortedPopulation,
-                             vector<double> &sortedFitness);
-
-
 /*
 void breedNetworks(
     boost::variate_generator<boost::mt19937&,
