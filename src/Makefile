@@ -29,12 +29,15 @@ helgrind: matrix
 test: matrix
 	./matrix
 
+prep:
+	rm -f ./matrix
+
 ### Clean task ###
 clean:
 	rm -f $(OBJ) matrix
 
 ### Main test program is linked here###
-matrix: $(OBJ)
+matrix: $(OBJ) prep
 	$(CPP) $(CPPFLAGS) -o $@ $(OBJ)
 
 ### Dependencies ###

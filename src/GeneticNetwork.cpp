@@ -260,6 +260,11 @@ void breedNetworks(GeneticNetwork &self,
   //cout << "\nBreeding done.";
 }
 
+void foo() {
+  int i = 1;
+  i += 1;
+  i = 1 + i;
+}
 
 void GeneticNetwork::learn(const double * const X,
                            const double * const Y,
@@ -282,7 +287,8 @@ void GeneticNetwork::learn(const double * const X,
   // Number of threads to use, TODO, dont hardcode this
   unsigned int num_threads = 8;
   unsigned int extras = num_threads * 4;
-  std::thread threads[num_threads];
+  //std::thread threads[num_threads];
+  vector<thread> threads;
   // Each thread will breed these many networks each generation
   unsigned int breedCount = round((double) populationSize / num_threads);
   if (breedCount < 1) {
@@ -342,11 +348,13 @@ void GeneticNetwork::learn(const double * const X,
     for (i = 0; i < num_threads; i++) {
       cout << " T" << i;
       try {
-        threads[i] = std::thread(breedNetworks, std::ref(*this),
-                                 std::ref(sortedPopulation),
-                                 std::ref(sortedFitness),
-                                 breedCount, curGen,
-                                 X, Y, length);
+        threads.push_back(thread(foo));
+        /*        threads.push_back(std::thread(breedNetworks, std::ref(*this),
+                                      std::ref(sortedPopulation),
+                                      std::ref(sortedFitness),
+                                      breedCount, curGen,
+                                      X, Y, length));*/
+
       }
       catch (const std::system_error& e) {
         std::cout << "Caught system_error with code " << e.code()
@@ -358,11 +366,18 @@ void GeneticNetwork::learn(const double * const X,
     cout << "\nJoining threads...\n";
 
     // Wait for the threads to finish their work
-    for (i = 0; i < num_threads; i++) {
-      cout << " T" << i;
-      threads[i].join();
+    for (auto t = threads.begin(); t != threads.end(); t++) {
+      try {
+        t->join();
+      }
+      catch (const std::system_error& e) {
+        std::cout << "Caught system_error with code " << e.code()
+                  << " meaning " << e.what() << '\n';
+        throw(e);
+      }
     }
     cout << "\nJoined threads\n";
+    threads.clear();
     time(&end);
     std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
 
