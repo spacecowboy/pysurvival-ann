@@ -271,14 +271,6 @@ void breedNetworks(GeneticNetwork &self,
   //cout << "\nBreeding done.";
 }
 
-void foo() {
-  Random r;
-  for (int i = 0; i < 100; i++) {
-    //JGN_rand.uniform(); // segfaults
-    r.uniform(); // local variable works
-  }
-}
-
 void GeneticNetwork::learn(const double * const X,
                            const double * const Y,
                            const unsigned int length) {
@@ -328,7 +320,7 @@ void GeneticNetwork::learn(const double * const X,
   Random rand;
   GeneticMutator mutator(rand);
 
-  JGN_lockPopulation();
+  //JGN_lockPopulation();
 
   for (i = 0; i < populationSize + extras; i++) {
     // use references
@@ -352,7 +344,7 @@ void GeneticNetwork::learn(const double * const X,
   // Save the best network in the population
   GeneticNetwork *best = sortedPopulation.front();
 
-  JGN_unlockPopulation();
+  //JGN_unlockPopulation();
 
   // For each generation
   unsigned int curGen;
@@ -360,11 +352,8 @@ void GeneticNetwork::learn(const double * const X,
     time_t start, end;
     time(&start);
 
-    cout << "\nStarting threads...\n";
     for (i = 0; i < num_threads; i++) {
-      cout << " T" << i;
       try {
-        //threads.push_back(thread(foo));
         threads.push_back(std::thread(breedNetworks, std::ref(*this),
                                       std::ref(sortedPopulation),
                                       std::ref(sortedFitness),
@@ -379,8 +368,6 @@ void GeneticNetwork::learn(const double * const X,
       }
     }
 
-    cout << "\nJoining threads...\n";
-
     // Wait for the threads to finish their work
     for (auto t = threads.begin(); t != threads.end(); t++) {
       try {
@@ -392,25 +379,25 @@ void GeneticNetwork::learn(const double * const X,
         throw(e);
       }
     }
-    cout << "\nJoined threads\n";
+    //cout << "\nJoined threads\n";
     threads.clear();
     time(&end);
-    std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
+    //    std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
 
-    JGN_lockPopulation();
+    //JGN_lockPopulation();
 
     // Print some stats about the current best
     best = sortedPopulation.front();
 
     cout << "\nGen: " << curGen << ", best fitness: "
-         << sortedFitness.front() << "\n";
+         << sortedFitness.front();
 
     // Save in log
-    cout << "\nLogging...\n";
+    //cout << "\nLogging...\n";
     this->aLogPerf[curGen] = sortedFitness.front();
-    cout << "\nLogged\n";
+    //cout << "\nLogged\n";
 
-    JGN_unlockPopulation();
+    //JGN_unlockPopulation();
 
     /*
     if (decayL2 != 0) {
