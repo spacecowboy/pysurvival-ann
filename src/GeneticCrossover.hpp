@@ -2,6 +2,7 @@
 #define _GENETICCROSSOVER_HPP_
 
 #include "MatrixNetwork.hpp"
+#include "Random.hpp"
 
 enum class CrossoverMethod {CROSSOVER_UNIFORM,
     CROSSOVER_ONEPOINT,
@@ -17,14 +18,27 @@ typedef void (*crossover_func_ptr)(MatrixNetwork &mother,
                                    MatrixNetwork &sister);
 
 // Returns a specific function pointer
-crossover_func_ptr getCrossoverFunctionPtr(const CrossoverMethod val);
+//crossover_func_ptr getCrossoverFunctionPtr(const CrossoverMethod val);
 
+
+class GeneticCrosser {
+protected:
+  Random &rand;
+
+public:
+  GeneticCrosser(Random &rand);
+  virtual ~GeneticCrosser();
 // Runs the specific method
 void evaluateCrossoverFunction(const CrossoverMethod val,
                               MatrixNetwork &mother,
                               MatrixNetwork &father,
                               MatrixNetwork &brother,
                               MatrixNetwork &sister);
+
+void getTwoUniform(unsigned int min,
+                   unsigned int max,
+                   unsigned int *low,
+                   unsigned int *high);
 
 void crossoverUniform(MatrixNetwork &mother,
                                    MatrixNetwork &father,
@@ -40,6 +54,6 @@ void crossoverTwopoint(MatrixNetwork &mother,
                                    MatrixNetwork &father,
                                    MatrixNetwork &brother,
                                    MatrixNetwork &sister);
-
+};
 
 #endif // _GENETICCROSSOVER_HPP_

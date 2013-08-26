@@ -3,11 +3,16 @@
 #include <time.h>
 #include <algorithm> // std::fill
 #include <stdio.h>
+#include <limits> // max int
 
-Random::Random()
+Random::Random() : Random(time(NULL))
+{
+}
+
+Random::Random(const unsigned int seed)
 {
   eng = new boost::mt19937(); // a core engine class
-  eng->seed(time(NULL));
+  eng->seed(seed);
 
   // Normal distribution for weight mutation, 0 mean and 1 stddev
   // We can then get any normal distribution with y = mean + stddev * x
@@ -60,6 +65,17 @@ double Random::normal() {
   return (*gaussian_num)();
 }
 
+unsigned int Random::uint() {
+  return uniformNumber(0, std::numeric_limits<unsigned int>::max());
+}
+
+unsigned int Random::uniformNumber(const unsigned int min,
+                                   const unsigned int max) {
+  boost::random::uniform_int_distribution<unsigned int>
+    int_dist(min, max - 1);
+  return int_dist(*eng);
+}
+/*
 unsigned int Random::uniformNumber(const unsigned int min,
                                    const unsigned int max) {
   double weights[max];
@@ -67,7 +83,7 @@ unsigned int Random::uniformNumber(const unsigned int min,
 
   return weightedNumber(weights, min, max);
 }
-
+*/
 unsigned int Random::weightedNumber(const double * const weights,
                                     const unsigned int min,
                                     const unsigned int max) {

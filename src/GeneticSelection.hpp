@@ -17,28 +17,42 @@ typedef void (*selection_func_ptr)(
     unsigned int *first,
     unsigned int *second);
 
-/*
- * Evaluates the specified function
- */
-void getSelection(SelectionMethod method,
-                  std::vector<double> &sortedFitness,
-                  const unsigned int max,
-                  unsigned int *first,
-                  unsigned int *second);
+class GeneticSelector {
+protected:
+  Random &rand;
 
-void selectTournament(std::vector<double> &sortedFitness,
-                      const unsigned int max,
-                      unsigned int *first,
-                      unsigned int *second);
+public:
+  GeneticSelector(Random &rand);
+  virtual ~GeneticSelector();
 
-void selectRoulette(std::vector<double> &sortedFitness,
+  /*
+   * Evaluates the specified function
+   */
+  void getSelection(SelectionMethod method,
+                    std::vector<double> &sortedFitness,
                     const unsigned int max,
                     unsigned int *first,
                     unsigned int *second);
 
-void selectGeometric(std::vector<double> &sortedFitness,
-                     const unsigned int max,
-                     unsigned int *first,
-                     unsigned int *second);
+  void selectTournament(std::vector<double> &sortedFitness,
+                        const unsigned int max,
+                        unsigned int *first);
+
+  void selectTournament(std::vector<double> &sortedFitness,
+                        const unsigned int max,
+                        unsigned int *first,
+                        unsigned int *second);
+
+  void selectRoulette(std::vector<double> &sortedFitness,
+                      const unsigned int max,
+                      unsigned int *first,
+                      unsigned int *second);
+
+  void selectGeometric(std::vector<double> &sortedFitness,
+                       const unsigned int max,
+                       unsigned int *first,
+                       unsigned int *second);
+
+};
 
 #endif /* _GENETICSELECTION_H_ */

@@ -6,9 +6,6 @@
 
 // All global variables should use prefix JGN_
 
-// GLobal random number generator
-extern Random JGN_rand;
-
 // extern tells compiler it is delcared elsewhere (global.cpp)
 // Used to lock threads accessing the population data
 extern std::mutex JGN_mutexPopulation;

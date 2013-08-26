@@ -28,6 +28,7 @@ protected:
  public:
 
   Random();
+  Random(const unsigned int seed);
   virtual ~Random();
 
   // 0 - Max (exclusive)
@@ -36,6 +37,9 @@ protected:
   double uniform();
   // mean 0, stddev 1
   double normal();
+
+  // 0 to UINT_MAX
+  unsigned int uint();
 
   // min - max (exclusive)
   unsigned int uniformNumber(const unsigned int min,

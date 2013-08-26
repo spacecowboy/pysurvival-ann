@@ -1,9 +1,5 @@
 #include "global.hpp"
-#include "Random.hpp"
 #include <mutex>
-
-// Global random number generator
-Random JGN_rand;
 
 /*
 To lock:

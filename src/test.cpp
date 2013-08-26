@@ -1,7 +1,8 @@
 #include "MatrixNetwork.hpp"
 #include "activationfunctions.hpp"
 #include <stdio.h>
-//#include "Random.hpp"
+#include <limits> // max int
+#include "Random.hpp"
 #include "global.hpp"
 #include "GeneticNetwork.hpp"
 #include "GeneticMutation.hpp"
@@ -73,15 +74,22 @@ void matrixtest() {
 }
 
 void randomtest() {
-    //Random r;
+
+  Random r(0);
 
   printf("\n\nRandom numbers:");
-  printf("\nUniform: %f", JGN_rand.uniform());
-  printf("\nNormal: %f", JGN_rand.normal());
-  printf("\nGeometric(10): %d", JGN_rand.geometric(10));
+  printf("\nUniform: %f", r.uniform());
 
-  printf("\nUniform number: %d", JGN_rand.uniformNumber(1, 10));
+  Random rr;
 
+  printf("\nNormal: %f", rr.normal());
+  printf("\nGeometric(10): %d", rr.geometric(10));
+
+  std::cout << "\nUINT lim: " << std::numeric_limits<unsigned int>::max() << "\n";
+
+  std::cout << "\nUINT: " << r.uint();
+
+  std::cout << "\nUniform number: " << rr.uniformNumber(1, 10);
 }
 
 void lockTest() {
@@ -107,9 +115,12 @@ void geneticTest1() {
          net2.HIDDEN_COUNT,
          net2.OUTPUT_COUNT);
 
-  randomizeNetwork(net1, 1.0);
+  Random rand;
+  GeneticMutator mutator(rand);
 
-  randomizeNetwork(net2, 1.0);
+  mutator.randomizeNetwork(net1, 1.0);
+
+  mutator.randomizeNetwork(net2, 1.0);
 
   printf("\nWeight diff: %f vs %f \
 \nConn diff: %d vs %d\
@@ -139,7 +150,7 @@ void geneticTest1() {
 }
 
 void geneticXOR() {
-  GeneticNetwork net(2, 8, 1);
+  GeneticNetwork net(2, 4, 1);
   net.setGenerations(10);
   net.setWeightMutationChance(0.25);
   net.setWeightMutationFactor(0.3);

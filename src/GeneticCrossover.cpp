@@ -4,6 +4,7 @@
 #include <algorithm> // std::copy
 
 // Returns a specific function pointer
+/*
 crossover_func_ptr getCrossoverFunctionPtr(const CrossoverMethod val) {
   switch (val) {
   case CrossoverMethod::CROSSOVER_UNIFORM:
@@ -15,27 +16,46 @@ crossover_func_ptr getCrossoverFunctionPtr(const CrossoverMethod val) {
     return *crossoverOnepoint;
   }
 }
+*/
+
+GeneticCrosser::GeneticCrosser(Random &rand) :
+  rand(rand)
+{}
+
+GeneticCrosser::~GeneticCrosser()
+{}
 
 // Runs the specific method
-void evaluateCrossoverFunction(const CrossoverMethod val,
-                               MatrixNetwork &mother,
-                               MatrixNetwork &father,
-                               MatrixNetwork &brother,
-                               MatrixNetwork &sister) {
-  crossover_func_ptr func = getCrossoverFunctionPtr(val);
-  (*func)(mother, father, brother, sister);
+void GeneticCrosser::evaluateCrossoverFunction(const CrossoverMethod val,
+                                               MatrixNetwork &mother,
+                                               MatrixNetwork &father,
+                                               MatrixNetwork &brother,
+                                               MatrixNetwork &sister) {
+  //crossover_func_ptr func = getCrossoverFunctionPtr(val);
+  //(*func)(mother, father, brother, sister);
+
+  switch (val) {
+  case CrossoverMethod::CROSSOVER_UNIFORM:
+    return crossoverUniform(mother, father, brother, sister);
+  case CrossoverMethod::CROSSOVER_TWOPOINT:
+    return crossoverTwopoint(mother, father, brother, sister);
+  case CrossoverMethod::CROSSOVER_ONEPOINT:
+  default:
+    return crossoverOnepoint(mother, father, brother, sister);
+  }
+
 }
 
 // Guarantees that low < high, as long as limit is > 1
-void getTwoUniform(unsigned int min,
-                   unsigned int max,
-                   unsigned int *low,
-                   unsigned int *high) {
+void GeneticCrosser::getTwoUniform(unsigned int min,
+                                   unsigned int max,
+                                   unsigned int *low,
+                                   unsigned int *high) {
   unsigned int point1, point2;
-  point1 = JGN_rand.uniformNumber(min, max);
+  point1 = this->rand.uniformNumber(min, max);
   point2 = point1;
   while (point2 == point1) {
-    point2 = JGN_rand.uniformNumber(min, max);
+    point2 = this->rand.uniformNumber(min, max);
   }
 
   if (point1 < point2) {
@@ -48,16 +68,16 @@ void getTwoUniform(unsigned int min,
   }
 }
 
-void crossoverUniform(MatrixNetwork &mother,
-                      MatrixNetwork &father,
-                      MatrixNetwork &brother,
-                      MatrixNetwork &sister) {
+void GeneticCrosser::crossoverUniform(MatrixNetwork &mother,
+                                      MatrixNetwork &father,
+                                      MatrixNetwork &brother,
+                                      MatrixNetwork &sister) {
   // Each weight is assigned randomly
   unsigned int i;
   for (i = 0; i < mother.LENGTH * mother.LENGTH; i++) {
     // activation functions are only length long
     if (i < mother.LENGTH) {
-      if (JGN_rand.uniform() < 0.5) {
+      if (this->rand.uniform() < 0.5) {
         brother.actFuncs[i] = mother.actFuncs[i];
         sister.actFuncs[i] = father.actFuncs[i];
       }
@@ -67,7 +87,7 @@ void crossoverUniform(MatrixNetwork &mother,
       }
     }
     // Now connections
-    if (JGN_rand.uniform() < 0.5) {
+    if (this->rand.uniform() < 0.5) {
       brother.conns[i] = mother.conns[i];
       sister.conns[i] = father.conns[i];
     }
@@ -76,7 +96,7 @@ void crossoverUniform(MatrixNetwork &mother,
       brother.conns[i] = father.conns[i];
     }
     // And weights
-    if (JGN_rand.uniform() < 0.5) {
+    if (this->rand.uniform() < 0.5) {
       brother.weights[i] = mother.weights[i];
       sister.weights[i] = father.weights[i];
     }
@@ -87,15 +107,15 @@ void crossoverUniform(MatrixNetwork &mother,
   }
 }
 
-void crossoverOnepoint(MatrixNetwork &mother,
-                       MatrixNetwork &father,
-                       MatrixNetwork &brother,
-                       MatrixNetwork &sister) {
+void GeneticCrosser::crossoverOnepoint(MatrixNetwork &mother,
+                                       MatrixNetwork &father,
+                                       MatrixNetwork &brother,
+                                       MatrixNetwork &sister) {
   unsigned int point, limit;
   // #### Activation Functions ####
   // activation functions are only length long
   limit = mother.LENGTH;
-  point = JGN_rand.uniformNumber(0, limit);
+  point = this->rand.uniformNumber(0, limit);
   // First brother
   std::copy(mother.actFuncs, mother.actFuncs + point,
             brother.actFuncs);
@@ -110,7 +130,7 @@ void crossoverOnepoint(MatrixNetwork &mother,
 
   // #### Connections ####
   limit = mother.LENGTH * mother.LENGTH;
-  point = JGN_rand.uniformNumber(0, limit);
+  point = this->rand.uniformNumber(0, limit);
   // First brother
   std::copy(mother.conns, mother.conns + point,
             brother.conns);
@@ -125,7 +145,7 @@ void crossoverOnepoint(MatrixNetwork &mother,
 
   // #### Weights ####
   limit = mother.LENGTH * mother.LENGTH;
-  point = JGN_rand.uniformNumber(0, limit);
+  point = this->rand.uniformNumber(0, limit);
   // First brother
   std::copy(mother.weights, mother.weights + point,
             brother.weights);
@@ -139,10 +159,10 @@ void crossoverOnepoint(MatrixNetwork &mother,
 
 }
 
-void crossoverTwopoint(MatrixNetwork &mother,
-                       MatrixNetwork &father,
-                       MatrixNetwork &brother,
-                       MatrixNetwork &sister) {
+void GeneticCrosser::crossoverTwopoint(MatrixNetwork &mother,
+                                       MatrixNetwork &father,
+                                       MatrixNetwork &brother,
+                                       MatrixNetwork &sister) {
   unsigned int pointLow, pointHigh, limit;
   // #### Activation Functions ####
   // activation functions are only length long

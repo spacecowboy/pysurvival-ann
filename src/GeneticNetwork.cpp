@@ -131,6 +131,9 @@ GeneticNetwork *popNetwork(unsigned int i,
 /**
  * Does the actual work in an epoch. Designed to be launched in parallell
  * in many threads.
+ * Because each thread creates its own random generator, it needs
+ * a unique thread each time, for which time() is not suitable as it
+ * will be the same for all threads many times.
  */
 void breedNetworks(GeneticNetwork &self,
                    vector<GeneticNetwork*> &sortedPopulation,
@@ -139,7 +142,8 @@ void breedNetworks(GeneticNetwork &self,
                    const unsigned int curGen,
                    const double * const X,
                    const double * const Y,
-                   const unsigned int length)
+                   const unsigned int length,
+                   const unsigned int randomSeed)
 {
   //std::cout << "Launched by thread " << std::this_thread::get_id() << std::endl;
 
@@ -150,6 +154,12 @@ void breedNetworks(GeneticNetwork &self,
   double bFitness, sFitness, mFitness, fFitness;
   double *outputs = new double[self.OUTPUT_COUNT * length];
 
+  Random rand(randomSeed);
+
+  GeneticSelector selector(rand);
+  GeneticMutator mutator(rand);
+  GeneticCrosser crosser(rand);
+
   unsigned int threadChild;
   for (threadChild = 0; threadChild < childCount; threadChild++) {
     // We recycle the worst networks
@@ -158,10 +168,10 @@ void breedNetworks(GeneticNetwork &self,
     JGN_lockPopulation();
 
     // Select two networks
-    getSelection(self.selectionMethod,
-                 sortedFitness,
-                 self.populationSize,
-                 &motherIndex, &fatherIndex);
+    selector.getSelection(self.selectionMethod,
+                          sortedFitness,
+                          self.populationSize,
+                          &motherIndex, &fatherIndex);
 
     //cout << "\nindices: " << motherIndex << " - " << fatherIndex << "\n";
     // get mother and father in a thread safe way
@@ -179,10 +189,10 @@ void breedNetworks(GeneticNetwork &self,
     JGN_unlockPopulation();
 
     // Crossover
-    if (JGN_rand.uniform() < self.crossoverChance) {
-      evaluateCrossoverFunction(self.crossoverMethod,
-                                *pMother, *pFather,
-                                *pBrother, *pSister);
+    if (rand.uniform() < self.crossoverChance) {
+      crosser.evaluateCrossoverFunction(self.crossoverMethod,
+                                        *pMother, *pFather,
+                                        *pBrother, *pSister);
     }
     // No crossover, mutate parents
     else {
@@ -192,21 +202,22 @@ void breedNetworks(GeneticNetwork &self,
 
 
     // Mutation brother
-    mutateWeights(*pBrother,
-                  self.weightMutationChance,
-                  self.weightMutationFactor);
-    mutateConns(*pBrother,
-                self.connsMutationChance);
-    mutateActFuncs(*pBrother,
-                   self.actFuncMutationChance);
+    mutator.mutateWeights(*pBrother,
+                          self.weightMutationChance,
+                          self.weightMutationFactor);
+    mutator.mutateConns(*pBrother,
+                        self.connsMutationChance);
+    mutator.mutateActFuncs(*pBrother,
+                           self.actFuncMutationChance);
     // Mutation sister
-    mutateWeights(*pSister,
-                  self.weightMutationChance,
-                  self.weightMutationFactor);
-    mutateConns(*pSister,
-                self.connsMutationChance);
-    mutateActFuncs(*pSister,
-                   self.actFuncMutationChance);
+    mutator.mutateWeights(*pSister,
+                          self.weightMutationChance,
+                          self.weightMutationFactor);
+    mutator.mutateConns(*pSister,
+                        self.connsMutationChance);
+    mutator.mutateActFuncs(*pSister,
+                           self.actFuncMutationChance);
+
 
     // evaluate fitness and insert back
     // TODO multiple outputs
@@ -261,9 +272,11 @@ void breedNetworks(GeneticNetwork &self,
 }
 
 void foo() {
-  int i = 1;
-  i += 1;
-  i = 1 + i;
+  Random r;
+  for (int i = 0; i < 100; i++) {
+    //JGN_rand.uniform(); // segfaults
+    r.uniform(); // local variable works
+  }
 }
 
 void GeneticNetwork::learn(const double * const X,
@@ -312,6 +325,9 @@ void GeneticNetwork::learn(const double * const X,
   // predictions
   double *preds = new double[OUTPUT_COUNT * length]();
 
+  Random rand;
+  GeneticMutator mutator(rand);
+
   JGN_lockPopulation();
 
   for (i = 0; i < populationSize + extras; i++) {
@@ -320,7 +336,7 @@ void GeneticNetwork::learn(const double * const X,
                                               HIDDEN_COUNT,
                                               OUTPUT_COUNT);
 
-    randomizeNetwork(*pNet, weightMutationFactor);
+    mutator.randomizeNetwork(*pNet, weightMutationFactor);
 
     // evaluate error here
     fitness = evaluateNetwork(fitnessFunction,
@@ -348,12 +364,12 @@ void GeneticNetwork::learn(const double * const X,
     for (i = 0; i < num_threads; i++) {
       cout << " T" << i;
       try {
-        threads.push_back(thread(foo));
-        /*        threads.push_back(std::thread(breedNetworks, std::ref(*this),
+        //threads.push_back(thread(foo));
+        threads.push_back(std::thread(breedNetworks, std::ref(*this),
                                       std::ref(sortedPopulation),
                                       std::ref(sortedFitness),
                                       breedCount, curGen,
-                                      X, Y, length));*/
+                                      X, Y, length, rand.uint()));
 
       }
       catch (const std::system_error& e) {
