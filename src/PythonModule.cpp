@@ -15,10 +15,11 @@
 #include "activationfunctions.hpp"
 #include "CIndexWrapper.h"
 #include "CascadeNetworkWrapper.h"
+#include "MatrixNetworkWrapper.hpp"
 //#include "CoxCascadeNetworkWrapper.h"
 //#include "GeneticCascadeNetworkWrapper.h"
-//#include "GeneticNetwork.hpp"
-//#include "GeneticNetworkWrapper.h"
+#include "GeneticNetwork.hpp"
+#include "GeneticNetworkWrapper.hpp"
 //#include "GeneticFitness.hpp"
 
 /*
@@ -218,16 +219,103 @@ static PyTypeObject RPropNetworkType = {
 };
 
 
+// MAtrix network
+// ==============
+
+
+// Public Python methods
+static PyMethodDef MatrixNetworkMethods[] =
+{
+  {"output", (PyCFunction) MatrixNetwork_output, METH_O,
+   "Computes the network's output."},
+
+  {NULL}, // So that we can iterate safely below
+};
+
+
+//Public Python members
+static PyMemberDef MatrixNetworkMembers[] = {
+  {NULL} // for safe iteration
+};
+
+
+//Public Python members with get/setters
+static PyGetSetDef MatrixNetworkGetSetters[] = {
+  {(char*)"inputCount", (getter)MatrixNetwork_getNumOfInputs, NULL,    \
+   (char*)"Number of input neurons", NULL},
+  {(char*)"hiddenCount", (getter)MatrixNetwork_getNumOfHidden, NULL,    \
+   (char*)"Number of hidden neurons", NULL},
+  {(char*)"outputCount", (getter)MatrixNetwork_getNumOfOutput, NULL,  \
+   (char*)"Number of output neurons", NULL},
+
+  {(char*)"logPerf", (getter)MatrixNetwork_getLogPerf, NULL,       \
+   (char*)"Get a log of the training performance, [epochs, outputs]", NULL},
+
+  {(char*)"outputActivationFunction",               \
+   (getter)MatrixNetwork_getOutputActivationFunction,   \
+   (setter)MatrixNetwork_setOutputActivationFunction,        \
+   (char*)"The activation function used by output neurons. \
+For example network.LOGSIG", NULL},
+  {(char*)"hiddenActivationFunction",               \
+   (getter)MatrixNetwork_getHiddenActivationFunction,   \
+   (setter)MatrixNetwork_setHiddenActivationFunction,        \
+   (char*)"The activation function used by hidden neurons. \
+For example network.TANH", NULL},
+
+    {NULL} // Sentinel
+};
+
+
+// Python type declaration
+static PyTypeObject MatrixNetworkType = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  "_ann.matrixnetwork",		// tp_name VITAL PACKAGE NAME FOR PICKLING!
+  sizeof(PyMatrixNetwork),					// tp_basicsize
+  0,						// tp_itemsize
+  (destructor)MatrixNetwork_dealloc,			// tp_dealloc
+  0,						//* tp_print
+  0,						//* tp_getattr
+  0,						//* tp_setattr
+  0,						//* tp_compare
+  0,						//* tp_repr
+  0,						//* tp_as_number
+  0,						//* tp_as_sequence
+  0,						//* tp_as_mapping
+  0,						//* tp_hash
+  0,						//* tp_call
+  0,						//* tp_str
+  0,						//* tp_getattro
+  0,						//* tp_setattro
+  0,						//* tp_as_buffer
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 	//* tp_flags
+  "A feed forward neural network.",			//* tp_doc
+  0,						//* tp_traverse
+  0,			 			//* tp_clear
+  0,			 			//* tp_richcompare
+  0,			 			//* tp_weaklistoffset
+  0,			 			//* tp_iter
+  0,			 			//* tp_iternext
+  MatrixNetworkMethods,					//* tp_methods
+  MatrixNetworkMembers,					//* tp_members
+  MatrixNetworkGetSetters,			 			//* tp_getset
+  0,			 			//* tp_base
+  0,			 			//* tp_dict
+  0,			 			//* tp_descr_get
+  0,			 			//* tp_descr_set
+  0,			 			//* tp_dictoffset
+  (initproc)MatrixNetwork_init,				//* tp_init
+  0,			 			//* tp_alloc
+  MatrixNetwork_new,			 		//* tp_new
+};
+
+
 /*
  * Genetic network
  * ========================
  */
 
-/*
- * Public Python methods
- * ---------------------
- */
-/*
+
+// Public Python methods
 static PyMethodDef GenNetworkMethods[] =
 {
     {"learn", (PyCFunction) GenNetwork_learn,                           \
@@ -235,13 +323,10 @@ static PyMethodDef GenNetworkMethods[] =
      "Trains the network using a genetic algorithm."},
     {NULL}, // So that we can iterate safely below
 };
-*/
 
-/*
- * Public Python members with get/setters
- * --------------------------------------
- */
-/*
+
+
+//Public Python members with get/setters
 static PyGetSetDef GenNetworkGetSetters[] = {
   {(char*)"generations", (getter)GenNetwork_getGenerations, \
    (setter)GenNetwork_setGenerations,                       \
@@ -250,14 +335,14 @@ static PyGetSetDef GenNetworkGetSetters[] = {
    (setter)GenNetwork_setPopulationSize,                            \
    (char*)"Number of networks created each generation", NULL},
   {(char*)"weightMutationChance", (getter)GenNetwork_getWeightMutationChance, \
-   (setter)GenNetwork_setWeightMutationChance,                      \
+   (setter)GenNetwork_setWeightMutationChance,                          \
    (char*)"The chance of a single weight being changed during cloning", NULL},
-  {(char*)"weightMutationHalfPoint",                  \
-   (getter)GenNetwork_getWeightMutationHalfPoint, \
-   (setter)GenNetwork_setWeightMutationHalfPoint,                   \
+  {(char*)"weightMutationHalfPoint",              \
+   (getter)GenNetwork_getWeightMutationHalfPoint,                   \
+   (setter)GenNetwork_setWeightMutationHalfPoint,                       \
    (char*)"If time dependant mutation is desired, set this to a non-zero value.\
  StdDev will decrease linearly and reach half at specified generation.", NULL},
-  {(char*)"weightMutationFactor",                  \
+  {(char*)"weightMutationFactor",              \
    (getter)GenNetwork_getWeightMutationFactor, \
    (setter)GenNetwork_setWeightMutationFactor,                      \
    (char*)"Mutations are gaussians with this stddev and added to current\
@@ -298,17 +383,6 @@ for the population. Default False.", NULL},
    (setter)GenNetwork_setSelectionMethod,                      \
    (char*)"Method to select parents.", NULL},
 
-  {(char*)"crossover_method",              \
-   (getter)GenNetwork_getCrossoverMethod, \
-   (setter)GenNetwork_setCrossoverMethod,                      \
-   (char*)"Way to perform crossover.", NULL},
-
-  {(char*)"insert_method",              \
-   (getter)GenNetwork_getInsertMethod, \
-   (setter)GenNetwork_setInsertMethod,                      \
-   (char*)"Way to insert parent and children into population after crossover.",\
-      NULL},
-
   {(char*)"fitness_function",              \
    (getter)GenNetwork_getFitnessFunction, \
    (setter)GenNetwork_setFitnessFunction,                      \
@@ -316,83 +390,77 @@ for the population. Default False.", NULL},
 
   {NULL} // Sentinel
 };
-*/
 
-
-/*
- *  * Python type declaration
- *   * -----------------------
- *    */
-/*
+// Python type declaration
 static PyTypeObject GenNetworkType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "_ann.gennetwork", // tp_name // VITAL CORRECT PACKAGE NAME FOR PICKLING!
-    sizeof(PyGenNetwork),  // tp_basicsize
-    0,                                              // tp_itemsize
-    0,                  // tp_dealloc
-    0,                                              // tp_print
-    0,                                              //* tp_getattr
-    0,                                              //* tp_setattr
-    0,                                              //* tp_compare
-    0,                                              //* tp_repr
-    0,                                              //* tp_as_number
-    0,                                              //* tp_as_sequence
-    0,                                              //* tp_as_mapping
-    0,                                              //* tp_hash
-    0,                                              //* tp_call
-    0,                                              //* tp_str
-    0,      //* tp_getattro
-    0,                                              //* tp_setattro
-    0,                                              //* tp_as_buffer
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       //* tp_flags
-    "A neural network that trains using a genetic algorithm.\n\
+  PyVarObject_HEAD_INIT(NULL, 0)
+  "_ann.gennetwork", // tp_name  VITAL CORRECT PACKAGE NAME FOR PICKLING!
+  sizeof(PyGenNetwork),  // tp_basicsize
+  0,                                              // tp_itemsize
+  0,                  // tp_dealloc
+  0,                                              // tp_print
+  0,                                              //* tp_getattr
+  0,                                              //* tp_setattr
+  0,                                              //* tp_compare
+  0,                                              //* tp_repr
+  0,                                              //* tp_as_number
+  0,                                              //* tp_as_sequence
+  0,                                              //* tp_as_mapping
+  0,                                              //* tp_hash
+  0,                                              //* tp_call
+  0,                                              //* tp_str
+  0,      //* tp_getattro
+  0,                                              //* tp_setattro
+  0,                                              //* tp_as_buffer
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       //* tp_flags
+  "A neural network that trains using a genetic algorithm.\n\
 A few properties influence the algorithm's behaviour:\n\
-\n\
-**selection_method** - The way in which networks are chosen as parents for\n\
-crossover. *Geometric* picks the parents from a geometric distribution\n\
-to benifit the fittest network the most.\n\
-*Roulette* gives each network a probability proportional to their score\n\
-divided by the sum of all scores. \n\
-*Tournament* picks, for each parent, two networks and uses the fittest.\n\
-This is the least elitist, and least predictable.\n\
-\n\
-**crossover_method** - The crossover operation itself can be done in several\n\
-ways. *Random neuron* assembles a child by selecting neurons and associated\n\
-weight vector at random from each parent with equal probability. \n\
-*Two point* selects two places along the genome and exchanges everything\n\
+\n                                                                      \
+**selection_method** - The way in which networks are chosen as parents for\n \
+crossover. *Geometric* picks the parents from a geometric distribution\n \
+to benifit the fittest network the most.\n                              \
+*Roulette* gives each network a probability proportional to their score\n \
+divided by the sum of all scores. \n                                    \
+*Tournament* picks, for each parent, two networks and uses the fittest.\n \
+This is the least elitist, and least predictable.\n                     \
+\n                                                                      \
+**crossover_method** - The crossover operation itself can be done in several\n \
+ways. *Random neuron* assembles a child by selecting neurons and associated\n \
+weight vector at random from each parent with equal probability. \n     \
+*Two point* selects two places along the genome and exchanges everything\n \
 in between for the other parent's genetic material. This produces two\n\
-children, with opposite genomes.\n\
-\n\
-**insertion_method** - Once a crossover, and possible mutation, is performed\n\
-the children must be inserted into the population somehow.\n\
-*Insert all* simply inserts the children into the sorted population.\n\
-Nothing is done with the parents. \n\
-*Insert fittest* on the other hand makes a choice between the children\n\
-and the parents. The fittest of the two is (re)inserted in the\n\
-population. The exception is if the parent is the best current member,\n\
-then it is always kept in the population.\n\
-\n\
-**fitness_function** - The function that will judge the performance \n\
+children, with opposite genomes.\n                                     \
+\n                                                                      \
+**insertion_method** - Once a crossover, and possible mutation, is performed\n \
+the children must be inserted into the population somehow.\n            \
+*Insert all* simply inserts the children into the sorted population.\n  \
+Nothing is done with the parents. \n                                    \
+*Insert fittest* on the other hand makes a choice between the children\n \
+and the parents. The fittest of the two is (re)inserted in the\n        \
+population. The exception is if the parent is the best current member,\n \
+then it is always kept in the population.\n                             \
+\n                                                                      \
+**fitness_function** - The function that will judge the performance \n  \
 of the networks.\n", // tp_doc
-    0,                                              //* tp_traverse
-0,                                              //* tp_clear
+  0,                                              //* tp_traverse
+  0,                                              //* tp_clear
   0,                                              //* tp_richcompare
   0,                                              //* tp_weaklistoffset
-    0,                                              //* tp_iter
-    0,                                              //* tp_iternext
-    GenNetworkMethods,                                //* tp_methods
-    0,                                       //* tp_members
-    GenNetworkGetSetters,              //* tp_getset
-    0,                                              //* tp_base
-    0,                                              //* tp_dict
-    0,                                              //* tp_descr_get
-    0,                                              //* tp_descr_set
+  0,                                              //* tp_iter
+  0,                                              //* tp_iternext
+  GenNetworkMethods,                                //* tp_methods
+  0,                                       //* tp_members
+  GenNetworkGetSetters,              //* tp_getset
+  0,                                              //* tp_base
+  0,                                              //* tp_dict
+  0,                                              //* tp_descr_get
+  0,                                              //* tp_descr_set
   0,                                              //* tp_dictoffset
   (initproc)GenNetwork_init,                      //* tp_init
   0,                                              //* tp_alloc
   0,                                  //* tp_new
 };
-*/
+
 /*
  * Cascade network
  * ========================
@@ -618,27 +686,49 @@ extern "C" {
     if (PyType_Ready(&CascadeNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
       Py_DECREF(&RPropNetworkType);
-      //Py_DECREF(&GenNetworkType);
       return MOD_ERROR_VAL;
     }
 
     Py_INCREF(&CascadeNetworkType);
     PyModule_AddObject(mod, "cascadenetwork", (PyObject*)&CascadeNetworkType);
 
+    // MatrixNetwork
 
-    /*
-     * GenNetwork
-     */
-    /*
-    GenNetworkType.tp_base = &FFNetworkType;
-    if (PyType_Ready(&GenNetworkType) < 0) {
+    // Make it ready
+    if (PyType_Ready(&MatrixNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
       Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&CascadeNetworkType);
       return MOD_ERROR_VAL;
     }
 
     // Add static class variables
+    PyDict_SetItemString(MatrixNetworkType.tp_dict, "LINEAR",
+                         Py_BuildValue("i", LINEAR));
+    PyDict_SetItemString(MatrixNetworkType.tp_dict, "LOGSIG",
+                         Py_BuildValue("i", LOGSIG));
+    PyDict_SetItemString(MatrixNetworkType.tp_dict, "TANH",
+                         Py_BuildValue("i", TANH));
 
+
+    // Add the type to the module.
+    Py_INCREF(&MatrixNetworkType);
+    PyModule_AddObject(mod, "matrxnetwork", (PyObject*)&MatrixNetworkType);
+
+
+
+    // GenNetwork
+    GenNetworkType.tp_base = &MatrixNetworkType;
+    if (PyType_Ready(&GenNetworkType) < 0) {
+      Py_DECREF(&FFNetworkType);
+      Py_DECREF(&RPropNetworkType);
+      Py_DECREF(&CascadeNetworkType);
+      Py_DECREF(&MatrixNetworkType);
+      return MOD_ERROR_VAL;
+    }
+
+    // Add static class variables
+    /*
     PyDict_SetItemString(GenNetworkType.tp_dict, "SELECTION_GEOMETRIC",
                          Py_BuildValue("i", SELECTION_GEOMETRIC));
     PyDict_SetItemString(GenNetworkType.tp_dict, "SELECTION_ROULETTE",
@@ -654,13 +744,6 @@ extern "C" {
                          Py_BuildValue("i", CROSSOVER_TWOPOINT));
 
 
-
-    PyDict_SetItemString(GenNetworkType.tp_dict, "INSERT_ALL",
-                         Py_BuildValue("i", INSERT_ALL));
-    PyDict_SetItemString(GenNetworkType.tp_dict, "INSERT_FITTEST",
-                         Py_BuildValue("i", INSERT_FITTEST));
-
-
     PyDict_SetItemString(GenNetworkType.tp_dict, "FITNESS_MSE",
                          Py_BuildValue("i", FITNESS_MSE));
     PyDict_SetItemString(GenNetworkType.tp_dict, "FITNESS_CINDEX",
@@ -668,10 +751,10 @@ extern "C" {
     PyDict_SetItemString(GenNetworkType.tp_dict, "FITNESS_MSE_CENS",
                          Py_BuildValue("i", FITNESS_MSE_CENS));
 
-
+    */
     Py_INCREF(&GenNetworkType);
     PyModule_AddObject(mod, "gennetwork", (PyObject*)&GenNetworkType);
-    */
+
 
     return MOD_SUCCESS_VAL(mod);
   }

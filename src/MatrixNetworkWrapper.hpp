@@ -54,6 +54,24 @@ extern "C" {
   PyObject *MatrixNetwork_getLogPerf(PyMatrixNetwork *self,
                                      void *closure);
 
+  PyObject *MatrixNetwork_getWeights(PyMatrixNetwork *self,
+                                     void *closure);
+  int MatrixNetwork_setWeights(PyMatrixNetwork *self,
+                               PyObject *value,
+                               void *closure);
+
+  PyObject *MatrixNetwork_getConns(PyMatrixNetwork *self,
+                                   void *closure);
+  int MatrixNetwork_setConns(PyMatrixNetwork *self,
+                              PyObject *value,
+                              void *closure);
+
+  PyObject *MatrixNetwork_getActFuncs(PyMatrixNetwork *self,
+                                      void *closure);
+  int MatrixNetwork_setActFuncs(PyMatrixNetwork *self,
+                                PyObject *value,
+                                void *closure);
+
 } // extern "C"
 
 #endif //MATRIXNETWORKWRAPPER_H_

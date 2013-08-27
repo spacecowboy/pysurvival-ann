@@ -1,20 +1,17 @@
-#include "GeneticNetworkWrapper.h"
+#include "GeneticNetworkWrapper.hpp"
 // For convenience macros in python3
 #include "PythonModule.h"
 // Must include this before arrayobject
 #include "ExtensionHeader.h"
 #include <numpy/arrayobject.h> // NumPy as seen from C
-#include "GeneticNetwork.h"
+#include "GeneticNetwork.hpp"
 #include <stdio.h>
 
 extern "C" {
 
-  /*
-   * Python init
-   * -----------
-   */
+   // Python init
   int GenNetwork_init(PyGenNetwork *self, PyObject *args, PyObject *kwds) {
-    static char *kwlist[] = { (char*)"numOfInputs",         \
+    static char *kwlist[] = { (char*)"numOfInputs", \
                               (char*)"numOfHidden",
                               (char*)"numOfOutputs",
                               NULL };
@@ -34,7 +31,6 @@ numOfInputs, numOfHidden, numOfOutputs");
     if (self->super.net == NULL)
       return -1;
 
-    self->super.net->initNodes();
     return 0;
   }
 
@@ -61,11 +57,15 @@ targets (2d array)");
     PyArrayObject *inputArray = NULL;
     PyArrayObject *targetArray = NULL;
 
-    inputArray = (PyArrayObject *) PyArray_ContiguousFromObject(inputs, PyArray_DOUBLE, 2, 2);
+    inputArray =
+      (PyArrayObject *)  PyArray_ContiguousFromObject(inputs,
+                                                      PyArray_DOUBLE, 2, 2);
     if (inputArray == NULL)
       return NULL;
 
-    targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets, PyArray_DOUBLE, 2, 2);
+    targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets,
+                                                                 PyArray_DOUBLE,
+                                                                 2, 2);
     if (targetArray == NULL) {
       Py_DECREF(inputArray);
       return NULL;
@@ -74,15 +74,18 @@ targets (2d array)");
     // Objects were converted successfully. But make sure they are the same length!
 
     if (inputArray->dimensions[0] != targetArray->dimensions[0] ||
-      (unsigned int)inputArray->dimensions[1] != self->super.net->getNumOfInputs() ||
-      (unsigned int)targetArray->dimensions[1] < self->super.net->getNumOfOutputs()) {
-    // Decrement, set error and return
-    PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same number of rows. Also the target columns cannot be less than the number of output neurons.");
-    Py_DECREF(inputArray);
-    Py_DECREF(targetArray);
+        (unsigned int)inputArray->dimensions[1] != self->super.net->INPUT_COUNT ||
+        (unsigned int)targetArray->dimensions[1] < self->super.net->OUTPUT_COUNT)
+      {
+        // Decrement, set error and return
+        PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same\
+ number of rows. Also the target columns cannot be less than the number of\
+ output neurons.");
+        Py_DECREF(inputArray);
+        Py_DECREF(targetArray);
 
-    return NULL;
-    }
+        return NULL;
+      }
 
     // Arguments are valid!
 /*
@@ -133,7 +136,9 @@ targets (2d array)");
                          getGenerations());
   }
 
-  int GenNetwork_setGenerations(PyGenNetwork *self, PyObject *value, void *closure) {
+  int GenNetwork_setGenerations(PyGenNetwork *self,
+                                PyObject *value,
+                                void *closure) {
     if (value == NULL) {
       PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
       return -1;
@@ -398,7 +403,8 @@ targets (2d array)");
             return -1;
         }
 
-        ((GeneticNetwork*)self->super.net)->setSelectionMethod(i);
+        ((GeneticNetwork*)self->super.net)->
+          setSelectionMethod((SelectionMethod) i);
         return 0;
     }
 
@@ -426,38 +432,10 @@ targets (2d array)");
             return -1;
         }
 
-        ((GeneticNetwork*)self->super.net)->setCrossoverMethod(i);
+        ((GeneticNetwork*)self->super.net)->
+          setCrossoverMethod((CrossoverMethod) i);
         return 0;
     }
-
-    PyObject *GenNetwork_getInsertMethod(PyGenNetwork *self,
-                                         void *closure) {
-        return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
-                             getInsertMethod());
-    }
-
-    int GenNetwork_setInsertMethod(PyGenNetwork *self, PyObject *value,
-                                   void *closure) {
-        if (value == NULL) {
-            PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-            return -1;
-        }
-
-        if (! PyInt_Check(value)) {
-            PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
-            return 1;
-        }
-
-        long i = PyInt_AsLong(value);
-
-        if (PyErr_Occurred()) {
-            return -1;
-        }
-
-        ((GeneticNetwork*)self->super.net)->setInsertMethod(i);
-        return 0;
-    }
-
 
   PyObject *GenNetwork_getFitnessFunction(PyGenNetwork *self,
                                           void *closure) {
@@ -483,7 +461,8 @@ targets (2d array)");
         return -1;
       }
 
-      ((GeneticNetwork*)self->super.net)->setFitnessFunction(i);
+      ((GeneticNetwork*)self->super.net)->
+        setFitnessFunction((FitnessFunction) i);
       return 0;
     }
 }

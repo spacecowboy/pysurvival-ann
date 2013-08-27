@@ -78,3 +78,6 @@ ErrorFunctions.o: ErrorFunctions.cpp ErrorFunctions.h
 ### Wrappers ###
 MatrixNetworkWrapper.o: MatrixNetworkWrapper.hpp MatrixNetworkWrapper.cpp
 	$(PYCC) -c $< -o $@
+
+GeneticNetworkWrapper.o: GeneticNetworkWrapper.hpp GeneticNetworkWrapper.cpp
+	$(PYCC) -c $< -o $@

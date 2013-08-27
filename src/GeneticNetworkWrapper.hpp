@@ -1,15 +1,15 @@
-#ifndef _GENETICNETWORKWRAPPER_H_
-#define _GENETICNETWORKWRAPPER_H_
+#ifndef _GENETICNETWORKWRAPPER_HPP_
+#define _GENETICNETWORKWRAPPER_HP_
 
 #include "Python.h"
 #include "structmember.h" // used to declare member list
-#include "FFNetworkWrapper.h"
+#include "MatrixNetworkWrapper.hpp"
 
 // Necessary for c++ functions to be callable from Python's C
 extern "C" {
 
   typedef struct {
-    PyFFNetwork super; // inherit from FFNetwork
+    PyMatrixNetwork super; // inherit from MatrixNetwork
   } PyGenNetwork;
 
 /*
