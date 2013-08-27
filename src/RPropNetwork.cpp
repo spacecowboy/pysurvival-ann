@@ -7,7 +7,7 @@
 
 #include "RPropNetwork.h"
 #include "FFNeuron.h"
-#include "activationfunctions.h"
+#include "activationfunctions.hpp"
 #include "drand.h"
 #include <cmath>
 #include <stdio.h>

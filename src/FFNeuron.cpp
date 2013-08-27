@@ -7,7 +7,7 @@
 //============================================================================
 
 #include "FFNeuron.h"
-#include "activationfunctions.h"
+#include "activationfunctions.hpp"
 #include <math.h> /* pow, fabs */
 
 // -------------------

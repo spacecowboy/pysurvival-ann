@@ -9,7 +9,7 @@
 #include <Python.h>
 #include "FFNetwork.h"
 #include "FFNeuron.h"
-#include "activationfunctions.h"
+#include "activationfunctions.hpp"
 #include <stdexcept>
 //#include <iostream>
 //#include <fstream>

@@ -4,6 +4,16 @@
 CPP = g++
 CPPFLAGS = -g -Wall -Werror -std=c++11 -pthread -O0 # -fsanitize=thread
 LDFLAGS = -lm
+CC = $(CPP) $(CPPFLAGS)
+
+#Used by Python build
+PYCPP = gcc
+PYFLAGS = -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -fPIC \
+-I/usr/lib/python2.7/dist-packages/numpy/core/include \
+-I/usr/include/python2.7 \
+-std=c++0x -Wall -Werror -pthread
+
+PYCC = $(PYCPP) $(PYFLAGS)
 
 ### List source files ###
 SRC = MatrixNetwork.cpp test.cpp activationfunctions.cpp Random.cpp \
@@ -13,11 +23,11 @@ GeneticMutation.cpp GeneticCrossover.cpp c_index.cpp ErrorFunctions.cpp
 ### And corresponding object files ###
 OBJ = $(addsuffix .o, $(basename $(SRC)))
 
-### SUFFIXX rule to compile files ###
+### SUFFIXX rule to compile files if not specified differently ###
 .SUFFIXES: .cpp
 
 .cpp.o:
-	$(CPP) $(CPPFLAGS) -c $<
+	$(CC) -c $<
 
 ### Main task ###
 valgrind: matrix
@@ -34,7 +44,7 @@ prep:
 
 ### Clean task ###
 clean:
-	rm -f $(OBJ) matrix
+	rm -f $(OBJ) matrix *.o
 
 ### Main test program is linked here###
 matrix: $(OBJ) prep
@@ -64,3 +74,7 @@ GeneticNetwork.o: GeneticNetwork.cpp GeneticNetwork.hpp
 c_index.o: c_index.h c_index.cpp
 
 ErrorFunctions.o: ErrorFunctions.cpp ErrorFunctions.h
+
+### Wrappers ###
+MatrixNetworkWrapper.o: MatrixNetworkWrapper.hpp MatrixNetworkWrapper.cpp
+	$(PYCC) -c $< -o $@

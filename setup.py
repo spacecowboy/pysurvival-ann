@@ -25,15 +25,16 @@ sources = ['src/PythonModule.cpp',
            'src/FFNetwork.cpp',
            'src/drand.cpp',
            'src/activationfunctions.cpp',
-           'src/GeneticNetwork.cpp',
-           'src/GeneticFitness.cpp',
-           'src/GeneticNetworkWrapper.cpp',
            'src/c_index.cpp', 'src/CIndexWrapper.cpp',
            'src/CascadeNetwork.cpp',
            'src/CascadeNetworkWrapper.cpp',
-           'src/GeneticCascadeNetwork.cpp',
-           'src/GeneticCascadeNetworkWrapper.cpp'
-                            ]
+           'src/MatrixNetwork.cpp',
+           'src/MatrixNetworkWrapper.cpp',
+#           'src/GeneticNetwork.cpp',
+#          'src/GeneticFitness.cpp',
+#          'src/GeneticNetworkWrapper.cpp',
+           'src/Random.cpp',
+           'src/global.cpp']
 
 
 # Numpy stuff
@@ -131,7 +132,7 @@ if "--with-R" in sys.argv:
 _ann = Extension('ann._ann',
                  sources = sources,
                  include_dirs = [numpy_include],
-                 extra_compile_args = ['-std=c++0x',
+                 extra_compile_args = ['-std=c++11',
                                        '-Wall', '-O2',
                                        '-pthread'] + compileargs,
                  extra_link_args = linkargs,

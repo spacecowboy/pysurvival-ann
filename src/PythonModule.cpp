@@ -12,14 +12,14 @@
 #include <numpy/arrayobject.h> // Numpy seen from C
 #include "FFNetworkWrapper.h"
 #include "RPropNetworkWrapper.h"
-#include "GeneticNetworkWrapper.h"
-#include "activationfunctions.h"
+#include "activationfunctions.hpp"
 #include "CIndexWrapper.h"
 #include "CascadeNetworkWrapper.h"
 //#include "CoxCascadeNetworkWrapper.h"
-#include "GeneticCascadeNetworkWrapper.h"
-#include "GeneticNetwork.h"
-#include "GeneticFitness.h"
+//#include "GeneticCascadeNetworkWrapper.h"
+//#include "GeneticNetwork.hpp"
+//#include "GeneticNetworkWrapper.h"
+//#include "GeneticFitness.hpp"
 
 /*
  * FFNetwork
@@ -227,6 +227,7 @@ static PyTypeObject RPropNetworkType = {
  * Public Python methods
  * ---------------------
  */
+/*
 static PyMethodDef GenNetworkMethods[] =
 {
     {"learn", (PyCFunction) GenNetwork_learn,                           \
@@ -234,12 +235,13 @@ static PyMethodDef GenNetworkMethods[] =
      "Trains the network using a genetic algorithm."},
     {NULL}, // So that we can iterate safely below
 };
-
+*/
 
 /*
  * Public Python members with get/setters
  * --------------------------------------
  */
+/*
 static PyGetSetDef GenNetworkGetSetters[] = {
   {(char*)"generations", (getter)GenNetwork_getGenerations, \
    (setter)GenNetwork_setGenerations,                       \
@@ -314,34 +316,35 @@ for the population. Default False.", NULL},
 
   {NULL} // Sentinel
 };
-
+*/
 
 
 /*
  *  * Python type declaration
  *   * -----------------------
  *    */
+/*
 static PyTypeObject GenNetworkType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_ann.gennetwork", // tp_name // VITAL CORRECT PACKAGE NAME FOR PICKLING!
-    sizeof(PyGenNetwork),                                    /* tp_basicsize */
-    0,                                              /* tp_itemsize */
-    0,                  /* tp_dealloc */
-    0,                                              /* tp_print */
-    0,                                              /* tp_getattr */
-    0,                                              /* tp_setattr */
-    0,                                              /* tp_compare */
-    0,                                              /* tp_repr */
-    0,                                              /* tp_as_number */
-    0,                                              /* tp_as_sequence */
-    0,                                              /* tp_as_mapping */
-    0,                                              /* tp_hash */
-    0,                                              /* tp_call */
-    0,                                              /* tp_str */
-    0,                                              /* tp_getattro */
-    0,                                              /* tp_setattro */
-    0,                                              /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
+    sizeof(PyGenNetwork),  // tp_basicsize
+    0,                                              // tp_itemsize
+    0,                  // tp_dealloc
+    0,                                              // tp_print
+    0,                                              //* tp_getattr
+    0,                                              //* tp_setattr
+    0,                                              //* tp_compare
+    0,                                              //* tp_repr
+    0,                                              //* tp_as_number
+    0,                                              //* tp_as_sequence
+    0,                                              //* tp_as_mapping
+    0,                                              //* tp_hash
+    0,                                              //* tp_call
+    0,                                              //* tp_str
+    0,      //* tp_getattro
+    0,                                              //* tp_setattro
+    0,                                              //* tp_as_buffer
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       //* tp_flags
     "A neural network that trains using a genetic algorithm.\n\
 A few properties influence the algorithm's behaviour:\n\
 \n\
@@ -370,26 +373,26 @@ population. The exception is if the parent is the best current member,\n\
 then it is always kept in the population.\n\
 \n\
 **fitness_function** - The function that will judge the performance \n\
-of the networks.\n", /* tp_doc */
-    0,                                              /* tp_traverse */
-    0,                                              /* tp_clear */
-    0,                                              /* tp_richcompare */
-    0,                                              /* tp_weaklistoffset */
-    0,                                              /* tp_iter */
-    0,                                              /* tp_iternext */
-    GenNetworkMethods,                                       /* tp_methods */
-    0,                                       /* tp_members */
-    GenNetworkGetSetters,              /* tp_getset */
-    0,                                              /* tp_base */
-    0,                                              /* tp_dict */
-    0,                                              /* tp_descr_get */
-    0,                                              /* tp_descr_set */
-    0,                                              /* tp_dictoffset */
-    (initproc)GenNetwork_init,                      /* tp_init */
-    0,                                              /* tp_alloc */
-    0,                                  /* tp_new */
+of the networks.\n", // tp_doc
+    0,                                              //* tp_traverse
+0,                                              //* tp_clear
+  0,                                              //* tp_richcompare
+  0,                                              //* tp_weaklistoffset
+    0,                                              //* tp_iter
+    0,                                              //* tp_iternext
+    GenNetworkMethods,                                //* tp_methods
+    0,                                       //* tp_members
+    GenNetworkGetSetters,              //* tp_getset
+    0,                                              //* tp_base
+    0,                                              //* tp_dict
+    0,                                              //* tp_descr_get
+    0,                                              //* tp_descr_set
+  0,                                              //* tp_dictoffset
+  (initproc)GenNetwork_init,                      //* tp_init
+  0,                                              //* tp_alloc
+  0,                                  //* tp_new
 };
-
+*/
 /*
  * Cascade network
  * ========================
@@ -536,146 +539,6 @@ static PyTypeObject CoxCascadeNetworkType = {
 };*/
 
 
-/*
- * Genetic Cascade network
- * ========================
- */
-
-/*
- * Public Python methods
- * ---------------------
- */
-static PyMethodDef GeneticCascadeNetworkMethods[] =
-{
-  {"learn", (PyCFunction) GeneticCascadeNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using the Cascade algorithm. \
-Takes arguments: X (inputs), Y (time, event)."},
-
-  {NULL}, // So that we can iterate safely below
-};
-
-/*
- * Public Python members with get/setters
- * --------------------------------------
- */
-static PyGetSetDef GeneticCascadeNetworkGetSetters[] = {
-  {NULL} // Sentinel
-};
-
-/*
- *  * Python type declaration
- *   * -----------------------
- *    */
-static PyTypeObject GeneticCascadeNetworkType = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-        "_ann.geneticcascadenetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
-        sizeof(PyGeneticCascadeNetwork),                                    /* tp_basicsize */
-        0,                                              /* tp_itemsize */
-        0,                  /* tp_dealloc */
-        0,                                              /* tp_print */
-        0,                                              /* tp_getattr */
-        0,                                              /* tp_setattr */
-        0,                                              /* tp_compare */
-        0,                                              /* tp_repr */
-        0,                                              /* tp_as_number */
-        0,                                              /* tp_as_sequence */
-        0,                                              /* tp_as_mapping */
-        0,                                              /* tp_hash */
-        0,                                              /* tp_call */
-        0,                                              /* tp_str */
-        0,                                              /* tp_getattro */
-        0,                                              /* tp_setattro */
-        0,                                              /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-        "An implementation of the Cascade correlation algorithm. Hidden Layers are trained with RProp, while the output neuron is trained genetically.",                       /* tp_doc */
-        0,                                              /* tp_traverse */
-        0,                                              /* tp_clear */
-        0,                                              /* tp_richcompare */
-        0,                                              /* tp_weaklistoffset */
-        0,                                              /* tp_iter */
-        0,                                              /* tp_iternext */
-        GeneticCascadeNetworkMethods,                                       /* tp_methods */
-        0,                                       /* tp_members */
-        GeneticCascadeNetworkGetSetters,                                            /* tp_getset */
-        0,                                              /* tp_base */
-        0,                                              /* tp_dict */
-        0,                                              /* tp_descr_get */
-        0,                                              /* tp_descr_set */
-        0,                                              /* tp_dictoffset */
-       (initproc)GeneticCascadeNetwork_init,                               /* tp_init */
-        0,                                              /* tp_alloc */
-        0,                                  /* tp_new */
-};
-
-
-/*
- * Genetic Ladder network
- * ========================
- */
-
-/*
- * Public Python methods
- * ---------------------
- */
-static PyMethodDef GeneticLadderNetworkMethods[] =
-{
-  {"learn", (PyCFunction) GeneticLadderNetwork_learn, METH_VARARGS | METH_KEYWORDS, "Trains the network using a modified genetic Cascade algorithm. \
-Takes arguments: X (inputs), Y (time, event)."},
-
-  {NULL}, // So that we can iterate safely below
-};
-
-/*
- * Public Python members with get/setters
- * --------------------------------------
- */
-static PyGetSetDef GeneticLadderNetworkGetSetters[] = {
-  {NULL} // Sentinel
-};
-
-/*
- *  * Python type declaration
- *   * -----------------------
- *    */
-static PyTypeObject GeneticLadderNetworkType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "_ann.geneticladdernetwork",                /* tp_name */ // VITAL THAT THIS IS CORRECT PACKAGE NAME FOR PICKLING!
-    sizeof(PyGeneticLadderNetwork),                                    /* tp_basicsize */
-    0,                                              /* tp_itemsize */
-    0,                  /* tp_dealloc */
-    0,                                              /* tp_print */
-    0,                                              /* tp_getattr */
-    0,                                              /* tp_setattr */
-    0,                                              /* tp_compare */
-    0,                                              /* tp_repr */
-    0,                                              /* tp_as_number */
-    0,                                              /* tp_as_sequence */
-    0,                                              /* tp_as_mapping */
-    0,                                              /* tp_hash */
-    0,                                              /* tp_call */
-    0,                                              /* tp_str */
-    0,                                              /* tp_getattro */
-    0,                                              /* tp_setattro */
-    0,                                              /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-    "A modified cascade algorithm. Neurons are trained as output neurons and then moved to the hidden layer as new output neurons are added. The final structure is fully shortcut connected as for cascade, but neurons are trained as output neurons on the full error function genetically.",                       /* tp_doc */
-    0,                                              /* tp_traverse */
-    0,                                              /* tp_clear */
-    0,                                              /* tp_richcompare */
-    0,                                              /* tp_weaklistoffset */
-    0,                                              /* tp_iter */
-    0,                                              /* tp_iternext */
-    GeneticLadderNetworkMethods,                                       /* tp_methods */
-    0,                                       /* tp_members */
-    GeneticLadderNetworkGetSetters,                     /* tp_getset */
-    0,                                              /* tp_base */
-    0,                                              /* tp_dict */
-    0,                                              /* tp_descr_get */
-    0,                                              /* tp_descr_set */
-    0,                                              /* tp_dictoffset */
-    (initproc)GeneticLadderNetwork_init,            // tp_init
-    0,                                              /* tp_alloc */
-    0,                                  /* tp_new */
-};
 
 
 
@@ -748,9 +611,25 @@ extern "C" {
     Py_INCREF(&RPropNetworkType);
     PyModule_AddObject(mod, "rpropnetwork", (PyObject*)&RPropNetworkType);
 
+/*
+ * CascadeNetwork
+ */
+    CascadeNetworkType.tp_base = &RPropNetworkType;
+    if (PyType_Ready(&CascadeNetworkType) < 0) {
+      Py_DECREF(&FFNetworkType);
+      Py_DECREF(&RPropNetworkType);
+      //Py_DECREF(&GenNetworkType);
+      return MOD_ERROR_VAL;
+    }
+
+    Py_INCREF(&CascadeNetworkType);
+    PyModule_AddObject(mod, "cascadenetwork", (PyObject*)&CascadeNetworkType);
+
+
     /*
      * GenNetwork
      */
+    /*
     GenNetworkType.tp_base = &FFNetworkType;
     if (PyType_Ready(&GenNetworkType) < 0) {
       Py_DECREF(&FFNetworkType);
@@ -792,72 +671,7 @@ extern "C" {
 
     Py_INCREF(&GenNetworkType);
     PyModule_AddObject(mod, "gennetwork", (PyObject*)&GenNetworkType);
-
-    /*
-     * CascadeNetwork
-     */
-    CascadeNetworkType.tp_base = &RPropNetworkType;
-    if (PyType_Ready(&CascadeNetworkType) < 0) {
-      Py_DECREF(&FFNetworkType);
-      Py_DECREF(&RPropNetworkType);
-      Py_DECREF(&GenNetworkType);
-      return MOD_ERROR_VAL;
-    }
-
-    Py_INCREF(&CascadeNetworkType);
-    PyModule_AddObject(mod, "cascadenetwork", (PyObject*)&CascadeNetworkType);
-
-    /*
-     * CoxCascadeNetwork
-     *
-    CoxCascadeNetworkType.tp_base = &CascadeNetworkType;
-    if (PyType_Ready(&CoxCascadeNetworkType) < 0) {
-      Py_DECREF(&FFNetworkType);
-      Py_DECREF(&RPropNetworkType);
-      Py_DECREF(&GenNetworkType);
-      Py_DECREF(&GenSurvNetworkType);
-      Py_DECREF(&CascadeNetworkType);
-      return MOD_ERROR_VAL;
-    }
-
-    Py_INCREF(&CoxCascadeNetworkType);
-    PyModule_AddObject(mod, "coxcascadenetwork", (PyObject*)&CoxCascadeNetworkType);
     */
-
-    /*
-     * GeneticCascadeNetwork
-     */
-    GeneticCascadeNetworkType.tp_base = &CascadeNetworkType;
-    if (PyType_Ready(&GeneticCascadeNetworkType) < 0) {
-      Py_DECREF(&FFNetworkType);
-      Py_DECREF(&RPropNetworkType);
-      Py_DECREF(&GenNetworkType);
-      Py_DECREF(&CascadeNetworkType);
-      //Py_DECREF(&CoxCascadeNetworkType);
-      return MOD_ERROR_VAL;
-    }
-
-    Py_INCREF(&GeneticCascadeNetworkType);
-    PyModule_AddObject(mod, "geneticcascadenetwork",
-                       (PyObject*)&GeneticCascadeNetworkType);
-
-    /*
-     * GeneticLadderNetwork
-     */
-    GeneticLadderNetworkType.tp_base = &GeneticCascadeNetworkType;
-    if (PyType_Ready(&GeneticLadderNetworkType) < 0) {
-      Py_DECREF(&FFNetworkType);
-      Py_DECREF(&RPropNetworkType);
-      Py_DECREF(&GenNetworkType);
-      Py_DECREF(&CascadeNetworkType);
-      //Py_DECREF(&CoxCascadeNetworkType);
-      Py_DECREF(&GeneticCascadeNetworkType);
-      return MOD_ERROR_VAL;
-    }
-
-    Py_INCREF(&GeneticLadderNetworkType);
-    PyModule_AddObject(mod, "geneticladdernetwork",
-                       (PyObject*)&GeneticLadderNetworkType);
 
     return MOD_SUCCESS_VAL(mod);
   }

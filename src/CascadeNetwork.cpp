@@ -6,7 +6,7 @@
 #include "CascadeNetwork.h"
 #include "RPropNetwork.h"
 #include "FFNeuron.h"
-#include "activationfunctions.h"
+#include "activationfunctions.hpp"
 #include "boost/random.hpp"
 #include <vector>
 #include <stdio.h>
