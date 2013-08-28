@@ -67,21 +67,6 @@ class GeneticNetwork: public MatrixNetwork {
 // Makes this network into a clone of the original. Assumes equal iteration.
   virtual void cloneNetwork(GeneticNetwork &original);
 
-/*
-void breedNetworks(
-    boost::variate_generator<boost::mt19937&,
-    boost::normal_distribution<double> > &gaussian,
-    boost::variate_generator<boost::mt19937&,
-    boost::geometric_distribution<int, double> > &geometric,
-    boost::variate_generator<boost::mt19937&,
-    boost::uniform_real<> > &uniform,
-    vector<GeneticNetwork*> &sortedPopulation,
-    vector<double> &sortedFitness,
-    const unsigned int childCount,
-    const unsigned int curGen,
-    const double * const X, const double * const Y,
-    const unsigned int length);
-*/
   unsigned int getGenerations() const;
   void setGenerations(unsigned int generations);
   unsigned int getPopulationSize() const;
@@ -92,6 +77,11 @@ void breedNetworks(
   void setWeightMutationHalfPoint(unsigned int weightMutationHalfPoint);
   double getWeightMutationFactor() const;
   void setWeightMutationFactor(double weightMutationFactor);
+
+  double getConnsMutationChance() const;
+  void setConnsMutationChance(double chance);
+  double getActFuncMutationChance() const;
+  void setActFuncMutationChance(double chance);
 
   double getDecayL1() const;
   void setDecayL1(double val);

@@ -14,9 +14,12 @@
 
 DEPS = setup.py $(wildcard src/*.cpp) $(wildcard src/*.h*) $(wildcard ann/*.py)
 
-test: test.py ann/_ann.so
+test: test.py ann/_ann.so $(DEPS)
 	nosetests -v test.py
 	#python test.py
+
+ann/__init__.py:
+	python setup.py build_ext --inplace
 
 ann/_ann.so: $(DEPS)
 	python setup.py build_ext --inplace

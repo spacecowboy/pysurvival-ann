@@ -95,6 +95,18 @@ extern "C" {
                                     PyObject *value,
                                     void *closure);
 
+  PyObject *GenNetwork_getConnsMutationChance(PyGenNetwork *self,
+                                              void *closure);
+  int GenNetwork_setConnsMutationChance(PyGenNetwork *self,
+                                        PyObject *value,
+                                        void *closure);
+
+  PyObject *GenNetwork_getActFuncMutationChance(PyGenNetwork *self,
+                                                void *closure);
+  int GenNetwork_setActFuncMutationChance(PyGenNetwork *self,
+                                          PyObject *value,
+                                          void *closure);
+
 
   PyObject *GenNetwork_getSelectionMethod(PyGenNetwork *self,
                                           void *closure);
@@ -107,11 +119,6 @@ extern "C" {
   int GenNetwork_setCrossoverMethod(PyGenNetwork *self,
                                     PyObject *value,
                                     void *closure);
-  PyObject *GenNetwork_getInsertMethod(PyGenNetwork *self,
-                                       void *closure);
-  int GenNetwork_setInsertMethod(PyGenNetwork *self,
-                                 PyObject *value,
-                                 void *closure);
 
   PyObject *GenNetwork_getFitnessFunction(PyGenNetwork *self,
                                           void *closure);

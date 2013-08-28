@@ -26,7 +26,7 @@ def test_matrixnetwork():
     for val in xor_in:
         assert net.output(val) == 0, "Expected zero output as default"
 
-    length = net.inputCount + net.hiddenCount + net.outputCount + 1
+    length = net.input_count + net.hidden_count + net.output_count + 1
 
     # Weights
     print("Length: ", len(net.weights))
@@ -57,22 +57,22 @@ def test_matrixnetwork():
     assert np.all(net.connections == 1) == True, "Expected conns to equal 1"
 
     # ActFuncs
-    print("Length: ", len(net.activationFunctions))
-    print(net.activationFunctions)
-    assert len(net.activationFunctions) == length, \
+    print("Length: ", len(net.activation_functions))
+    print(net.activation_functions)
+    assert len(net.activation_functions) == length, \
            "Wrong length of conns vector"
-    assert np.all(net.activationFunctions == net.LINEAR) == True, \
+    assert np.all(net.activation_functions == net.LINEAR) == True, \
            "Expected funcs to be LINEAR"
 
-    actfuncs = net.activationFunctions
-    #actfuncs = np.zeros(len(net.activationFunctions))
+    actfuncs = net.activation_functions
+    #actfuncs = np.zeros(len(net.activation_functions))
     for i in range(len(actfuncs)):
         actfuncs[i] = net.TANH
     print(actfuncs)
-    net.activationFunctions = actfuncs
+    net.activation_functions = actfuncs
 
-    print(net.activationFunctions)
-    assert np.all(net.activationFunctions == net.TANH) == True, \
+    print(net.activation_functions)
+    assert np.all(net.activation_functions == net.TANH) == True, \
            "Expected actfuncs to be TANH"
 
     # oUTPUTS
@@ -89,7 +89,7 @@ def test_matrixnetwork():
     actfuncs[3] = net.LOGSIG
     actfuncs[4] = net.LOGSIG
     actfuncs[5] = net.LINEAR
-    net.activationFunctions = actfuncs
+    net.activation_functions = actfuncs
 
     weights[3*length + 0] = -60
     weights[3*length + 1] = 60
@@ -132,14 +132,32 @@ def test_matrixnetwork():
             assert net.output(val) > 0.9, "xor solution doesnt work"
 
 
+    # Pickle test
+    import pickle
+
+    state = pickle.dumps(net, -1)
+
+    net2 = pickle.loads(state)
+
+    # Make sure it's the same
+    assert np.all(net.weights == net2.weights), "weights don't match"
+
+    assert np.all(net.connections == net2.connections), "conns don't match"
+
+    assert np.all(net.activation_functions == net2.activation_functions),\
+       "functions don't match"
+
 def test_gennetwork():
     from ann import geneticnetwork
 
-    net = geneticnetwork(2, 2, 1)
+    net = geneticnetwork(2, 4, 1)
 
     xor_in, xor_out = getXOR()
 
     net.generations = 1000
+    net.crossover_chance = 0.8
+    net.connection_mutation_chance = 0.2
+    net.activation_mutation_chance = 0.2
 
     net.learn(xor_in, xor_out)
 
@@ -150,9 +168,10 @@ def test_gennetwork():
         else:
             assert net.output(val) > 0.9, "xor solution doesnt work"
 
+    print(net)
 
 
 if __name__ == "__main__":
     test_import()
-    test_matrixnetwork()
     test_gennetwork()
+    test_matrixnetwork()

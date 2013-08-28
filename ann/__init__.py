@@ -21,7 +21,7 @@ import numpy as np
 try:
     from ._ann import coxcascadenetwork as _coxcascadenetwork
 except:
-    print("Ignoring Cox cascade network, was probably not built")
+    #print("Ignoring Cox cascade network, was probably not built")
     _coxcascadenetwork = None
 
 
@@ -332,6 +332,30 @@ def _getstate(net):
                 net.getWeights(),
                 net.trnoutputs)
 
+def _getmatrixstate(net):
+    '''Returns the state of the network as a list of attributes:
+    (neuron_numbers, attrs...)
+
+    Where neuron_numbers = (numOfInputs, numOfHidden, numOfOutputs)'''
+    neuron_numbers = (net.input_count, net.hidden_count,
+                               net.output_count)
+    attrs = {}
+    attrs['neuron_numbers'] = neuron_numbers
+    attrs['weights'] = net.weights
+    attrs['activation_functions'] = list(net.activation_functions)
+    attrs['connections'] = list(net.connections)
+
+    return attrs
+
+def _setmatrixstate(net, state):
+    neurons = state.pop('neuron_numbers')
+    net.__init__(*neurons)
+
+    for k, v in state.items():
+        setattr(net, k, v)
+    pass
+
+
 def _setstate(net, state):
     '''Restores the state of the network from the given state.
 
@@ -395,6 +419,13 @@ Output: {}""".format(net.__class__.__name__,
     funcVals.get(net.hiddenActivationFunction),
     funcVals.get(net.outputActivationFunction))
 
+# Used for Matrix Networks
+def _repr_matrix(net):
+
+    return '''{}({}, {}, {})'''.format(net.__class__.__name__,
+                                       net.input_count,
+                                       net.hidden_count,
+                                       net.output_count)
 
 ### These should be at the bottom of file ###
 
@@ -406,6 +437,13 @@ def UtilFuncs(cls):
     cls.__getstate__ = _getstate
     cls.__setstate__ = _setstate
     cls.__repr__ = _repr
+    return cls
+
+def UtilMatrix(cls):
+    '''Adds util funcs to matrix networks'''
+    cls.__repr__ = _repr_matrix
+    cls.__getstate__ = _getmatrixstate
+    cls.__setstate__ = _setmatrixstate
     return cls
 
 @UtilFuncs
@@ -439,17 +477,17 @@ if _coxcascadenetwork is not None:
 #    __doc__ = _geneticladdernetwork.__doc__
 #    pass
 
-@UtilFuncs
+@UtilMatrix
 class matrixnetwork(_matrixnetwork):
     __doc__ = _matrixnetwork.__doc__
     pass
 
-@UtilFuncs
+@UtilMatrix
 class geneticnetwork(_gennetwork):
     __doc__ = _gennetwork.__doc__
     pass
 
-@UtilFuncs
+@UtilMatrix
 class gensurvnetwork(_gennetwork):
     __doc__ = _gennetwork.__doc__
 

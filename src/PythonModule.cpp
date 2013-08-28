@@ -241,17 +241,17 @@ static PyMemberDef MatrixNetworkMembers[] = {
 
 //Public Python members with get/setters
 static PyGetSetDef MatrixNetworkGetSetters[] = {
-  {(char*)"inputCount", (getter)MatrixNetwork_getNumOfInputs, NULL,    \
+  {(char*)"input_count", (getter)MatrixNetwork_getNumOfInputs, NULL,    \
    (char*)"Number of input neurons", NULL},
-  {(char*)"hiddenCount", (getter)MatrixNetwork_getNumOfHidden, NULL,    \
+  {(char*)"hidden_count", (getter)MatrixNetwork_getNumOfHidden, NULL,    \
    (char*)"Number of hidden neurons", NULL},
-  {(char*)"outputCount", (getter)MatrixNetwork_getNumOfOutput, NULL,  \
+  {(char*)"output_count", (getter)MatrixNetwork_getNumOfOutput, NULL,  \
    (char*)"Number of output neurons", NULL},
 
-  {(char*)"logPerf", (getter)MatrixNetwork_getLogPerf, NULL,       \
+  {(char*)"log", (getter)MatrixNetwork_getLogPerf, NULL,       \
    (char*)"Get a log of the training performance, [epochs, outputs]", NULL},
-
-  {(char*)"outputActivationFunction",               \
+  /*
+  {(char*)"output_activationunction",               \
    (getter)MatrixNetwork_getOutputActivationFunction,   \
    (setter)MatrixNetwork_setOutputActivationFunction,        \
    (char*)"The activation function used by output neurons. \
@@ -261,7 +261,7 @@ For example network.LOGSIG.", NULL},
    (setter)MatrixNetwork_setHiddenActivationFunction,        \
    (char*)"The activation function used by hidden neurons. \
 For example network.TANH", NULL},
-
+  */
   {(char*)"weights",               \
    (getter)MatrixNetwork_getWeights,   \
    (setter)MatrixNetwork_setWeights,        \
@@ -273,7 +273,7 @@ For example network.TANH", NULL},
    (setter)MatrixNetwork_setConns,        \
    (char*)"Connections of neurons, LxL matrix.", NULL},
 
-  {(char*)"activationFunctions",                   \
+  {(char*)"activation_functions",                   \
    (getter)MatrixNetwork_getActFuncs,   \
    (setter)MatrixNetwork_setActFuncs,        \
    (char*)"The activation functions of the neurons.", NULL},
@@ -347,37 +347,37 @@ static PyGetSetDef GenNetworkGetSetters[] = {
   {(char*)"generations", (getter)GenNetwork_getGenerations, \
    (setter)GenNetwork_setGenerations,                       \
    (char*)"Time to train", NULL},
-  {(char*)"populationSize", (getter)GenNetwork_getPopulationSize,   \
+  {(char*)"population_size", (getter)GenNetwork_getPopulationSize,   \
    (setter)GenNetwork_setPopulationSize,                            \
    (char*)"Number of networks created each generation", NULL},
-  {(char*)"weightMutationChance", (getter)GenNetwork_getWeightMutationChance, \
+  {(char*)"weight_mutation_chance", (getter)GenNetwork_getWeightMutationChance, \
    (setter)GenNetwork_setWeightMutationChance,                          \
    (char*)"The chance of a single weight being changed during cloning", NULL},
-  {(char*)"weightMutationHalfPoint",              \
+  {(char*)"weight_mutation_halfpoint",              \
    (getter)GenNetwork_getWeightMutationHalfPoint,                   \
    (setter)GenNetwork_setWeightMutationHalfPoint,                       \
    (char*)"If time dependant mutation is desired, set this to a non-zero value.\
  StdDev will decrease linearly and reach half at specified generation.", NULL},
-  {(char*)"weightMutationFactor",              \
+  {(char*)"weight_mutation_factor",              \
    (getter)GenNetwork_getWeightMutationFactor, \
    (setter)GenNetwork_setWeightMutationFactor,                      \
    (char*)"Mutations are gaussians with this stddev and added to current\
  weight.", NULL},
 
-  {(char*)"weightDecayL1",                  \
+  {(char*)"weight_decayL1",                  \
    (getter)GenNetwork_getDecayL1, \
    (setter)GenNetwork_setDecayL1,                      \
    (char*)"Coefficient for L1 weight decay. Zero by default.", NULL},
-  {(char*)"weightDecayL2",                  \
+  {(char*)"weight_decayL2",                  \
    (getter)GenNetwork_getDecayL2, \
    (setter)GenNetwork_setDecayL2,                      \
    (char*)"Coefficient for L2 weight decay. Zero by default.", NULL},
-  {(char*)"weightElimination",                  \
+  {(char*)"weight_elimination",                  \
    (getter)GenNetwork_getWeightElimination, \
    (setter)GenNetwork_setWeightElimination,                      \
    (char*)"Coefficient (g) for soft weight elimination: P = g * sum(). \
 Zero by default.", NULL},
-  {(char*)"weightEliminationLambda",                  \
+  {(char*)"weight_eliminationLambda",                  \
    (getter)GenNetwork_getWeightEliminationLambda, \
    (setter)GenNetwork_setWeightEliminationLambda,                      \
    (char*)"Coefficient (l) for soft weight elimination: \
@@ -395,6 +395,17 @@ for the population. Default False.", NULL},
    (getter)GenNetwork_getCrossoverChance, \
    (setter)GenNetwork_setCrossoverChance,                      \
    (char*)"Probability to perform crossover before mutation.", NULL},
+
+  {(char*)"connection_mutation_chance",              \
+   (getter)GenNetwork_getConnsMutationChance, \
+   (setter)GenNetwork_setConnsMutationChance,                      \
+   (char*)"Probability to mutate each connection (shift the bit).", NULL},
+
+  {(char*)"activation_mutation_chance",              \
+   (getter)GenNetwork_getActFuncMutationChance, \
+   (setter)GenNetwork_setActFuncMutationChance,                      \
+   (char*)"Probability to mutate each activation function.", NULL},
+
 
   {(char*)"selection_method",              \
    (getter)GenNetwork_getSelectionMethod, \

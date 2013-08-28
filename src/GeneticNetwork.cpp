@@ -539,6 +539,20 @@ void GeneticNetwork::setWeightMutationChance(double weightMutationChance) {
   this->weightMutationChance = weightMutationChance;
 }
 
+double GeneticNetwork::getConnsMutationChance() const {
+  return connsMutationChance;
+}
+void GeneticNetwork::setConnsMutationChance(double chance) {
+  this->connsMutationChance = chance;
+}
+
+double GeneticNetwork::getActFuncMutationChance() const {
+  return actFuncMutationChance;
+}
+void GeneticNetwork::setActFuncMutationChance(double chance) {
+  this->actFuncMutationChance = chance;
+}
+
 unsigned int GeneticNetwork::getWeightMutationHalfPoint() const {
   return weightMutationHalfPoint;
 }

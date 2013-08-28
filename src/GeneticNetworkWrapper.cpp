@@ -381,90 +381,136 @@ targets (2d array)");
   }
 
 
-    PyObject *GenNetwork_getSelectionMethod(PyGenNetwork *self,
-                                            void *closure) {
-        return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
-                             getSelectionMethod());
+  PyObject *GenNetwork_getConnsMutationChance(PyGenNetwork *self,
+                                              void *closure) {
+    return Py_BuildValue("d", ((GeneticNetwork*)self->super.net)->
+                         getConnsMutationChance());
+  }
+  int GenNetwork_setConnsMutationChance(PyGenNetwork *self,
+                                        PyObject *value,
+                                        void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
     }
 
-    int GenNetwork_setSelectionMethod(PyGenNetwork *self, PyObject *value,
-                                      void *closure) {
-        if (value == NULL) {
-            PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-            return -1;
-        }
-
-        if (! PyInt_Check(value)) {
-            PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
-            return 1;
-        }
-
-        long i = PyInt_AsLong(value);
-
-        if (PyErr_Occurred()) {
-            return -1;
-        }
-
-        ((GeneticNetwork*)self->super.net)->
-          setSelectionMethod((SelectionMethod) i);
-        return 0;
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
     }
 
-    PyObject *GenNetwork_getCrossoverMethod(PyGenNetwork *self,
-                                            void *closure) {
-        return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
-                             getCrossoverMethod());
+    ((GeneticNetwork*)self->super.net)->setConnsMutationChance(val);
+    return 0;
+  }
+
+  PyObject *GenNetwork_getActFuncMutationChance(PyGenNetwork *self,
+                                                void *closure) {
+    return Py_BuildValue("d", ((GeneticNetwork*)self->super.net)->
+                         getActFuncMutationChance());
+  }
+  int GenNetwork_setActFuncMutationChance(PyGenNetwork *self,
+                                          PyObject *value,
+                                          void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
     }
 
-    int GenNetwork_setCrossoverMethod(PyGenNetwork *self, PyObject *value,
-                                      void *closure) {
-        if (value == NULL) {
-            PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-            return -1;
-        }
-
-        if (! PyInt_Check(value)) {
-            PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
-            return 1;
-        }
-
-        long i = PyInt_AsLong(value);
-
-        if (PyErr_Occurred()) {
-            return -1;
-        }
-
-        ((GeneticNetwork*)self->super.net)->
-          setCrossoverMethod((CrossoverMethod) i);
-        return 0;
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
     }
+
+    ((GeneticNetwork*)self->super.net)->setActFuncMutationChance(val);
+    return 0;
+  }
+
+
+
+  PyObject *GenNetwork_getSelectionMethod(PyGenNetwork *self,
+                                          void *closure) {
+    return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
+                         getSelectionMethod());
+  }
+
+  int GenNetwork_setSelectionMethod(PyGenNetwork *self, PyObject *value,
+                                    void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    if (! PyInt_Check(value)) {
+      PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
+      return 1;
+    }
+
+    long i = PyInt_AsLong(value);
+
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticNetwork*)self->super.net)->
+      setSelectionMethod((SelectionMethod) i);
+    return 0;
+  }
+
+  PyObject *GenNetwork_getCrossoverMethod(PyGenNetwork *self,
+                                          void *closure) {
+    return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
+                         getCrossoverMethod());
+  }
+
+  int GenNetwork_setCrossoverMethod(PyGenNetwork *self, PyObject *value,
+                                    void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    if (! PyInt_Check(value)) {
+      PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
+      return 1;
+    }
+
+    long i = PyInt_AsLong(value);
+
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticNetwork*)self->super.net)->
+      setCrossoverMethod((CrossoverMethod) i);
+    return 0;
+  }
 
   PyObject *GenNetwork_getFitnessFunction(PyGenNetwork *self,
                                           void *closure) {
     return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
                          getFitnessFunction());
+  }
+
+  int GenNetwork_setFitnessFunction(PyGenNetwork *self, PyObject *value,
+                                    void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
     }
 
-    int GenNetwork_setFitnessFunction(PyGenNetwork *self, PyObject *value,
-                                      void *closure) {
-      if (value == NULL) {
-        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-        return -1;
-      }
-
-      if (! PyInt_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
-        return 1;
-      }
-
-      long i = PyInt_AsLong(value);
-
-      if (PyErr_Occurred()) {
-        return -1;
-      }
-
-      ((GeneticNetwork*)self->super.net)->
-        setFitnessFunction((FitnessFunction) i);
-      return 0;
+    if (! PyInt_Check(value)) {
+      PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
+      return 1;
     }
+
+    long i = PyInt_AsLong(value);
+
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticNetwork*)self->super.net)->
+      setFitnessFunction((FitnessFunction) i);
+    return 0;
+  }
 }
