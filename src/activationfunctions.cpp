@@ -42,6 +42,18 @@ double evaluateActFuncDerivative(ActivationFuncEnum func, double y) {
   return retval;
 }
 
+ActivationFuncEnum getFuncFromNumber(int num) {
+  switch (num) {
+  case LOGSIG:
+    return LOGSIG;
+  case TANH:
+    return TANH;
+  case LINEAR:
+  default:
+    return LINEAR;
+  }
+}
+
 /*
  * Linear, y = x, derivative = 1
  */

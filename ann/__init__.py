@@ -6,12 +6,14 @@ Should write intended usage here...
 """
 
 from __future__ import division
-from ._ann import (ffnetwork as _ffnetwork, rpropnetwork as _rpropnetwork,
+from ._ann import (ffnetwork as _ffnetwork,
+                   rpropnetwork as _rpropnetwork,
+                   matrixnetwork as _matrixnetwork,
                    gennetwork as _gennetwork,
-                    get_C_index,
-                   cascadenetwork as _cascadenetwork,
-                   geneticcascadenetwork as _geneticcascadenetwork,
-                   geneticladdernetwork as _geneticladdernetwork)
+                   get_C_index,
+                   cascadenetwork as _cascadenetwork)
+                   #geneticcascadenetwork as _geneticcascadenetwork,
+                   #geneticladdernetwork as _geneticladdernetwork)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
@@ -56,7 +58,7 @@ def getSingleLayerGenSurv(numOfInputs, numOfHidden, variance=None):
     net = gensurvnetwork(numOfInputs, numOfHidden, 1)
 
     _connect_single_layer_genetic(net, variance)
-    net.fitness_function = net.FITNESS_CINDEX
+    #net.fitness_function = net.FITNESS_CINDEX
 
     return net
 
@@ -127,25 +129,25 @@ if _coxcascadenetwork is not None:
         return net
 
 
-def getGeneticCascadeNetwork(numOfInputs):
+#def getGeneticCascadeNetwork(numOfInputs):
     '''Returns a connected genetic cascade network with the specified
     amount of input neurons, ready to be trained.
     '''
-    net = geneticcascadenetwork(numOfInputs)
-    net.hiddenActivationFunction = net.LOGSIG
-    net.outputActivationFunction = net.LOGSIG
-    connectAsShortcutNLayer(net, [])
-    return net
+#    net = geneticcascadenetwork(numOfInputs)
+#    net.hiddenActivationFunction = net.LOGSIG
+#    net.outputActivationFunction = net.LOGSIG
+#    connectAsShortcutNLayer(net, [])
+#    return net
 
-def getGeneticLadderNetwork(numOfInputs):
+#def getGeneticLadderNetwork(numOfInputs):
     '''Returns a connected genetic ladder network with the specified
     amount of input neurons, ready to be trained.
     '''
-    net = geneticladdernetwork(numOfInputs)
-    connectAsShortcutNLayer(net, [])
-    net.hiddenActivationFunction = net.LOGSIG
-    net.outputActivationFunction = net.LOGSIG
-    return net
+#    net = geneticladdernetwork(numOfInputs)
+#    connectAsShortcutNLayer(net, [])
+#    net.hiddenActivationFunction = net.LOGSIG
+#    net.outputActivationFunction = net.LOGSIG
+#    return net
 
 
 def connectAsSingleLayer(net):
@@ -427,14 +429,19 @@ if _coxcascadenetwork is not None:
         __doc__ = _coxcascadenetwork.__doc__
         pass
 
-@UtilFuncs
-class geneticcascadenetwork(_geneticcascadenetwork):
-    __doc__ = _geneticcascadenetwork.__doc__
-    pass
+#@UtilFuncs
+#class geneticcascadenetwork(_geneticcascadenetwork):
+#    __doc__ = _geneticcascadenetwork.__doc__
+#    pass
+
+#@UtilFuncs
+#class geneticladdernetwork(_geneticladdernetwork):
+#    __doc__ = _geneticladdernetwork.__doc__
+#    pass
 
 @UtilFuncs
-class geneticladdernetwork(_geneticladdernetwork):
-    __doc__ = _geneticladdernetwork.__doc__
+class matrixnetwork(_matrixnetwork):
+    __doc__ = _matrixnetwork.__doc__
     pass
 
 @UtilFuncs

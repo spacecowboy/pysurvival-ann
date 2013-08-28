@@ -3,6 +3,7 @@
 #include "ExtensionHeader.h"
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include <algorithm>
+#include "activationfunctions.hpp"
 
 extern "C" {
 
@@ -392,8 +393,8 @@ extern "C" {
     }
 
     if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM(inputs) == 1 &&
-              PyArray_TYPE(inputs) == NPY_UINT))) {
+          || (PyArray_NDIM(inputs) == 1  &&
+                PyArray_TYPE(inputs) == NPY_UINT))) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of UINTs.");
@@ -405,6 +406,12 @@ extern "C" {
 	bool pylist = PyList_CheckExact(inputs);
 	PyObject *pyval = NULL;
 	unsigned int *ptr = NULL;
+
+    //PyArrayObject *a;
+    //if (!pylist) {
+    //  a = (PyArrayObject *)                               \
+          //    PyArray_FROM_OTF(inputs, NPY_UINT, NPY_IN_ARRAY);
+    //}
 
     for (int i = 0; (unsigned int)i < length; i++) {
       if (pylist) {
@@ -420,15 +427,14 @@ extern "C" {
       }
       else {
         // Numpy array, first try with end
-        ptr = (unsigned int *) PyArray_GETPTR1((PyArrayObject*) inputs,
-                                               i);
+        ptr = (unsigned int *) PyArray_GETPTR1(inputs, i);
         if (ptr == NULL) {
           PyErr_Format(PyExc_ValueError,
                        "Something went wrong when iterating of input \
  values. Possibly wrong length?");
           return -1;
         }
-        self->net->actFuncs[i] = (ActivationFuncEnum) ptr[i];
+        self->net->actFuncs[i] = getFuncFromNumber(*ptr);
       }
     }
 

@@ -97,7 +97,8 @@ double *MatrixNetwork::output(const double * const inputs,
     // No recursive connections allowed
     for (j = INPUT_START; j < i; j++) {
       target = LENGTH * i + j;
-      sum += ((double) conns[target]) * weights[target] * outputs[j];
+      if (conns[target] != 0)
+        sum += weights[target] * outputs[j];
     }
     //printf("\nSum = %f", sum);
     outputs[i] = evaluateActFunction(actFuncs[i], sum);

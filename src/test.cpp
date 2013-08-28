@@ -150,12 +150,12 @@ void geneticTest1() {
 }
 
 void geneticXOR() {
-  GeneticNetwork net(2, 4, 1);
-  net.setGenerations(10);
-  net.setWeightMutationChance(0.25);
+  GeneticNetwork net(2, 2, 1);
+  net.setGenerations(10000);
+  net.setWeightMutationChance(0.5);
   net.setWeightMutationFactor(0.3);
-  net.connsMutationChance = 0.35;
-  net.actFuncMutationChance = 0.35;
+  net.connsMutationChance = 0.5;
+  net.actFuncMutationChance = 0.5;
   net.setCrossoverChance(0.6);
 
   // define inputs

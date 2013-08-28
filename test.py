@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+import numpy as np
+
+def getXOR():
+    '''Returns a tuple of (inputs, targets)'''
+    inputs = np.array([[0.0, 0],
+                       [0, 1],
+                       [1, 0],
+                       [1, 1]])
+    outputs = np.array([[0.0],
+                        [1],
+                        [1],
+                        [0]])
+    return (inputs, outputs)
+
+def test_import():
+    import ann
+
+def test_matrixnetwork():
+    from ann import matrixnetwork
+
+    net = matrixnetwork(2, 2, 1)
+
+    # Default start is zero
+    xor_in, xor_out = getXOR()
+    for val in xor_in:
+        assert net.output(val) == 0, "Expected zero output as default"
+
+    length = net.inputCount + net.hiddenCount + net.outputCount + 1
+
+    # Weights
+    print("Length: ", len(net.weights))
+    print(net.weights)
+    assert len(net.weights) == length**2, "Wrong length of weight vector"
+    assert np.all(net.weights == 0) == True, "Expected weights to equal zero"
+
+    weights = net.weights
+
+    for i in range(len(weights)):
+        weights[i] = 1.0
+    net.weights = weights
+
+    print(net.weights)
+    assert np.all(net.weights == 1.0) == True, "Expected weights to equal 1"
+
+    # Connections
+    print("Length: ", len(net.connections))
+    print(net.connections)
+    assert len(net.connections) == length**2, "Wrong length of conns vector"
+    assert np.all(net.connections == 0) == True, "Expected conns to equal zero"
+    conns = net.connections
+    for i in range(len(conns)):
+        conns[i] = 1
+    net.connections = conns
+
+    print(net.connections)
+    assert np.all(net.connections == 1) == True, "Expected conns to equal 1"
+
+    # ActFuncs
+    print("Length: ", len(net.activationFunctions))
+    print(net.activationFunctions)
+    assert len(net.activationFunctions) == length, \
+           "Wrong length of conns vector"
+    assert np.all(net.activationFunctions == net.LINEAR) == True, \
+           "Expected funcs to be LINEAR"
+
+    actfuncs = net.activationFunctions
+    #actfuncs = np.zeros(len(net.activationFunctions))
+    for i in range(len(actfuncs)):
+        actfuncs[i] = net.TANH
+    print(actfuncs)
+    net.activationFunctions = actfuncs
+
+    print(net.activationFunctions)
+    assert np.all(net.activationFunctions == net.TANH) == True, \
+           "Expected actfuncs to be TANH"
+
+    # oUTPUTS
+    for val in xor_in:
+        assert net.output(val) != 0, "Expected some output"
+
+
+    # Solve XOR
+    # set all conns to zero first
+    for i in range(len(conns)):
+        conns[i] = 0
+        weights[i] = 0
+    # We care only about first two neurons and output
+    actfuncs[3] = net.LOGSIG
+    actfuncs[4] = net.LOGSIG
+    actfuncs[5] = net.LINEAR
+    net.activationFunctions = actfuncs
+
+    weights[3*length + 0] = -60
+    weights[3*length + 1] = 60
+    weights[3*length + 2] = -30
+
+    weights[4*length + 0] = 60
+    weights[4*length + 1] = -60
+    weights[4*length + 2] = -30
+
+    weights[(length-1)*length + 3] = 1
+    weights[(length-1)*length + 4] = 1
+
+    net.weights = weights
+    net.connections = conns
+
+    for val in xor_in:
+        print("In:", val, " out:", net.output(val))
+        assert net.output(val) == 0, "no conns should mean zero output!"
+
+    conns[3*length + 0] = 1
+    conns[3*length + 1] = 1
+    conns[3*length + 2] = 1
+
+    conns[4*length + 0] = 1
+    conns[4*length + 1] = 1
+    conns[4*length + 2] = 1
+
+    conns[(length-1)*length + 3] = 1
+    conns[(length-1)*length + 4] = 1
+
+    net.connections = conns
+
+    print(conns)
+
+    for val in xor_in:
+        print("In:", val, " out:", net.output(val))
+        if sum(val) != 1:
+            assert net.output(val) < 0.1, "xor solution doesnt work"
+        else:
+            assert net.output(val) > 0.9, "xor solution doesnt work"
+
+
+def test_gennetwork():
+    from ann import geneticnetwork
+
+    net = geneticnetwork(2, 2, 1)
+
+    xor_in, xor_out = getXOR()
+
+    net.generations = 1000
+
+    net.learn(xor_in, xor_out)
+
+    for val in xor_in:
+        print("In:", val, " out:", net.output(val))
+        if sum(val) != 1:
+            assert net.output(val) < 0.1, "xor solution doesnt work"
+        else:
+            assert net.output(val) > 0.9, "xor solution doesnt work"
+
+
+
+if __name__ == "__main__":
+    test_import()
+    test_matrixnetwork()
+    test_gennetwork()

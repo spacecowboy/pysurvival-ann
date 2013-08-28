@@ -82,11 +82,12 @@ extern "C" {
                                             PyObject *value,
                                             void *closure);
 
-  PyObject *GenNetwork_getResume(PyGenNetwork *self,
+  /*  PyObject *GenNetwork_getResume(PyGenNetwork *self,
                                  void *closure);
   int GenNetwork_setResume(PyGenNetwork *self,
                            PyObject *value,
                            void *closure);
+  */
 
   PyObject *GenNetwork_getCrossoverChance(PyGenNetwork *self,
                                           void *closure);

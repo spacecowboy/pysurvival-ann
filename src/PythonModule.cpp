@@ -255,12 +255,28 @@ static PyGetSetDef MatrixNetworkGetSetters[] = {
    (getter)MatrixNetwork_getOutputActivationFunction,   \
    (setter)MatrixNetwork_setOutputActivationFunction,        \
    (char*)"The activation function used by output neurons. \
-For example network.LOGSIG", NULL},
+For example network.LOGSIG.", NULL},
   {(char*)"hiddenActivationFunction",               \
    (getter)MatrixNetwork_getHiddenActivationFunction,   \
    (setter)MatrixNetwork_setHiddenActivationFunction,        \
    (char*)"The activation function used by hidden neurons. \
 For example network.TANH", NULL},
+
+  {(char*)"weights",               \
+   (getter)MatrixNetwork_getWeights,   \
+   (setter)MatrixNetwork_setWeights,        \
+   (char*)"All weights of networks as a LxL matrix. Ordered by \
+[neuron * neuron_count + target_weight]", NULL},
+
+  {(char*)"connections",                   \
+   (getter)MatrixNetwork_getConns,                           \
+   (setter)MatrixNetwork_setConns,        \
+   (char*)"Connections of neurons, LxL matrix.", NULL},
+
+  {(char*)"activationFunctions",                   \
+   (getter)MatrixNetwork_getActFuncs,   \
+   (setter)MatrixNetwork_setActFuncs,        \
+   (char*)"The activation functions of the neurons.", NULL},
 
     {NULL} // Sentinel
 };
@@ -367,13 +383,15 @@ Zero by default.", NULL},
    (char*)"Coefficient (l) for soft weight elimination: \
 P = sum( w^2 / [l^2 + w^2] ). Zero by default.", NULL},
 
+  /*
   {(char*)"resume",              \
    (getter)GenNetwork_getResume, \
    (setter)GenNetwork_setResume,                      \
    (char*)"If the network should use the existing weighs as a base \
 for the population. Default False.", NULL},
+  */
 
-  {(char*)"crossoverchance",              \
+  {(char*)"crossover_chance",              \
    (getter)GenNetwork_getCrossoverChance, \
    (setter)GenNetwork_setCrossoverChance,                      \
    (char*)"Probability to perform crossover before mutation.", NULL},
@@ -713,7 +731,7 @@ extern "C" {
 
     // Add the type to the module.
     Py_INCREF(&MatrixNetworkType);
-    PyModule_AddObject(mod, "matrxnetwork", (PyObject*)&MatrixNetworkType);
+    PyModule_AddObject(mod, "matrixnetwork", (PyObject*)&MatrixNetworkType);
 
 
 

@@ -330,6 +330,7 @@ targets (2d array)");
     return 0;
   }
 
+  /*
   PyObject *GenNetwork_getResume(PyGenNetwork *self,
                                  void *closure) {
     if (((GeneticNetwork*)self->super.net)->
@@ -355,6 +356,7 @@ targets (2d array)");
 
     return 0;
   }
+  */
 
   PyObject *GenNetwork_getCrossoverChance(PyGenNetwork *self,
                                           void *closure) {
