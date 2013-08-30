@@ -3,4 +3,5 @@
 *.pyc
 build/
 \#*
-.\#*
+src/helgrind.txt
+src/matrix
