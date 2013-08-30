@@ -12,6 +12,10 @@ extern "C" {
     PyMatrixNetwork super; // inherit from MatrixNetwork
   } PyGenNetwork;
 
+  // Static variables set here
+  // Set some constants in the object's dictionary
+  void setGeneticNetworkConstants(PyObject *dict);
+
 /*
  * Python constructor
  * ------------------

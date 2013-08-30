@@ -20,7 +20,6 @@
 //#include "GeneticCascadeNetworkWrapper.h"
 #include "GeneticNetwork.hpp"
 #include "GeneticNetworkWrapper.hpp"
-//#include "GeneticFitness.hpp"
 
 /*
  * FFNetwork
@@ -412,6 +411,11 @@ for the population. Default False.", NULL},
    (setter)GenNetwork_setSelectionMethod,                      \
    (char*)"Method to select parents.", NULL},
 
+  {(char*)"crossover_method",              \
+   (getter)GenNetwork_getCrossoverMethod, \
+   (setter)GenNetwork_setCrossoverMethod,                      \
+   (char*)"Method to pair parents.", NULL},
+
   {(char*)"fitness_function",              \
    (getter)GenNetwork_getFitnessFunction, \
    (setter)GenNetwork_setFitnessFunction,                      \
@@ -757,6 +761,8 @@ extern "C" {
     }
 
     // Add static class variables
+    setGeneticNetworkConstants(GenNetworkType.tp_dict);
+
     /*
     PyDict_SetItemString(GenNetworkType.tp_dict, "SELECTION_GEOMETRIC",
                          Py_BuildValue("i", SELECTION_GEOMETRIC));

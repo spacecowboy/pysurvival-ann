@@ -158,6 +158,9 @@ def test_gennetwork():
     net.crossover_chance = 0.8
     net.connection_mutation_chance = 0.2
     net.activation_mutation_chance = 0.2
+    net.crossover_method = net.CROSSOVER_UNIFORM
+    net.fitness_function = net.FITNESS_MSE
+    net.selection_method = net.SELECTION_TOURNAMENT
 
     net.learn(xor_in, xor_out)
 
@@ -169,6 +172,7 @@ def test_gennetwork():
             assert net.output(val) > 0.9, "xor solution doesnt work"
 
     print(net)
+    print(dir(net))
 
 
 if __name__ == "__main__":
