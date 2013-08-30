@@ -1,3 +1,8 @@
+#CPP = g++
+#CPPFLAGS = -g -Wall -Werror -std=c++11 -pthread -O0 # -fsanitize=thread
+#LDFLAGS = -lm
+#CC = $(CPP) $(CPPFLAGS)
+
 #SRC = src/MatrixNetwork.cpp src/test.cpp src/activationfunctions.cpp \
 #src/Random.cpp \
 #GeneticSelection.cpp global.cpp GeneticNetwork.cpp GeneticFitness.cpp \
@@ -15,8 +20,12 @@
 DEPS = setup.py $(wildcard src/*.cpp) $(wildcard src/*.h*) $(wildcard ann/*.py)
 
 test: test.py ann/_ann.so $(DEPS)
-	nosetests -v test.py
+	nosetests -v -x -s test.py
 	#python test.py
+
+#.SUFFIXES: .cpp
+#.cpp.o:
+#	$(CC) -c $<
 
 ann/__init__.py:
 	python setup.py build_ext --inplace
