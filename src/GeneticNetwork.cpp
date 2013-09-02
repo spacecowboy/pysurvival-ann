@@ -328,7 +328,11 @@ void GeneticNetwork::learn(const double * const X,
                                               HIDDEN_COUNT,
                                               OUTPUT_COUNT);
 
-    mutator.randomizeNetwork(*pNet, weightMutationFactor);
+    // Respect mutation chances.
+    mutator.mutateWeights(*pNet, weightMutationChance,
+                          weightMutationFactor);
+    mutator.mutateConns(*pNet, connsMutationChance);
+    mutator.mutateActFuncs(*pNet, actFuncMutationChance);
 
     // evaluate error here
     fitness = evaluateNetwork(fitnessFunction,
