@@ -310,16 +310,25 @@ def getWeights(net):
 
 def _getstate(net):
     '''Returns the state of the network as a tuple:
-    (neuron_numbers, hiddenActivationFunction, outputActivationFunction, weights)
+    (neuron_numbers, hiddenActivationFunction, outputActivationFunction,
+    weights[, trnoutputs])
 
     Where neuron_numbers = (numOfInputs, numOfHidden, numOfOutputs)
     and weights = net.getWeights()'''
     neuron_numbers = (net.numOfInputs, net.numOfHidden,
                       net.numOfOutputs)
-    return (neuron_numbers,
-            net.hiddenActivationFunction,
-            net.outputActivationFunction,
-            net.getWeights())
+
+    if not hasattr(net, 'trnoutputs'):
+        return (neuron_numbers,
+                net.hiddenActivationFunction,
+                net.outputActivationFunction,
+                net.getWeights())
+    else:
+        return (neuron_numbers,
+                net.hiddenActivationFunction,
+                net.outputActivationFunction,
+                net.getWeights(),
+                net.trnoutputs)
 
 def _setstate(net, state):
     '''Restores the state of the network from the given state.
@@ -366,6 +375,10 @@ def _setstate(net, state):
         for targetId, weight in enumerate(neuronWeights[left:right]):
             if not np.isnan(weight):
                 net.connectOToH(id, targetId, weight)
+
+    # Possible trn-outputs
+    if len(state) >= 5:
+        net.trnoutputs = state[4]
 
 
 def _repr(net):
