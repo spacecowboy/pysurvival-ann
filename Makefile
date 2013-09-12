@@ -28,16 +28,16 @@ test: test.py ann/_ann.so $(DEPS)
 #	$(CC) -c $<
 
 ann/__init__.py:
-	python setup.py build_ext --inplace
+	CC=clang++ python setup.py build_ext --inplace
 
 ann/_ann.so: $(DEPS)
-	python setup.py build_ext --inplace
+	CC=clang++ python setup.py build_ext --inplace
 
 install: $(DEPS)
-	python setup.py install
+	CC=clang++ python setup.py install
 
 build: $(DEPS)
-	python setup.py build
+	CC=clang++ python setup.py build
 
 clean:
 	rm -f ann/_ann.so
