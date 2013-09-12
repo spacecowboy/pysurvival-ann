@@ -4,7 +4,11 @@
 CPP = g++
 CPPFLAGS = -g -Wall -Werror -std=c++11 -pthread -O0 # -fsanitize=thread
 LDFLAGS = -lm
-CC = $(CPP) $(CPPFLAGS)
+
+CLANG = clang++ -std=c++11 -Werror -Wall -pthread# -fsyntax-only
+
+#CC = $(CPP) $(CPPFLAGS)
+CC = $(CLANG)
 
 #Used by Python build
 PYCPP = gcc
