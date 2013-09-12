@@ -58,7 +58,8 @@ unsigned int CascadeNetwork::getNumOfHidden() const {
 }
 
 
-double *CascadeNetwork::output(double *inputs, double *output) {
+double *CascadeNetwork::output(const double * const inputs,
+                               double * const output) {
 	// Iterate over the neurons in order and calculate their outputs.
 	unsigned int i;
 	for (i = 0; i < this->hiddenRCascadeNeurons->size(); i++) {
@@ -292,7 +293,7 @@ void RCascadeNeuron::learn(double *patError, double *error,
       covariance = sign(rows * mSum - hSum*oSum);
 
       // Apply weight update
-      applyWeightUpdates(covariance);
+      applyWeightUpdatesWith(covariance);
     }
 }
 
@@ -303,7 +304,7 @@ void RCascadeNeuron::calcLocalDerivative(double *inputs) {
   // Not used for this type
 }
 
-void RCascadeNeuron::applyWeightUpdates(int covariance) {
+void RCascadeNeuron::applyWeightUpdatesWith(int covariance) {
 	unsigned int i;
 	double prevUpdate, prevDeriv, weightUpdate, deriv;
 	// Maximum and minimm weight changes

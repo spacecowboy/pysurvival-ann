@@ -25,7 +25,7 @@ public:
   virtual void learn(double *patError, double *error, double *X,
                        double *outputs, unsigned int rows,
                        unsigned int numOfInputs);
-  virtual void applyWeightUpdates(int covariance);
+  virtual void applyWeightUpdatesWith(int covariance);
 
 virtual void addLocalError(double error);
 virtual void calcLocalDerivative(double *inputs);
@@ -50,7 +50,7 @@ class CascadeNetwork : public RPropNetwork {
   virtual void learn(double *X, double *Y, unsigned int rows);
 
   virtual unsigned int getNumOfHidden() const;
-  virtual double *output(double *inputs, double *output);
+  virtual double *output(const double * const inputs, double * const output);
 
   virtual void trainOutputs(double *X, double *Y, unsigned int rows);
 

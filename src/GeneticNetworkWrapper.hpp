@@ -1,5 +1,5 @@
 #ifndef _GENETICNETWORKWRAPPER_HPP_
-#define _GENETICNETWORKWRAPPER_HP_
+#define _GENETICNETWORKWRAPPER_HPP_
 
 #include "Python.h"
 #include "structmember.h" // used to declare member list

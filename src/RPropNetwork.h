@@ -76,7 +76,7 @@ public:
 	virtual double output() {
 		return 1;
 	}
-	virtual double output(double *inputs) {
+	virtual double output(const double * const inputs) {
 		return 1;
 	}
 	virtual double outputDeriv() {
