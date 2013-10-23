@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "FFNeuron.h"
 #include "FFNetwork.h"
-#include "RPropNetwork.h"
+#include "RPropNetwork.hpp"
 #include "GeneticSurvivalNetwork.h"
 #include <exception>
 #include <time.h>

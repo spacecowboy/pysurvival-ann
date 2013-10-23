@@ -22,7 +22,9 @@ PYCC = $(PYCPP) $(PYFLAGS)
 ### List source files ###
 SRC = MatrixNetwork.cpp test.cpp activationfunctions.cpp Random.cpp \
 GeneticSelection.cpp global.cpp GeneticNetwork.cpp GeneticFitness.cpp \
-GeneticMutation.cpp GeneticCrossover.cpp c_index.cpp ErrorFunctions.cpp
+GeneticMutation.cpp GeneticCrossover.cpp c_index.cpp ErrorFunctions.cpp \
+ErrorFunctionsGeneral.cpp ErrorFunctionsSurvival.cpp \
+RPropNetwork.cpp
 
 ### And corresponding object files ###
 OBJ = $(addsuffix .o, $(basename $(SRC)))
@@ -55,29 +57,29 @@ matrix: $(OBJ) prep
 	$(CPP) $(CPPFLAGS) -o $@ $(OBJ)
 
 ### Dependencies ###
-test.o: test.cpp
+#test.o: test.cpp
 
-MatrixNetwork.o: MatrixNetwork.hpp MatrixNetwork.cpp
+#MatrixNetwork.o: MatrixNetwork.hpp MatrixNetwork.cpp
 
-activationfunctions.o: activationfunctions.hpp activationfunctions.cpp
+#activationfunctions.o: activationfunctions.hpp activationfunctions.cpp
 
-Random.o: Random.hpp Random.cpp
+#Random.o: Random.hpp Random.cpp
 
-GeneticSelection.o: GeneticSelection.hpp GeneticSelection.cpp
+#GeneticSelection.o: GeneticSelection.hpp GeneticSelection.cpp
 
-GeneticFitness.o: GeneticFitness.hpp GeneticFitness.cpp
+#GeneticFitness.o: GeneticFitness.hpp GeneticFitness.cpp
 
-GeneticMutation.o: GeneticMutation.hpp GeneticMutation.cpp
+#GeneticMutation.o: GeneticMutation.hpp GeneticMutation.cpp
 
-GeneticCrossover.o: GeneticCrossover.hpp GeneticCrossover.cpp
+#GeneticCrossover.o: GeneticCrossover.hpp GeneticCrossover.cpp
 
-global.o: global.hpp global.cpp
+#global.o: global.hpp global.cpp
 
-GeneticNetwork.o: GeneticNetwork.cpp GeneticNetwork.hpp
+#GeneticNetwork.o: GeneticNetwork.cpp GeneticNetwork.hpp
 
-c_index.o: c_index.h c_index.cpp
+#c_index.o: c_index.h c_index.cpp
 
-ErrorFunctions.o: ErrorFunctions.cpp ErrorFunctions.h
+#ErrorFunctions.o: ErrorFunctions.cpp ErrorFunctions.hpp
 
 ### Wrappers ###
 MatrixNetworkWrapper.o: MatrixNetworkWrapper.hpp MatrixNetworkWrapper.cpp

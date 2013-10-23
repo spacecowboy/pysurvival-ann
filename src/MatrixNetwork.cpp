@@ -53,6 +53,18 @@ unsigned int MatrixNetwork::getLogPerfLength() {
   return logPerfLength;
 }
 
+void MatrixNetwork::initLog(const unsigned int length) {
+  // Reset LOG
+  if (this->aLogPerf != NULL) {
+    delete[] this->aLogPerf;
+    this->aLogPerf = NULL;
+  }
+  // Allocate new LOG
+  this->logPerfLength = length;
+  // //Parenthesis initializes to zero
+  this->aLogPerf = new double[this->logPerfLength]();
+}
+
 /**
  * Sets the activation function of the output layer
  */
@@ -106,9 +118,11 @@ double *MatrixNetwork::output(const double * const inputs,
   }
 
   // Copy values to output array
-  std::copy(outputs + OUTPUT_START,
-            outputs + OUTPUT_END,
-            ret_outputs);
+  if (ret_outputs != NULL) {
+    std::copy(outputs + OUTPUT_START,
+              outputs + OUTPUT_END,
+              ret_outputs);
+  }
 
   return ret_outputs;
 }

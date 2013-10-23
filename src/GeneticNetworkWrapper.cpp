@@ -14,42 +14,42 @@
 extern "C" {
 
   // Static variables
-// Set some constants in the object's dictionary
-// Call with GenNetworkType.tp_dict
-void setGeneticNetworkConstants(PyObject *dict) {
-  // Selection
-  PyDict_SetItemString(dict, "SELECTION_GEOMETRIC",
-                       Py_BuildValue("i",
-                                     SelectionMethod::SELECTION_GEOMETRIC));
-  PyDict_SetItemString(dict, "SELECTION_ROULETTE",
-                       Py_BuildValue("i",
-                                     SelectionMethod::SELECTION_ROULETTE));
-  PyDict_SetItemString(dict, "SELECTION_TOURNAMENT",
-                       Py_BuildValue("i",
-                                     SelectionMethod::SELECTION_TOURNAMENT));
+  // Set some constants in the object's dictionary
+  // Call with GenNetworkType.tp_dict
+  void setGeneticNetworkConstants(PyObject *dict) {
+    // Selection
+    PyDict_SetItemString(dict, "SELECTION_GEOMETRIC",
+                         Py_BuildValue("i",
+                                       SelectionMethod::SELECTION_GEOMETRIC));
+    PyDict_SetItemString(dict, "SELECTION_ROULETTE",
+                         Py_BuildValue("i",
+                                       SelectionMethod::SELECTION_ROULETTE));
+    PyDict_SetItemString(dict, "SELECTION_TOURNAMENT",
+                         Py_BuildValue("i",
+                                       SelectionMethod::SELECTION_TOURNAMENT));
 
-  // Crossover
-  PyDict_SetItemString(dict, "CROSSOVER_ONEPOINT",
-                       Py_BuildValue("i",
-                                     CrossoverMethod::CROSSOVER_ONEPOINT));
-  PyDict_SetItemString(dict, "CROSSOVER_TWOPOINT",
-                       Py_BuildValue("i",
-                                     CrossoverMethod::CROSSOVER_TWOPOINT));
-  PyDict_SetItemString(dict, "CROSSOVER_UNIFORM",
-                       Py_BuildValue("i",
-                                     CrossoverMethod::CROSSOVER_UNIFORM));
+    // Crossover
+    PyDict_SetItemString(dict, "CROSSOVER_ONEPOINT",
+                         Py_BuildValue("i",
+                                       CrossoverMethod::CROSSOVER_ONEPOINT));
+    PyDict_SetItemString(dict, "CROSSOVER_TWOPOINT",
+                         Py_BuildValue("i",
+                                       CrossoverMethod::CROSSOVER_TWOPOINT));
+    PyDict_SetItemString(dict, "CROSSOVER_UNIFORM",
+                         Py_BuildValue("i",
+                                       CrossoverMethod::CROSSOVER_UNIFORM));
 
-  // Fitness
-  PyDict_SetItemString(dict, "FITNESS_MSE",
-                       Py_BuildValue("i",
-                                     FitnessFunction::FITNESS_MSE));
-  PyDict_SetItemString(dict, "FITNESS_CINDEX",
-                       Py_BuildValue("i",
-                                     FitnessFunction::FITNESS_CINDEX));
-  PyDict_SetItemString(dict, "FITNESS_MSE_CENS",
-                       Py_BuildValue("i",
-                                     FitnessFunction::FITNESS_MSE_CENS));
-}
+    // Fitness
+    PyDict_SetItemString(dict, "FITNESS_MSE",
+                         Py_BuildValue("i",
+                                       FitnessFunction::FITNESS_MSE));
+    PyDict_SetItemString(dict, "FITNESS_CINDEX",
+                         Py_BuildValue("i",
+                                       FitnessFunction::FITNESS_CINDEX));
+    PyDict_SetItemString(dict, "FITNESS_MSE_CENS",
+                         Py_BuildValue("i",
+                                       FitnessFunction::FITNESS_MSE_CENS));
+  }
 
 
 

@@ -14,7 +14,7 @@ enum ActivationFuncEnum { LINEAR=0, LOGSIG, TANH };
 double evaluateActFunction(ActivationFuncEnum func, double x);
 
 // Accepts output of evaluateFunction
-double evaluteActFuncDerivative(ActivationFuncEnum func, double y);
+double evaluateActFuncDerivative(ActivationFuncEnum func, double y);
 
 // Convenience function used with Python
 ActivationFuncEnum getFuncFromNumber(int num);

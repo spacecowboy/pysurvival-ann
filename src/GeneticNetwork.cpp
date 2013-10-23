@@ -275,15 +275,7 @@ void GeneticNetwork::learn(const double * const X,
                            const double * const Y,
                            const unsigned int length) {
   // Reset LOG
-  if (this->aLogPerf != NULL) {
-    delete[] this->aLogPerf;
-    this->aLogPerf = NULL;
-  }
-  // Allocate new LOG
-  this->logPerfLength = generations * this->OUTPUT_COUNT;
-  // //Parenthesis initializes to zero
-  this->aLogPerf = new double[this->logPerfLength]();
-  //memset(& this->aLogPerf, 0, sizeof(double) * this->logPerfLength);
+  initLog(generations * this->OUTPUT_COUNT);
 
   // Create a population of networks
   vector<GeneticNetwork*> sortedPopulation;

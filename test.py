@@ -174,8 +174,59 @@ def test_gennetwork():
     print(net)
     print(dir(net))
 
+def test_rpropnetwork():
+    from ann import rpropnetwork
+
+    net = rpropnetwork(2, 8, 1)
+
+
+    # Need to connect it
+    l = net.input_count + net.hidden_count + net.output_count + 1
+    weights = net.weights
+    conns = net.connections
+    act = net.activation_functions
+    # Stop before output as it is included
+    for i in range(l-1):
+        # connect hidden to inputs and bias
+        weights[l * i: l * i + 3] = np.random.normal()
+        conns[l * i: l * i + 3] = 1
+        act[i] = net.TANH
+
+    #Output
+    weights[l * (l-1):] = np.random.normal(size=l)
+    conns[l * (l-1):] = 1
+    act[l-1] = net.LOGSIG
+
+    net.weights = weights
+    net.connections = conns
+    net.activation_functions = act
+
+    #print(net.weights)
+    #print(net.connections)
+    #print(net.activation_functions)
+
+    xor_in, xor_out = getXOR()
+
+    net.max_error = 0.001
+    net.max_epochs = 1000
+
+    net.error_function = net.ERROR_MSE
+
+    net.learn(xor_in, xor_out)
+
+    for val in xor_in:
+        print("In:", val, " out:", net.output(val))
+        if sum(val) != 1:
+            assert net.output(val) < 0.1, "xor solution doesnt work"
+        else:
+            assert net.output(val) > 0.9, "xor solution doesnt work"
+
+    print(net)
+    print(dir(net))
+
 
 if __name__ == "__main__":
     test_import()
     test_gennetwork()
     test_matrixnetwork()
+    test_rpropnetwork()

@@ -16,33 +16,33 @@ extern "C" {
   // Set some constants in the object's dictionary
   void setGeneticNetworkConstants(PyObject *dict);
 
-/*
- * Python constructor
- * ------------------
- */
+  /*
+   * Python constructor
+   * ------------------
+   */
 
-/*
- * Python init
- * -----------
- */
+  /*
+   * Python init
+   * -----------
+   */
   int GenNetwork_init(PyGenNetwork *self, PyObject *args, PyObject *kwds);
 
-/*
- * Python destructor
- * -----------------
- */
+  /*
+   * Python destructor
+   * -----------------
+   */
 
-/*
- * Wrapper methods
- * ===============
- */
+  /*
+   * Wrapper methods
+   * ===============
+   */
 
   PyObject *GenNetwork_learn(PyGenNetwork *self, PyObject *args,
                              PyObject *kwargs);
 
-/*
- * Getters and Setters
- */
+  /*
+   * Getters and Setters
+   */
   PyObject *GenNetwork_getGenerations(PyGenNetwork *self, void *closure);
   int GenNetwork_setGenerations(PyGenNetwork *self, PyObject *value,
                                 void *closure);
@@ -132,14 +132,14 @@ extern "C" {
 
 
 
-/*
- * Pickle methods
- * ==============
- */
+  /*
+   * Pickle methods
+   * ==============
+   */
 
-//PyObject *FFNetwork_getnewargs(FFNetwork *self);
-//PyObject *FFNetwork_reduce(FFNetwork *self);
+  //PyObject *FFNetwork_getnewargs(FFNetwork *self);
+  //PyObject *FFNetwork_reduce(FFNetwork *self);
 
 }
 
-#endif /* _GENETICNETWORKWRAPPER_H_ */
+#endif /* _GENETICNETWORKWRAPPER_HPP_ */

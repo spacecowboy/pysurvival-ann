@@ -6,6 +6,9 @@
 #include "global.hpp"
 #include "GeneticNetwork.hpp"
 #include "GeneticMutation.hpp"
+#include "RPropNetwork.hpp"
+#include <iostream>
+#include <cmath>
 
 void matrixtest() {
   	printf( "\nStarting matrix test...\n\n" );
@@ -205,12 +208,78 @@ void geneticXOR() {
 
 }
 
+void rproptest() {
+  std::cout << "\n\nStart of RProp test";
+
+  Random r;
+  RPropNetwork net(2, 8, 1);
+
+  // Set up a feedforward structure
+  for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
+    for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {
+      net.conns[net.LENGTH * i + j] = 1;
+      net.weights[net.LENGTH * i + j] = r.normal();
+    }
+  }
+  for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
+    for (unsigned int j = 0; j < net.BIAS_END; j++) {
+      net.conns[net.LENGTH * i + j] = 1;
+      net.weights[net.LENGTH * i + j] = r.normal();
+    }
+  }
+  net.setHiddenActivationFunction(TANH);
+  net.setOutputActivationFunction(LOGSIG);
+
+  // define inputs
+  double X[2*4]{0,0,
+      0,1,
+      1,0,
+      1,1};
+
+  // define targets
+  double Y[4]{0, 1, 1, 0};
+
+  // Print structure
+  std::cout << "\n\nWeights before";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j < i; j++) {
+      std::cout << " " << net.weights[j + i*net.LENGTH];
+    }
+  }
+
+  net.setMaxEpochs(10000);
+  net.setMaxError(0.001);
+  net.learn(X, Y, 4);
+
+  // Print structure
+  std::cout << "\n\nWeights after";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j < i; j++) {
+      std::cout << " " << net.weights[j + i*net.LENGTH];
+    }
+  }
+
+  double preds[1];
+  std::cout << "\n\nPredictions\n";
+  for (int i = 0; i < 4; i++) {
+    net.output(X + 2 * i, preds);
+    std::cout << X[2*i] << " "<< X[2*i + 1]
+              << " : " << std::round(preds[0])
+              << " (" << Y[i] << ")"<< "\n";
+  }
+
+  std::cout << "\nEnd of RProp test";
+}
+
 int main( int argc, const char* argv[] )
 {
   matrixtest();
   randomtest();
   lockTest();
-  geneticTest1();
-  geneticXOR();
+  //geneticTest1();
+  //geneticXOR();
+  rproptest();
   printf("\nEND OF TEST\n");
 }

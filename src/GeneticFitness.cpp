@@ -1,5 +1,5 @@
 #include "GeneticFitness.hpp"
-#include "ErrorFunctions.h"
+#include "ErrorFunctions.hpp"
 #include "c_index.h"
 #include <math.h>
 
@@ -54,23 +54,23 @@ double fitnessMSE(const double * const Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
                   const double * const outputs) {
-  unsigned int i, n;
-  double error = 0;
-
+  //unsigned int i, n;
+  //double error = 0;
   // Evaluate each input set
   // Average over all inputs and number of outputs
-  for (i = 0; i < length; i++) {
+  //for (i = 0; i < length; i++) {
     // Place output in correct position here
     //net.output(X + i*net.getNumOfInputs(),
     //           outputs + net.getNumOfOutputs() * i);
-    for (n = 0; n < numOfOutput; n++) {
-      error += sqrt(SSE(Y[i * numOfOutput + n],
-                        outputs[numOfOutput * i + n]))
-        / ((double) length * numOfOutput);
-    }
-  }
+    //for (n = 0; n < numOfOutput; n++) {
+    //  error += sqrt(SSE(Y[i * numOfOutput + n],
+    //                    outputs[numOfOutput * i + n]))
+    //    / ((double) length * numOfOutput);
+    //}
+  //}
 
-  return -error;
+  return -getError(ErrorFunction::ERROR_MSE,
+                   Y, length, numOfOutput, outputs);
 }
 
 
@@ -96,27 +96,30 @@ double fitnessMSECens(const double * const Y,
                       const unsigned int numOfOutput,
                       const double * const outputs)
 {
-  double sum = 0, q, time, event, output;
-  unsigned int n;
+  //  double sum = 0, q, time, event, output;
+  //unsigned int n;
 
-  for (n = 0; n < length; n++) {
+  //for (n = 0; n < length; n++) {
     // First evaluate the network
     //net.output(X + n*net.getNumOfInputs(), outputs + n);
 
     // Relevant data for this evaluation
-    time = Y[2 * n];
-    event = Y[2 * n + 1];
-    output = outputs[n];
+  //  time = Y[2 * n];
+  //  event = Y[2 * n + 1];
+  //  output = outputs[n];
     //   calc q, which penalizes under-estimation
-    q = event;
-    // if no event, check output
-    if (q == 0 && output < time) {
-      q = 1;
-    }
+  //  q = event;
+    //  // if no event, check output
+  //  if (q == 0 && output < time) {
+  //    q = 1;
+  //  }
     //   times (output - target)^2
-    sum += q * pow(output - time, 2.0);
-  }
+  //  sum += q * pow(output - time, 2.0);
+  //}
   // divide by length
   // Return the negative of this to get the fitness
-  return -(sum / (double) length);
+  //return -(sum / (double) length);
+
+  return getError(ErrorFunction::ERROR_SURV_MSE,
+                  Y, length, numOfOutput, outputs);
 }

@@ -30,6 +30,8 @@ class MatrixNetwork {
   double *aLogPerf;
   unsigned int logPerfLength;
 
+  void initLog(const unsigned int length);
+
  public:
   const unsigned int INPUT_START;
   const unsigned int INPUT_END;
