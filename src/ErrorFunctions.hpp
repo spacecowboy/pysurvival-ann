@@ -28,10 +28,17 @@ double getError(ErrorFunction func,
                 const unsigned int numOfOutput,
                 const double * const outputs);
 
+/**
+ * Y.size = length * numOfOutput
+ * outputs.size = length * numOfOutput
+ * result.size = numOfOutput
+ */
 void getDerivative(ErrorFunction func,
-                   const double * const target,
-                   const double * const output,
+                   const double * const Y,
                    const unsigned int length,
+                   const unsigned int numOfOutput,
+                   const double * const outputs,
+                   const unsigned int index,
                    double * const result);
 
 #endif /* _ERRORFUNCTIONS_HPP_ */

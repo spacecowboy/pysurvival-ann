@@ -10,6 +10,10 @@ double SSE(double target, double output) {
   return std::pow(target - output, 2.0) / 2.0;
 }
 
+/**
+ * Y.size = length * numOfOutput
+ * outputs.size = length * numOfOutput
+ */
 double errorMSE(const double * const Y,
                 const unsigned int length,
                 const unsigned int numOfOutput,
@@ -29,12 +33,20 @@ double errorMSE(const double * const Y,
   return error / ((double) length * numOfOutput);
 }
 
-void derivativeMSE(const double * const target,
-                   const double * const output,
+/**
+ * Y.size = length * numOfOutput
+ * outputs.size = length * numOfOutput
+ * result.size = numOfOutput
+ */
+void derivativeMSE(const double * const Y,
                    const unsigned int length,
+                   const unsigned int numOfOutput,
+                   const double * const outputs,
+                   const unsigned int index,
                    double * const result)
 {
-  for (unsigned int i = 0; i < length; i++) {
-    result[i] = target[i] - output[i];
+  for (unsigned int i = 0; i < numOfOutput; i++) {
+    result[i] =
+      Y[numOfOutput * index + i] - outputs[numOfOutput * index + i];
   }
 }

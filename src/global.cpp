@@ -1,5 +1,6 @@
 #include "global.hpp"
 #include <mutex>
+#include <unordered_map>
 
 /*
 To lock:
@@ -20,3 +21,7 @@ void JGN_lockPopulation() {
 void JGN_unlockPopulation() {
   JGN_mutexPopulation.unlock();
 }
+
+// For caching during evaluation
+std::unordered_map<std::string,
+                   std::vector<double> > JGN_errorCacheVectorMap;

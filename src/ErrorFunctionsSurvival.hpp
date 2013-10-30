@@ -6,9 +6,11 @@ double errorSurvMSE(const double * const Y,
                     const unsigned int numOfOutput,
                     const double * const outputs);
 
-void derivativeSurvMSE(const double * const target,
-                       const double * const output,
+void derivativeSurvMSE(const double * const Y,
                        const unsigned int length,
+                       const unsigned int numOfOutput,
+                       const double * const outputs,
+                       const unsigned int index,
                        double * const result);
 
 double errorSurvLikelihood(const double * const Y,
@@ -16,9 +18,11 @@ double errorSurvLikelihood(const double * const Y,
                            const unsigned int numOfOutput,
                            const double * const outputs);
 
-void derivativeSurvLikelihood(const double * const target,
-                              const double * const output,
+void derivativeSurvLikelihood(const double * const Y,
                               const unsigned int length,
+                              const unsigned int numOfOutput,
+                              const double * const outputs,
+                              const unsigned int index,
                               double * const result);
 
 #endif /* _ERRORFUNCTIONSSURVIVAL_HPP_ */
