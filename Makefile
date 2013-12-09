@@ -41,3 +41,4 @@ build: $(DEPS)
 
 clean:
 	rm -f ann/_ann.so
+	rm -rf build/
