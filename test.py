@@ -1,6 +1,35 @@
 #!/usr/bin/env python
 import numpy as np
 
+def getSURV(numweights, datasize=100):
+    '''
+    Returns a tuple of (inputs, targets)'''
+
+    def sigmoid(val):
+        return 1.0 / (1.0 + np.exp(-val))
+
+    _inputs = np.random.uniform(size=(datasize, numweights + 1))
+    # Normalize
+    _inputs[:, -1] = 1.0 # bias
+    _weights = np.random.normal(size=numweights + 1)
+    _outputs = np.zeros((datasize, 2))
+    # Need to normalize inputs
+    _inputs[:, :-1] -= np.mean(_inputs[:, :-1], axis=0)
+    _inputs[:, :-1] /= np.std(_inputs[:, :-1], axis=0)
+    # Calc outputs
+    _outputs[:, 0] = sigmoid(np.sum(_inputs * _weights, axis=1))
+    # Remove bias
+    _inputs = _inputs[:, :-1]
+    # Now censor it
+    censtimes = np.random.uniform(0.0, 1.0, size=datasize)
+    # Times are just the shortest of the two, set an event variable as well
+    truetimes = _outputs[:, 0]
+
+    _outputs = np.array([[b, 0] if b < a else [a, 1] for a, b in zip(truetimes,
+                                                                     censtimes)])
+
+    return (_inputs, _outputs)
+
 def getXOR():
     '''Returns a tuple of (inputs, targets)'''
     inputs = np.array([[0.0, 0],
@@ -174,7 +203,7 @@ def test_gennetwork():
     print(net)
     print(dir(net))
 
-def test_rpropnetwork():
+def test_rpropnetwork_mse():
     from ann import rpropnetwork
 
     net = rpropnetwork(2, 8, 1)
@@ -214,6 +243,7 @@ def test_rpropnetwork():
 
     net.learn(xor_in, xor_out)
 
+    print("\nResults")
     for val in xor_in:
         print("In:", val, " out:", net.output(val))
         if sum(val) != 1:
@@ -225,8 +255,61 @@ def test_rpropnetwork():
     print(dir(net))
 
 
+def test_rpropnetwork_survlik():
+    from ann import rpropnetwork
+
+    net = rpropnetwork(2, 8, 2)
+
+    # Need to connect it
+    l = net.input_count + net.hidden_count + net.output_count + 1
+    weights = net.weights
+    conns = net.connections
+    act = net.activation_functions
+    # Stop before output as it is included
+    for i in range(l-1):
+        # connect hidden to inputs and bias
+        weights[l * i: l * i + 3] = np.random.normal()
+        conns[l * i: l * i + 3] = 1
+        act[i] = net.TANH
+
+    #Output
+    weights[l * (l-1):] = np.random.normal(size=l)
+    conns[l * (l-1):] = 1
+    act[l-1] = net.LOGSIG
+
+    net.weights = weights
+    net.connections = conns
+    net.activation_functions = act
+
+    #print(net.weights)
+    #print(net.connections)
+    #print(net.activation_functions)
+
+    #xor_in, xor_out = getXOR()
+
+    net.max_error = 0.001
+    net.max_epochs = 3
+    net.error_function = net.ERROR_SURV_LIKELIHOOD
+
+    surv_in, surv_out = getSURV(net.input_count)
+
+    net.learn(surv_in, surv_out)
+
+    print("\nResults")
+    for val in surv_in:
+        print("In:", val, " out:", net.output(val))
+        #if sum(val) != 1:
+        #    assert net.output(val) < 0.1, "xor solution doesnt work"
+        #else:
+        #    assert net.output(val) > 0.9, "xor solution doesnt work"
+
+    print(net)
+    print(dir(net))
+
+
 if __name__ == "__main__":
     test_import()
     test_gennetwork()
     test_matrixnetwork()
-    test_rpropnetwork()
+    test_rpropnetwork_mse()
+    test_rpropnetwork_survlik()
