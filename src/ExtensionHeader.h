@@ -4,6 +4,9 @@
 #ifndef EXTENSIONHEADER_H_
 #define EXTENSIONHEADER_H_
 
+// Do not want any deprecation warnings
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
 #define NO_IMPORT_ARRAY
 
 // Also need unique_symbol which is defined here
@@ -11,4 +14,3 @@
 //#define PY_ARRAY_UNIQUE_SYMBOL PyArray_API_ann_mod
 
 #endif //EXTENSIONHEADER_H_
-

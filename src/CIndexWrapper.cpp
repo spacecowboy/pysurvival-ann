@@ -22,11 +22,11 @@ extern "C" {
 	PyArrayObject *outputArray = NULL;
 	PyArrayObject *targetArray = NULL;
 
-	outputArray = (PyArrayObject *) PyArray_ContiguousFromObject(outputs, PyArray_DOUBLE, 1, 1);
+	outputArray = (PyArrayObject *) PyArray_ContiguousFromObject(outputs, NPY_DOUBLE, 1, 1);
 	if (outputArray == NULL)
       return NULL;
 
-	targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets, PyArray_DOUBLE, 2, 2);
+	targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets, NPY_DOUBLE, 2, 2);
 	if (targetArray == NULL) {
       Py_DECREF(outputArray);
       return NULL;
@@ -34,8 +34,8 @@ extern "C" {
 
 	// Objects were converted successfully. But make sure they are the same length!
 
-	if (outputArray->dimensions[0] != targetArray->dimensions[0] ||
-		targetArray->dimensions[1] != 2) {
+	if (PyArray_DIM(outputArray, 0) != PyArray_DIM(targetArray, 0) ||
+	    PyArray_DIM(targetArray, 1) != 2) {
       // Decrement, set error and return
 		PyErr_Format(PyExc_ValueError, "Outputs and targets must have the same number of rows. Also the target data must have 2 columns (time, event).");
 		Py_DECREF(outputArray);
@@ -45,7 +45,9 @@ extern "C" {
 	}
 
 	// Arguments are valid!
-	double cindex = get_C_index((double *)outputArray->data, (double *)targetArray->data, outputArray->dimensions[0]);
+	double cindex = get_C_index((double *)PyArray_DATA(outputArray),
+				    (double *)PyArray_DATA(targetArray),
+				    PyArray_DIM(outputArray, 0));
 
 	// Decrement counters for inputArray and targetArray
 	Py_DECREF(outputArray);

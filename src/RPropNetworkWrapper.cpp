@@ -84,13 +84,13 @@ targets (2d array)");
 
     inputArray =
       (PyArrayObject *) PyArray_ContiguousFromObject(inputs,
-                                                     PyArray_DOUBLE, 2, 2);
+                                                     NPY_DOUBLE, 2, 2);
     if (inputArray == NULL)
       return NULL;
 
     targetArray =
       (PyArrayObject *) PyArray_ContiguousFromObject(targets,
-                                                     PyArray_DOUBLE, 2, 2);
+                                                     NPY_DOUBLE, 2, 2);
     if (targetArray == NULL) {
       Py_DECREF(inputArray);
       return NULL;
@@ -99,9 +99,9 @@ targets (2d array)");
     // Objects were converted successfully.But make sure they are the
     // same length!
 
-    if (inputArray->dimensions[0] != targetArray->dimensions[0] ||
-        (unsigned int)inputArray->dimensions[1] != self->super.net->INPUT_COUNT ||
-        (unsigned int)targetArray->dimensions[1] != self->super.net->OUTPUT_COUNT)
+    if (PyArray_DIM(inputArray, 0) != PyArray_DIM(targetArray, 0) ||
+        (unsigned int)PyArray_DIM(inputArray, 1) != self->super.net->INPUT_COUNT ||
+        (unsigned int)PyArray_DIM(targetArray, 1) != self->super.net->OUTPUT_COUNT)
       {
         // Decrement, set error and return
         PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same \
@@ -114,10 +114,9 @@ respectively.");
       }
 
     // Arguments are valid!
-
-    ((RPropNetwork*)self->super.net)->learn((double *)inputArray->data,
-                                            (double *)targetArray->data,
-                                            inputArray->dimensions[0]);
+    ((RPropNetwork*)self->super.net)->learn((double *)PyArray_DATA(inputArray),
+					    (double *)PyArray_DATA(targetArray),
+					    PyArray_DIM(inputArray, 0));
 
     // Decrement counters for inputArray and targetArray
     Py_DECREF(inputArray);

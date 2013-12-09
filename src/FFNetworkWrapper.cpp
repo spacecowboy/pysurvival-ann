@@ -68,7 +68,8 @@ extern "C" {
 
   PyObject *FFNetwork_output(PyFFNetwork *self, PyObject *inputs) {
 	if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM(inputs) == 1 && PyArray_TYPE(inputs) == NPY_DOUBLE))) {
+	      || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+		  PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE))) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type. This method only accepts a python list or a 1D numpy array of doubles.");
       return NULL;

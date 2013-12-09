@@ -8,6 +8,8 @@
 #include "Python.h"
 #include "PythonModule.h"
 #include "structmember.h" // used to declare member list
+// Do not want any deprecation warnings
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "ModuleHeader.h" // Must include this before arrayobject
 #include <numpy/arrayobject.h> // Numpy seen from C
 #include "RPropNetworkWrapper.hpp"

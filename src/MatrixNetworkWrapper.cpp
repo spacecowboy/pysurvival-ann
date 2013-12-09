@@ -56,8 +56,8 @@ extern "C" {
                                  PyObject *inputs)
   {
     if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM(inputs) == 1 &&
-              PyArray_TYPE(inputs) == NPY_DOUBLE))) {
+          || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+              PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE))) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of doubles.");
@@ -235,8 +235,8 @@ extern "C" {
     }
 
     if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM(inputs) == 1 &&
-              PyArray_TYPE(inputs) == NPY_DOUBLE))) {
+          || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+              PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE))) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of doubles.");
@@ -314,8 +314,8 @@ extern "C" {
     }
 
     if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM(inputs) == 1 &&
-              PyArray_TYPE(inputs) == NPY_UINT))) {
+          || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+              PyArray_TYPE((PyArrayObject *)inputs) == NPY_UINT))) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of UINTs.");
@@ -393,8 +393,8 @@ extern "C" {
     }
 
     if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM(inputs) == 1  &&
-                PyArray_TYPE(inputs) == NPY_UINT))) {
+          || (PyArray_NDIM((PyArrayObject *)inputs) == 1  &&
+                PyArray_TYPE((PyArrayObject *)inputs) == NPY_UINT))) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of UINTs.");
@@ -427,7 +427,7 @@ extern "C" {
       }
       else {
         // Numpy array, first try with end
-        ptr = (unsigned int *) PyArray_GETPTR1(inputs, i);
+        ptr = (unsigned int *) PyArray_GETPTR1((PyArrayObject *)inputs, i);
         if (ptr == NULL) {
           PyErr_Format(PyExc_ValueError,
                        "Something went wrong when iterating of input \

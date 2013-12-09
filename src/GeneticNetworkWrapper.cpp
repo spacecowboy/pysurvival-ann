@@ -104,12 +104,12 @@ targets (2d array)");
 
     inputArray =
       (PyArrayObject *)  PyArray_ContiguousFromObject(inputs,
-                                                      PyArray_DOUBLE, 2, 2);
+                                                      NPY_DOUBLE, 2, 2);
     if (inputArray == NULL)
       return NULL;
 
     targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets,
-                                                                 PyArray_DOUBLE,
+                                                                 NPY_DOUBLE,
                                                                  2, 2);
     if (targetArray == NULL) {
       Py_DECREF(inputArray);
@@ -118,9 +118,9 @@ targets (2d array)");
 
     // Objects were converted successfully. But make sure they are the same length!
 
-    if (inputArray->dimensions[0] != targetArray->dimensions[0] ||
-        (unsigned int)inputArray->dimensions[1] != self->super.net->INPUT_COUNT ||
-        (unsigned int)targetArray->dimensions[1] < self->super.net->OUTPUT_COUNT)
+    if (PyArray_DIM(inputArray, 0)!= PyArray_DIM(targetArray, 0) ||
+        (unsigned int)PyArray_DIM(inputArray, 1) != self->super.net->INPUT_COUNT ||
+        (unsigned int)PyArray_DIM(targetArray, 1) < self->super.net->OUTPUT_COUNT)
       {
         // Decrement, set error and return
         PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same\
@@ -155,9 +155,9 @@ targets (2d array)");
 */
     // Release the GIL
     Py_BEGIN_ALLOW_THREADS;
-    ((GeneticNetwork*)self->super.net)->learn((double *) inputArray->data,
-                                              (double *) targetArray->data,
-                                              inputArray->dimensions[0]);
+    ((GeneticNetwork*)self->super.net)->learn((double *)PyArray_DATA(inputArray),
+                                              (double *)PyArray_DATA(targetArray),
+                                              PyArray_DIM(inputArray, 0));
     // Acquire the GIL again
     Py_END_ALLOW_THREADS;
 /*

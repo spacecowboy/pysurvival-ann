@@ -55,11 +55,11 @@ PyObject *CoxCascadeNetwork_learn(PyCoxCascadeNetwork *self, PyObject *args, PyO
   PyArrayObject *inputArray = NULL;
   PyArrayObject *targetArray = NULL;
 
-  inputArray = (PyArrayObject *) PyArray_ContiguousFromObject(inputs, PyArray_DOUBLE, 2, 2);
+  inputArray = (PyArrayObject *) PyArray_ContiguousFromObject(inputs, NPY_DOUBLE, 2, 2);
   if (inputArray == NULL)
     return NULL;
 
-  targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets, PyArray_DOUBLE, 2, 2);
+  targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets, NPY_DOUBLE, 2, 2);
   if (targetArray == NULL) {
     Py_DECREF(inputArray);
     return NULL;
