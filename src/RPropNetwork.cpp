@@ -12,6 +12,7 @@
 #include <cmath>
 #include <stdio.h>
 #include <iostream>
+#include <exception>      // std::exception
 
 using namespace std;
 
@@ -61,10 +62,11 @@ bool allLessThan(const double * const array,
  *  NC’2000, pp. 115–121, ICSC Academic Press, 2000
  *
  */
-void RPropNetwork::learn(const double * const X,
-                         const double * const Y,
-                         const unsigned int length)
+int RPropNetwork::learn(const double * const X,
+                        const double * const Y,
+                        const unsigned int length)
 {
+  int retval = 0;
   // Reset log
   initLog(maxEpochs);
 
@@ -84,6 +86,8 @@ void RPropNetwork::learn(const double * const X,
   std::fill(prevUpdates, prevUpdates + LENGTH * LENGTH, 0.1);
 
   unsigned int epoch = 0;
+
+  try {
 
   // Train
   do {
@@ -172,6 +176,10 @@ void RPropNetwork::learn(const double * const X,
     this->aLogPerf[epoch - 1] = meanError;
   } while (epoch < maxEpochs && meanError > maxError);
 
+  } catch (std::exception& e) {
+    std::cerr << "\nException thrown: " << e.what() << "\n\n";
+    retval = 1;
+  }
 
   // Clean memory
   delete[] preds;
@@ -180,6 +188,8 @@ void RPropNetwork::learn(const double * const X,
   delete[] prevBackPropValues;
   delete[] weightUpdates;
   delete[] prevUpdates;
+
+  return retval;
 }
 
 

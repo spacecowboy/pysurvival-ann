@@ -114,13 +114,21 @@ respectively.");
       }
 
     // Arguments are valid!
-    ((RPropNetwork*)self->super.net)->learn((double *)PyArray_DATA(inputArray),
-					    (double *)PyArray_DATA(targetArray),
-					    PyArray_DIM(inputArray, 0));
+    int result =
+      ((RPropNetwork*)self->super.net)
+      ->learn((double *)PyArray_DATA(inputArray),
+              (double *)PyArray_DATA(targetArray),
+              PyArray_DIM(inputArray, 0));
 
     // Decrement counters for inputArray and targetArray
     Py_DECREF(inputArray);
     Py_DECREF(targetArray);
+
+    if (result != 0)
+      {
+        PyErr_Format(PyExc_RuntimeError, "An exception was thrown in learn().\
+Please see std_err for info.");
+      }
 
     // Return none
     return Py_BuildValue("");

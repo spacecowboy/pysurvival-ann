@@ -22,9 +22,9 @@ class RPropNetwork: public MatrixNetwork {
   /*
  * Expects the X and Y to be of equal number of rows.
  */
-  virtual void learn(const double * const X,
-                     const double * const Y,
-                     const unsigned int length);
+  virtual int learn(const double * const X,
+                    const double * const Y,
+                    const unsigned int length);
 
 
   // Getters and Setters

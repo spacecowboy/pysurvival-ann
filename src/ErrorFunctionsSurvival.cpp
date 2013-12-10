@@ -222,14 +222,18 @@ void derivativeSurvLikelihood(const double * const Y,
                               const unsigned int length,
                               const unsigned int numOfOutput,
                               const double * const outputs,
-                              const unsigned int index,
+                              const unsigned int idx,
                               double * const result)
 {
   initSurvCache(Y, length);
 
-  double time = Y[numOfOutput * index];
-  double event = Y[numOfOutput * index + 1];
-  double pred = outputs[numOfOutput * index];
+  double time = Y[idx];
+  double event = Y[idx + 1];
+  double pred = outputs[idx];
+
+  // Survival function only cares about first output neuron
+  //if (numOfOutput > 1 && idx > 0)
+  unsigned int index = idx / numOfOutput;
 
   double last_time = JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].at(0);
 
