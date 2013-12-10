@@ -13,6 +13,7 @@ def getSURV(numweights, datasize=100):
     _inputs[:, -1] = 1.0 # bias
     _weights = np.random.normal(size=numweights + 1)
     _outputs = np.zeros((datasize, 2))
+    _outputs[:, 1] = 1
     # Need to normalize inputs
     _inputs[:, :-1] -= np.mean(_inputs[:, :-1], axis=0)
     _inputs[:, :-1] /= np.std(_inputs[:, :-1], axis=0)
@@ -275,29 +276,34 @@ def test_rpropnetwork_survlik():
     #Output
     weights[l * (l-1):] = np.random.normal(size=l)
     conns[l * (l-1):] = 1
-    act[l-1] = net.LOGSIG
+    act[(1 + net.input_count + net.hidden_count):] = net.LOGSIG
 
     net.weights = weights
     net.connections = conns
     net.activation_functions = act
 
-    #print(net.weights)
-    #print(net.connections)
-    #print(net.activation_functions)
-
-    #xor_in, xor_out = getXOR()
-
     net.max_error = 0.001
-    net.max_epochs = 3
+    net.max_epochs = 50
     net.error_function = net.ERROR_SURV_LIKELIHOOD
 
     surv_in, surv_out = getSURV(net.input_count)
 
+    print("\nTarget - Pred")
+    msg = "E={:.0f}        {:.3f} | {:.3f}"
+    for val, target in zip(surv_in, surv_out):
+        print(msg.format(target[1], target[0],
+                         net.output(val)[0]))
+       #print("T:", target, " P:", net.output(val)[0])
+
+
     net.learn(surv_in, surv_out)
 
-    print("\nResults")
-    for val in surv_in:
-        print("In:", val, " out:", net.output(val))
+    print("\nTarget - Pred")
+    for val, target in zip(surv_in, surv_out):
+        print(msg.format(target[1], target[0],
+                         net.output(val)[0]))
+
+#        print("T:", target, " P:", net.output(val)[0])
         #if sum(val) != 1:
         #    assert net.output(val) < 0.1, "xor solution doesnt work"
         #else:

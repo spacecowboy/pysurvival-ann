@@ -57,7 +57,11 @@ const std::string SURV_PROB = "SURV_PROB";
 // Probability for living longer than last event
 const std::string SURV_P_AFTER = "SURV_P_AFTER";
 // Last event's time
-const std::string SURV_LAST_EVENT_TIME = "SURV_LAST_EVENT_TIME";
+//const std::string SURV_LAST_EVENT_TIME = "SURV_LAST_EVENT_TIME";
+// Last member of data: time
+const std::string SURV_LAST_TIME= "SURV_LAST_TIME";
+// Last member of data: event
+const std::string SURV_LAST_EVENT = "SURV_LAST_EVENT";
 
 /**
  * Check if the survival pre-calculations have been performed.
@@ -91,7 +95,7 @@ void initSurvCache(const double * const Y,
         // Just so we can sum safely later
         if (i > 0) surv[i] = 0;
 
-        // Find later events
+        // Fi nd later events
         for (int later = 0; later < length; later++) {
           if (later == i) continue; // Skip itself
           double later_time = Y[2 * later + 1];
@@ -103,6 +107,16 @@ void initSurvCache(const double * const Y,
           if (later_time >= time && event == 1) {
             atRisk[i]++;
           }
+        }
+
+        // Find last one
+        if (JGN_errorCacheVectorMap[SURV_LAST_TIME].empty()) {
+          JGN_errorCacheVectorMap[SURV_LAST_TIME].push_back(time);
+          JGN_errorCacheVectorMap[SURV_LAST_EVENT].push_back(event);
+        }
+        else if (time > JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0)) {
+          JGN_errorCacheVectorMap[SURV_LAST_TIME][0] = time;
+          JGN_errorCacheVectorMap[SURV_LAST_EVENT][0] = event;
         }
 
         if (event == 1) {
@@ -122,12 +136,13 @@ void initSurvCache(const double * const Y,
           prev_i = i;
 
           // Make sure we remember the last event
+          /*
           if (JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].empty()) {
             JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].push_back(time);
           }
           if (time > JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].at(0)) {
             JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME][0] = time;
-          }
+            }*/
         }
         // Push back non-events (zeros) to maintain length
         JGN_errorCacheVectorMap[SURV_PROB].push_back(risk[i] * surv[i]);
@@ -185,7 +200,7 @@ double errorSurvLikelihood(const double * const Y,
   initSurvCache(Y, length);
 
   double error = 0;
-  double last_time = JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].at(0);
+  //  double last_time = JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].at(0);
 
   for (int i = 0; i < length; i++) {
     double time = Y[numOfOutput * i];
@@ -203,13 +218,12 @@ double errorSurvLikelihood(const double * const Y,
         local_error += JGN_errorCacheVectorMap[SURV_A].at(i) +
           pred * (pred * JGN_errorCacheVectorMap[SURV_B].at(i) +
                   JGN_errorCacheVectorMap[SURV_C].at(i));
-        // Error for survival after last event
-        local_error += JGN_errorCacheVectorMap[SURV_P_AFTER].at(i) *
-          std::pow(last_time - pred, 2.0);
       }
-      else if (time > pred) {
-        // Censored after last event and underestimated
-        local_error = std::pow(time - pred, 2.0);
+      // Error due to tail-censored elements
+      if (JGN_errorCacheVectorMap[SURV_LAST_EVENT].at(0) == 0 &&
+          pred < JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0)) {
+        local_error += JGN_errorCacheVectorMap[SURV_P_AFTER].at(i) *
+          std::pow(JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0) - pred, 2.0);
       }
     }
     error += local_error;
@@ -235,24 +249,22 @@ void derivativeSurvLikelihood(const double * const Y,
   //if (numOfOutput > 1 && idx > 0)
   unsigned int index = idx / numOfOutput;
 
-  double last_time = JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].at(0);
-
+  // Only first neuron is used
+  result[1] = 0;
   if (event == 1) {
-    // TODO need to make sure the signs are correct and consistent
-    result[0] = 2 * (pred - time);
+    result[0] = 2 * (time - pred);
   }
   else {
+    // Later events
     result[0] =
-      2 * pred *  JGN_errorCacheVectorMap[SURV_B].at(index);
+      2 * pred * JGN_errorCacheVectorMap[SURV_B].at(index);
     result[0] += JGN_errorCacheVectorMap[SURV_C].at(index);
 
-    if (JGN_errorCacheVectorMap[SURV_LATER_EVENTS].size() > 0) {
-      result[0] +=
-        JGN_errorCacheVectorMap[SURV_P_AFTER].at(index) *
-        2 * (pred - last_time);
-    }
-    else if (time > pred) {
-      result[0] += 2 * (pred - time);
+    // Tail censored ones
+    if (JGN_errorCacheVectorMap[SURV_LAST_EVENT].at(0) == 0 &&
+        pred < JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0)) {
+          result[0] += JGN_errorCacheVectorMap[SURV_P_AFTER].at(index) *
+            2 * (JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0) - pred);
     }
   }
 }
