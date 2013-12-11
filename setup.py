@@ -61,7 +61,7 @@ _ann = Extension('ann._ann',
                  libraries=libs, library_dirs=libdirs)
 
 setup(name = 'AnnPlusPlus',
-      version = '6',
+      version = '0.7',
       description = 'A C++ neural network package',
       author = 'Jonas Kalderstam',
       author_email = 'jonas@kalderstam.se',
@@ -69,5 +69,6 @@ setup(name = 'AnnPlusPlus',
       packages = ['ann'],
       package_dir = {'ann': 'ann'},
       ext_modules = [_ann],
-      requires = ['numpy'],
+      setup_requires = ['numpy'],
+      install_requires = ['numpy>=1.7']
      )

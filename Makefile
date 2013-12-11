@@ -37,7 +37,9 @@ ann/_ann.so: $(DEPS)
 	CC=clang++ python setup.py build_ext --inplace
 
 install: $(DEPS)
-	CC=clang++ python setup.py install
+	#CC=clang++ python setup.py install
+	CC=clang++ pip install -r requirements.txt
+	CC=clang++ pip install -e .
 
 build: $(DEPS)
 	CC=clang++ python setup.py build
