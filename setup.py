@@ -60,9 +60,9 @@ _ann = Extension('ann._ann',
                  extra_link_args = linkargs,
                  libraries=libs, library_dirs=libdirs)
 
-setup(name = 'AnnPlusPlus',
+setup(name = 'pysurvival-ann',
       version = '0.7',
-      description = 'A C++ neural network package',
+      description = 'A C++ neural network package for survival data',
       author = 'Jonas Kalderstam',
       author_email = 'jonas@kalderstam.se',
       url = 'None at this time',
