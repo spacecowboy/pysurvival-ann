@@ -70,5 +70,5 @@ setup(name = 'pysurvival-ann',
       package_dir = {'ann': 'ann'},
       ext_modules = [_ann],
       setup_requires = ['numpy'],
-      install_requires = ['numpy>=1.7']
+      install_requires = ['numpy>=1.7.1']
      )
