@@ -10,14 +10,13 @@ def getSURV(numweights, datasize=100):
 
     _inputs = np.random.uniform(size=(datasize, numweights + 1))
     # Normalize
+    _inputs[:, :-1] -= np.mean(_inputs[:, :-1], axis=0)
+    _inputs[:, :-1] /= np.std(_inputs[:, :-1], axis=0)
     _inputs[:, -1] = 1.0 # bias
+    # Calc outputs
     _weights = np.random.normal(size=numweights + 1)
     _outputs = np.zeros((datasize, 2))
     _outputs[:, 1] = 1
-    # Need to normalize inputs
-    _inputs[:, :-1] -= np.mean(_inputs[:, :-1], axis=0)
-    _inputs[:, :-1] /= np.std(_inputs[:, :-1], axis=0)
-    # Calc outputs
     _outputs[:, 0] = sigmoid(np.sum(_inputs * _weights, axis=1))
     # Remove bias
     _inputs = _inputs[:, :-1]
@@ -256,8 +255,8 @@ def test_rpropnetwork_mse():
     print(dir(net))
 
 
-def test_rpropnetwork_survlik():
-    from ann import rpropnetwork
+def test_rpropnetwork_survlik_logsig():
+    from ann import rpropnetwork, get_C_index
 
     net = rpropnetwork(2, 8, 2)
 
@@ -274,44 +273,64 @@ def test_rpropnetwork_survlik():
         act[i] = net.TANH
 
     #Output
-    weights[l * (l-1):] = np.random.normal(size=l)
-    conns[l * (l-1):] = 1
-    act[(1 + net.input_count + net.hidden_count):] = net.LOGSIG
+    weights[l * (l-2): l * (l-1)] = np.random.normal(size=l)
+    conns[l * (l-2):l * (l-1)] = 1
+    act[l-2:] = net.LOGSIG
 
     net.weights = weights
     net.connections = conns
     net.activation_functions = act
 
-    net.max_error = 0.001
-    net.max_epochs = 50
+    net.max_error = 0.01
+    net.max_epochs = 100
     net.error_function = net.ERROR_SURV_LIKELIHOOD
 
-    surv_in, surv_out = getSURV(net.input_count)
+    surv_in, surv_out = getSURV(net.input_count, 100)
 
     print("\nTarget - Pred")
     msg = "E={:.0f}        {:.3f} | {:.3f}"
-    for val, target in zip(surv_in, surv_out):
+    preds_before = np.zeros((len(surv_in), 2))
+    olddev = 0
+    for i, (val, target) in enumerate(zip(surv_in, surv_out)):
+        preds_before[i] = net.output(val)
         print(msg.format(target[1], target[0],
                          net.output(val)[0]))
+        if target[1] > 0:
+            olddev += (target[0] - net.output(val)[0])**2
        #print("T:", target, " P:", net.output(val)[0])
 
+    olddev = np.sqrt(olddev/len(surv_out))
+    cindex_before = get_C_index(surv_out, preds_before[:, 0])
 
     net.learn(surv_in, surv_out)
 
     print("\nTarget - Pred")
-    for val, target in zip(surv_in, surv_out):
+    preds_after = np.zeros((len(surv_out), 2))
+    newdev = 0
+    for i, (val, target) in enumerate(zip(surv_in, surv_out)):
+        preds_after[i] = net.output(val)
         print(msg.format(target[1], target[0],
                          net.output(val)[0]))
+        if target[1] > 0:
+            newdev += (target[0] - net.output(val)[0])**2
 
+    cindex_after = get_C_index(surv_out, preds_after[:, 0])
+    newdev = np.sqrt(newdev/len(surv_out))
+    print("\n{:<10s} {:.3f} -> {:.3f}".format("C-index:",
+                                              cindex_before, cindex_after))
+    print("{:<10s} {:.3f} -> {:.3f}".format("Deviation:", olddev, newdev))
 #        print("T:", target, " P:", net.output(val)[0])
         #if sum(val) != 1:
         #    assert net.output(val) < 0.1, "xor solution doesnt work"
         #else:
         #    assert net.output(val) > 0.9, "xor solution doesnt work"
 
-    print(net)
-    print(dir(net))
-
+    #print(net)
+    #print(dir(net))
+    print("\nWeights")
+    print(conns.reshape((l, l)))
+    print("\nActivation Functions")
+    print(act)
 
 if __name__ == "__main__":
     test_import()
