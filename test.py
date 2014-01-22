@@ -325,6 +325,9 @@ def test_rpropnetwork_survlik_logsig():
         #else:
         #    assert net.output(val) > 0.9, "xor solution doesnt work"
 
+    assert newdev < olddev, "Expected deviation to go down!"
+    assert cindex_before < cindex_after, "Expected c-index to increase!"
+
     #print(net)
     #print(dir(net))
     print("\nWeights")
@@ -332,9 +335,91 @@ def test_rpropnetwork_survlik_logsig():
     print("\nActivation Functions")
     print(act)
 
+def test_rpropnetwork_survlik_linear():
+    from ann import rpropnetwork, get_C_index
+
+    net = rpropnetwork(2, 8, 2)
+
+    # Need to connect it
+    l = net.input_count + net.hidden_count + net.output_count + 1
+    weights = net.weights
+    conns = net.connections
+    act = net.activation_functions
+    # Stop before output as it is included
+    for i in range(l-1):
+        # connect hidden to inputs and bias
+        weights[l * i: l * i + 3] = np.random.normal()
+        conns[l * i: l * i + 3] = 1
+        act[i] = net.TANH
+
+    #Output
+    weights[l * (l-2): l * (l-1)] = np.random.normal(size=l)
+    conns[l * (l-2):l * (l-1)] = 1
+    act[l-2:] = net.LINEAR
+
+    net.weights = weights
+    net.connections = conns
+    net.activation_functions = act
+
+    net.max_error = 0.01
+    net.max_epochs = 100
+    net.error_function = net.ERROR_SURV_LIKELIHOOD
+
+    surv_in, surv_out = getSURV(net.input_count, 100)
+
+    print("\nTarget - Pred")
+    msg = "E={:.0f}        {:.3f} | {:.3f}"
+    preds_before = np.zeros((len(surv_in), 2))
+    olddev = 0
+    for i, (val, target) in enumerate(zip(surv_in, surv_out)):
+        preds_before[i] = net.output(val)
+        print(msg.format(target[1], target[0],
+                         net.output(val)[0]))
+        if target[1] > 0:
+            olddev += (target[0] - net.output(val)[0])**2
+       #print("T:", target, " P:", net.output(val)[0])
+
+    olddev = np.sqrt(olddev/len(surv_out))
+    cindex_before = get_C_index(surv_out, preds_before[:, 0])
+
+    net.learn(surv_in, surv_out)
+
+    print("\nTarget - Pred")
+    preds_after = np.zeros((len(surv_out), 2))
+    newdev = 0
+    for i, (val, target) in enumerate(zip(surv_in, surv_out)):
+        preds_after[i] = net.output(val)
+        print(msg.format(target[1], target[0],
+                         net.output(val)[0]))
+        if target[1] > 0:
+            newdev += (target[0] - net.output(val)[0])**2
+
+    cindex_after = get_C_index(surv_out, preds_after[:, 0])
+    newdev = np.sqrt(newdev/len(surv_out))
+    print("\n{:<10s} {:.3f} -> {:.3f}".format("C-index:",
+                                              cindex_before, cindex_after))
+    print("{:<10s} {:.3f} -> {:.3f}".format("Deviation:", olddev, newdev))
+#        print("T:", target, " P:", net.output(val)[0])
+        #if sum(val) != 1:
+        #    assert net.output(val) < 0.1, "xor solution doesnt work"
+        #else:
+        #    assert net.output(val) > 0.9, "xor solution doesnt work"
+
+    assert newdev < olddev, "Expected deviation to go down!"
+    assert cindex_before < cindex_after, "Expected c-index to increase!"
+
+    #print(net)
+    #print(dir(net))
+    print("\nWeights")
+    print(conns.reshape((l, l)))
+    print("\nActivation Functions")
+    print(act)
+
+
 if __name__ == "__main__":
     test_import()
     test_gennetwork()
     test_matrixnetwork()
     test_rpropnetwork_mse()
-    test_rpropnetwork_survlik()
+    test_rpropnetwork_survlik_logsig()
+    test_rpropnetwork_survlik_linear()
