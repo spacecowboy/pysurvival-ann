@@ -30,6 +30,8 @@ test: test.py ann/_ann.so $(DEPS)
 #.cpp.o:
 #	$(CC) -c $<
 
+inplace: ann/_ann.so
+
 ann/__init__.py:
 	CC=clang++ python setup.py build_ext --inplace
 
