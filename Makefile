@@ -4,7 +4,8 @@ perf: test.py ann/_ann.so $(DEPS)
 	python -m cProfile -s cumulative test.py
 
 test: test.py ann/_ann.so $(DEPS)
-	nosetests -v -x -s test.py
+	#nosetests -v -x -s test.py
+	nosetests -v ./
 
 inplace: ann/_ann.so
 
