@@ -3,9 +3,6 @@
 
 #include "Random.hpp"
 #include <mutex>
-#include <unordered_map>
-#include <string>
-#include <vector>
 
 // All global variables should use prefix JGN_
 
@@ -17,12 +14,5 @@ extern std::mutex JGN_mutexPopulation;
 void JGN_lockPopulation();
 
 void JGN_unlockPopulation();
-
-
-// Error functions might need to use a cache during runtime to speed
-// things up.  ERROR_SURV_LIKELIHOOD, goes from squared to linear
-// running time.
-extern std::unordered_map<std::string,
-                          std::vector<double> > JGN_errorCacheVectorMap;
 
 #endif // GLOBAL_HPP_

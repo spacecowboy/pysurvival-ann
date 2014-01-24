@@ -1,7 +1,271 @@
 #include "ErrorFunctionsSurvival.hpp"
+#include "ErrorFunctions.hpp"
 #include <cmath>
 #include "global.hpp"
 #include <string>
+#include <vector>
+#include <exception>
+#include <stdio.h>
+
+/**
+ * sortedIndices will have the indices in targets sorted by ascending
+ * order of time. You will have to do targets[2*i] however. sortedIndices
+ * will be < length.
+ */
+void getIndicesSortedByTime(const double * const targets,
+                            const unsigned int length,
+                            std::vector<unsigned int>& sortedIndices)
+{
+  sortedIndices.clear();
+  sortedIndices.reserve(length);
+  // Just simple insertion sort
+  unsigned int index;
+  std::vector<unsigned int>::iterator it;
+  double time_i, time_j;
+  bool needInsert;
+  // Insert zero to start with
+  sortedIndices.push_back(0);
+  for (unsigned int i = 1; i < length; i++)
+  {
+    time_i = targets[2 * i];
+    needInsert = true;
+    for (it=sortedIndices.begin(); it<sortedIndices.end(); it++)
+    {
+      index = *it;
+      time_j = targets[2 * index];
+
+      if (time_i < time_j)
+      {
+        // Insert at this location
+        sortedIndices.insert(it, i);
+        needInsert = false;
+        // End loop
+        break;
+      }
+    } // inner for
+    if (needInsert) {
+      sortedIndices.push_back(i);
+    }
+  } // outer for
+}
+
+SurvErrorCache::SurvErrorCache() :
+  ErrorCache()
+{
+}
+
+SurvErrorCache::~SurvErrorCache()
+{
+}
+
+void SurvErrorCache::clear()
+{
+  this->needInit = true;
+  // Empty vectors
+  this->a.clear();
+  this->b.clear();
+  this->c.clear();
+  this->probAfter.clear();
+}
+
+double SurvErrorCache::getDouble(const int key, const unsigned int index)
+{
+  double retval = 0;
+  switch (key) {
+  case KEY_A:
+    //std::cout << "Got A ";
+    retval = this->a.at(index);
+    break;
+  case KEY_B:
+    //std::cout << "Got B ";
+    retval = this->b.at(index);
+    break;
+  case KEY_C:
+    //std::cout << "Got C ";
+    retval = this->c.at(index);
+    break;
+  case KEY_PAFTER:
+    //std::cout << "Got PAfter ";
+    retval = this->probAfter.at(index);
+    break;
+  case KEY_LAST_EVENT:
+    //std::cout << "Got Event ";
+    retval = this->lastEvent;
+    break;
+  case KEY_LAST_TIME:
+    //std::cout << "Got time ";
+    retval = this->lastTime;
+    break;
+  default:
+    retval = 0;
+    break;
+  }
+  //std::cout << "Got double " << retval << std::endl;
+  return retval;
+}
+
+void SurvErrorCache::init(const double * const targets,
+                          const unsigned int length)
+{
+  // Targets is a 2 dimensional array with [time, event] pairs time is
+  // any double value (ideally a positive one) event is either 1.0 or
+  // 0.0.  Length is the number of such pairs.
+
+  // Prepeare vectors, clear and resize to length number of zeros
+  this->a.clear();
+  this->a.resize(length, 0);
+  this->b.clear();
+  this->b.resize(length, 0);
+  this->c.clear();
+  this->c.resize(length, 0);
+  this->probAfter.clear();
+  this->probAfter.resize(length, 0);
+
+  // Due to how these calculations work, we have to work in time order
+  std::vector<unsigned int> sortedIndices;
+  getIndicesSortedByTime(targets, length, sortedIndices);
+
+  // Number of patients at risk
+  double atRisk[length];
+  // Risk measure
+  double risk[length];
+  // Survival fraction
+  double surv[length];
+  // Probability of event (at events) is just risk * surv
+  double prob[length];
+  // Difference to last index in survival
+  double survDiff = 0;
+  // Surv at last point
+  double survAfter = 0;
+  unsigned int index, laterIndex, prevIndex;
+  bool firstEvent = true;
+
+  // Keep track of later events for all indices This is a 2d vector
+  std::vector< std::vector<unsigned int> > allLaterEvents(length);
+
+  double time, event, laterTime, laterEvent;
+
+  std::vector<unsigned int>::iterator it, laterIt;
+
+  // First calculate the risk and survival
+  for (it = sortedIndices.begin(); it < sortedIndices.end(); it++)
+  {
+    index = *it;
+
+    time = targets[2 * index];
+    event = targets[2 * index + 1];
+
+    // Want to store the very last time point for later
+    if (time > this->lastTime) {
+      this->lastTime = time;
+      this->lastEvent = event;
+    }
+
+    // Init to zero
+    atRisk[index] = 0;
+    risk[index] = 0;
+    prob[index] = 0;
+    if (index > 0) surv[index] = 0;
+
+    // Look at later events.
+    for (laterIt = it + 1; laterIt < sortedIndices.end(); laterIt++)
+    {
+      laterIndex = *laterIt;
+
+      laterTime = targets[2 * laterIndex];
+      laterEvent = targets[2 * laterIndex + 1];
+
+      // Remember later events
+      if (laterTime > time && laterEvent == 1) {
+        // Access later events array for current index and add this
+        // later index
+        allLaterEvents[index].push_back(laterIndex);
+      }
+      // Anything now or later is at risk
+      if (laterTime >= time && event) {
+        atRisk[index] += 1;
+      }
+    }
+
+    // Calculate survival and risk
+    if (event == 1) {
+      // Risk is just inverse of number at risk
+      risk[index] = 1.0 / atRisk[index];
+
+      if (firstEvent) {
+        // By definition
+        surv[index] = 1.0;
+        firstEvent = false;
+      }
+      else {
+        surv[index] = surv[prevIndex] + survDiff;
+      }
+
+      prob[index] = risk[index] * surv[index];
+
+      // Calculate surv diff for next round
+      survDiff =  - risk[index] * surv[index];
+      // Remember previous index next time
+      prevIndex = index;
+    }
+    else {
+      // Not an event, nothing has changed
+      risk[index] = risk[prevIndex];
+      surv[index] = surv[prevIndex];
+      // Zero probability of event
+      prob[index] = 0;
+    }
+  }
+
+  //if (targets[2 * sortedIndices.back() + 1] == 1) {
+  if (this->lastEvent == 1)
+  {
+    // Last point is an event, by definition pAfter is zero
+    survAfter = 0;
+  }
+  else {
+    // Last point is censored
+    survAfter = surv[sortedIndices.back()] + survDiff;
+  }
+
+  // Now, calculate the precomputed parts of each index
+  // Order is irrelevant here
+  for (index = 0; index < length; index++) {
+    time = targets[2 * index];
+    event = targets[2 * index + 1];
+
+    if (event) {
+      // This is already done in initialization step
+      this->a[index] = 0;
+      this->b[index] = 0;
+      this->c[index] = 0;
+      this->probAfter[index] = 0;
+    }
+    else {
+      // Starts at probability 1
+      this->probAfter[index] = 1;
+      this->a[index] = 0;
+      this->b[index] = 0;
+      this->c[index] = 0;
+      // Iterate over later events
+      for (laterIt = allLaterEvents[index].begin();
+           laterIt < allLaterEvents[index].end();
+           laterIt++)
+      {
+        laterIndex = *laterIt;
+        // Decrease for each event probability
+        this->probAfter[index] -= prob[laterIndex];
+        // a_i = sum[ prob_i * T_i^2 ]
+        this->a[index] += (prob[laterIndex] *
+                           (targets[2 * laterIndex] * targets[2 * laterIndex]));
+        // b_i = sum[ prob_i ]
+        this->b[index] += prob[laterIndex];
+        // c_i = sum[ prob_i * -2 * T_i ]
+        this->c[index] += -2 * prob[laterIndex] * targets[2 * laterIndex];
+      }
+    }
+  }
+}
 
 double errorSurvMSE(const double * const Y,
                     const unsigned int length,
@@ -50,180 +314,26 @@ void derivativeSurvMSE(const double * const Y,
   }
 }
 
-// Should come up with better names...
-const std::string SURV_A = "SURV_A";
-const std::string SURV_B = "SURV_B";
-const std::string SURV_C = "SURV_C";
-// Indices of events after the given index
-const std::string SURV_LATER_EVENTS = "SURV_LATER_EVENTS";
-// Probability of dying at each time index
-const std::string SURV_PROB = "SURV_PROB";
-// Probability for living longer than last event
-const std::string SURV_P_AFTER = "SURV_P_AFTER";
-// Last event's time
-//const std::string SURV_LAST_EVENT_TIME = "SURV_LAST_EVENT_TIME";
-// Last member of data: time
-const std::string SURV_LAST_TIME= "SURV_LAST_TIME";
-// Last member of data: event
-const std::string SURV_LAST_EVENT = "SURV_LAST_EVENT";
-
-/**
- * Check if the survival pre-calculations have been performed.
- * Always assumed to be (time, event) in array.
- * Length describes the number of such pairs.
- */
-void initSurvCache(const double * const Y,
-                   const unsigned int length)
-{
-  // If any is not there, recompute them all
-  if (JGN_errorCacheVectorMap.find(SURV_A) == JGN_errorCacheVectorMap.end() ||
-      JGN_errorCacheVectorMap.find(SURV_B) == JGN_errorCacheVectorMap.end() ||
-      JGN_errorCacheVectorMap.find(SURV_C) == JGN_errorCacheVectorMap.end())
-  {
-    double atRisk[length];
-    double risk[length];
-    double surv[length];
-    surv[0] = 1.0; // by definition
-    double surv_diff = 0;
-    int prev_i = 0;
-    bool first_event = true;
-
-    // First the risk and survival must be calculated
-    for (int i = 0; i < length; i++)
-    {
-      double time = Y[2 * i];
-      double event = Y[2 * i + 1];
-
-      // init to zero
-      atRisk[i] = 0;
-
-      risk[i] = 0;
-      // Just so we can sum safely later
-      if (i > 0) surv[i] = 0;
-
-      // Find later events
-      for (int later = 0; later < length; later++)
-      {
-        if (later == i) continue; // Skip itself
-        double later_time = Y[2 * later + 1];
-        double later_event = Y[2 * later + 1];
-
-        if (later_time > time && later_event == 1)
-        {
-          JGN_errorCacheVectorMap[SURV_LATER_EVENTS].push_back(later);
-        }
-        if (later_time >= time && event == 1)
-        {
-          atRisk[i]++;
-        }
-      }
-
-      // Find last one
-      if (JGN_errorCacheVectorMap[SURV_LAST_TIME].empty())
-      {
-        JGN_errorCacheVectorMap[SURV_LAST_TIME].push_back(time);
-        JGN_errorCacheVectorMap[SURV_LAST_EVENT].push_back(event);
-      }
-      else if (time > JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0))
-      {
-        JGN_errorCacheVectorMap[SURV_LAST_TIME][0] = time;
-        JGN_errorCacheVectorMap[SURV_LAST_EVENT][0] = event;
-      }
-
-      if (event == 1)
-      {
-        if (first_event)
-        {
-          prev_i = i;
-          first_event = false;
-        }
-        // Calculate risk
-        // Risk of division by zero?
-        risk[i] = 1.0 / atRisk[i];
-
-        if (i > prev_i)
-        {
-          surv[i] = surv[prev_i] + surv_diff;
-        }
-
-        surv_diff = -risk[i] * surv[i];
-        prev_i = i;
-
-        // Make sure we remember the last event
-        /*
-          if (JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].empty()) {
-          JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].push_back(time);
-          }
-          if (time > JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].at(0)) {
-          JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME][0] = time;
-          }*/
-      }
-      // Push back non-events (zeros) to maintain length
-      JGN_errorCacheVectorMap[SURV_PROB].push_back(risk[i] * surv[i]);
-    }
-    for (int i = 0; i < length; i++)
-    {
-      double time = Y[2 * i];
-      double event = Y[2 * i + 1];
-
-      if (event == 1)
-      {
-        // Will only be used for censored ones, so push zeros for
-        // events
-        JGN_errorCacheVectorMap[SURV_P_AFTER].push_back(0);
-        JGN_errorCacheVectorMap[SURV_B].push_back(0);
-        JGN_errorCacheVectorMap[SURV_A].push_back(0);
-        JGN_errorCacheVectorMap[SURV_C].push_back(0);
-        continue;
-      }
-
-      double sum_prob_later = 0;
-      double sum_prob_later_squared_time = 0;
-      double sum_prob_later_time = 0;
-
-      for (int later = 0; later < length; later++)
-      {
-        if (later == i) continue; // Skip itself
-
-        double later_time = Y[2 * later + 1];
-        double later_event = Y[2 * later + 1];
-
-        if (later_time > time && later_event == 1)
-        {
-          sum_prob_later += JGN_errorCacheVectorMap[SURV_PROB].at(later);
-
-          sum_prob_later_squared_time +=
-            JGN_errorCacheVectorMap[SURV_PROB].at(later) *
-            (later_time * later_time);
-
-          sum_prob_later_time +=
-            JGN_errorCacheVectorMap[SURV_PROB].at(later) *
-            -2 * later_time;
-        }
-      }
-
-      JGN_errorCacheVectorMap[SURV_P_AFTER].push_back(1.0 - sum_prob_later);
-      JGN_errorCacheVectorMap[SURV_B].push_back(sum_prob_later);
-      JGN_errorCacheVectorMap[SURV_A].push_back(sum_prob_later_squared_time);
-      JGN_errorCacheVectorMap[SURV_C].push_back(sum_prob_later_time);
-    }
-  }
-}
-
 double errorSurvLikelihood(const double * const Y,
                            const unsigned int length,
                            const unsigned int numOfOutput,
-                           const double * const outputs)
+                           const double * const outputs,
+                           ErrorCache * const cache)
 {
-  initSurvCache(Y, length);
+  // Cache can't be null
+  if (NULL == cache) {
+    throw std::invalid_argument("ErrorCache was null");
+  }
+  // Verify that cache has been initialized
+  cache->verifyInit(Y, length);
 
   double error = 0;
   //  double last_time = JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].at(0);
 
   for (int i = 0; i < length; i++)
   {
-    double time = Y[numOfOutput * i];
-    double event = Y[numOfOutput * i + 1];
+    double time = Y[2 * i];
+    double event = Y[2 * i + 1];
     double pred = outputs[numOfOutput * i];
     double local_error = 0;
 
@@ -233,21 +343,31 @@ double errorSurvLikelihood(const double * const Y,
     }
     else
     {
-      if (JGN_errorCacheVectorMap[SURV_LATER_EVENTS].size() > 0)
-      {
-        // Censored before last event
-        // Error for events
-        local_error += JGN_errorCacheVectorMap[SURV_A].at(i) +
-          pred * (pred * JGN_errorCacheVectorMap[SURV_B].at(i) +
-                  JGN_errorCacheVectorMap[SURV_C].at(i));
-      }
+      local_error += cache->getDouble(KEY_A, i);
+      local_error += pred * (pred * cache->getDouble(KEY_B, i) +
+                             cache->getDouble(KEY_C, i));
+
+      // if (JGN_errorCacheVectorMap[SURV_LATER_EVENTS].size() > 0)
+      // {
+      //   // Censored before last event
+      //   // Error for events
+      //   local_error += JGN_errorCacheVectorMap[SURV_A].at(i) +
+      //     pred * (pred * JGN_errorCacheVectorMap[SURV_B].at(i) +
+      //             JGN_errorCacheVectorMap[SURV_C].at(i));
+      // }
       // Error due to tail-censored elements
-      if (JGN_errorCacheVectorMap[SURV_LAST_EVENT].at(0) == 0 &&
-          pred < JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0))
+      if (cache->getDouble(KEY_LAST_EVENT, i) == 0 &&
+          pred < cache->getDouble(KEY_LAST_TIME, i))
       {
-        local_error += JGN_errorCacheVectorMap[SURV_P_AFTER].at(i) *
-          std::pow(JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0) - pred, 2.0);
+        local_error += cache->getDouble(KEY_PAFTER, i) *
+          std::pow(cache->getDouble(KEY_LAST_TIME, i) - pred, 2.0);
       }
+      // if (JGN_errorCacheVectorMap[SURV_LAST_EVENT].at(0) == 0 &&
+      //     pred < JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0))
+      // {
+      //   local_error += JGN_errorCacheVectorMap[SURV_P_AFTER].at(i) *
+      //     std::pow(JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0) - pred, 2.0);
+      // }
     }
     error += local_error;
   }
@@ -260,9 +380,15 @@ void derivativeSurvLikelihood(const double * const Y,
                               const unsigned int numOfOutput,
                               const double * const outputs,
                               const unsigned int idx,
+                              ErrorCache * const cache,
                               double * const result)
 {
-  initSurvCache(Y, length);
+  // Cache can't be null
+  if (NULL == cache) {
+    throw std::invalid_argument("ErrorCache was null");
+  }
+  // Verify that cache has been initialized
+  cache->verifyInit(Y, length);
 
   double time = Y[idx];
   double event = Y[idx + 1];
@@ -281,16 +407,25 @@ void derivativeSurvLikelihood(const double * const Y,
   else
   {
     // Later events
-    result[0] =
-      2 * pred * JGN_errorCacheVectorMap[SURV_B].at(index);
-    result[0] += JGN_errorCacheVectorMap[SURV_C].at(index);
+    result[0] = 2 * pred * cache->getDouble(KEY_B, index);
+    result[0] += cache->getDouble(KEY_C, index);
+
+    // result[0] =
+    //   2 * pred * JGN_errorCacheVectorMap[SURV_B].at(index);
+    // result[0] += JGN_errorCacheVectorMap[SURV_C].at(index);
 
     // Tail censored ones
-    if (JGN_errorCacheVectorMap[SURV_LAST_EVENT].at(0) == 0 &&
-        pred < JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0))
+    if (cache->getDouble(KEY_LAST_EVENT, index) == 0 &&
+        pred < cache->getDouble(KEY_LAST_TIME, index))
     {
-      result[0] += JGN_errorCacheVectorMap[SURV_P_AFTER].at(index) *
-        2 * (JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0) - pred);
+      result[0] += cache->getDouble(KEY_PAFTER, index) * 2 *
+        (cache->getDouble(KEY_LAST_TIME, index) - pred);
     }
+    // if (JGN_errorCacheVectorMap[SURV_LAST_EVENT].at(0) == 0 &&
+    //     pred < JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0))
+    // {
+    //   result[0] += JGN_errorCacheVectorMap[SURV_P_AFTER].at(index) *
+    //     2 * (JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0) - pred);
+    // }
   }
 }

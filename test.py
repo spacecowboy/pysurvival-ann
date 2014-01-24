@@ -392,33 +392,34 @@ def test_rprop_hardsim():
 
 def test_rprop_linear_cens():
     rpropnetwork_survlik(get_surv_censored, 2, 0.1)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.2)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.3)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.4)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.5)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.6)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.7)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.8)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.9)
+    #rpropnetwork_survlik(get_surv_censored, 2, 0.2)
+    #rpropnetwork_survlik(get_surv_censored, 2, 0.3)
+    #rpropnetwork_survlik(get_surv_censored, 2, 0.4)
+    #rpropnetwork_survlik(get_surv_censored, 2, 0.5)
+    #rpropnetwork_survlik(get_surv_censored, 2, 0.6)
+    #rpropnetwork_survlik(get_surv_censored, 2, 0.7)
+    #rpropnetwork_survlik(get_surv_censored, 2, 0.8)
+    #rpropnetwork_survlik(get_surv_censored, 2, 0.9)
     # Expect failure for this
-    failed = False
-    try:
-        rpropnetwork_survlik(get_surv_censored, 2, 1.0)
-    except AssertionError:
-        failed = True
+    #failed = False
+    #try:
+    #    rpropnetwork_survlik(get_surv_censored, 2, 1.0)
+    #except AssertionError:
+    #    failed = True
 
-    assert failed, "Should not work with 100% censoring!"
+    #assert failed, "Should not work with 100% censoring!"
 
 
 if __name__ == "__main__":
-    for i in range(100):
+    for i in range(1):
         print("\n", i)
+        failed = False
         # Running this first results in censored test not being censored!
-        test_rprop_linear_uncens()
-        #test_rprop_hardsim()
         try:
+            test_rprop_linear_uncens()
             test_rprop_linear_cens()
         except AssertionError:
             print("It failed..\n")
+            failed = True
 
-        test_rprop_linear_uncens()
+        assert failed, "It should bloody fail!"

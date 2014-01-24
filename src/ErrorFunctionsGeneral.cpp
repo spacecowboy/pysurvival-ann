@@ -46,7 +46,6 @@ void derivativeMSE(const double * const Y,
                    double * const result)
 {
   for (unsigned int i = 0; i < numOfOutput; i++) {
-    result[i] =
-      Y[numOfOutput * index + i] - outputs[numOfOutput * index + i];
+    result[i] = Y[index + i] - outputs[index + i];
   }
 }

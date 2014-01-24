@@ -72,6 +72,11 @@ int RPropNetwork::learn(const double * const X,
 
   // Used in training
   double dMax = 50, dMin = 0.00001, dPos = 1.2, dNeg = 0.5;
+  // Cache used for some error functions
+  ErrorCache *cache = getErrorCache(errorFunction);
+  if (cache != NULL) {
+    cache->clear();
+  }
 
   // Local variables. () sets all to zero
   double meanError = 1 + maxError;
@@ -108,6 +113,7 @@ int RPropNetwork::learn(const double * const X,
                     OUTPUT_COUNT,
                     preds,
                     i * OUTPUT_COUNT,
+                    cache,
                     derivs + OUTPUT_START);
 
       // Iterate backwards over the network
@@ -170,7 +176,7 @@ int RPropNetwork::learn(const double * const X,
       output(X + i * INPUT_COUNT, preds + i * OUTPUT_COUNT);
     }
     prevError = meanError;
-    meanError = getError(errorFunction, Y, length, OUTPUT_COUNT, preds);
+    meanError = getError(errorFunction, Y, length, OUTPUT_COUNT, preds, cache);
     epoch += 1;
     // And log performance
     this->aLogPerf[epoch - 1] = meanError;
@@ -188,6 +194,8 @@ int RPropNetwork::learn(const double * const X,
   delete[] prevBackPropValues;
   delete[] weightUpdates;
   delete[] prevUpdates;
+  if (NULL != cache)
+    delete cache;
 
   return retval;
 }
