@@ -328,7 +328,6 @@ double errorSurvLikelihood(const double * const Y,
   cache->verifyInit(Y, length);
 
   double error = 0;
-  //  double last_time = JGN_errorCacheVectorMap[SURV_LAST_EVENT_TIME].at(0);
 
   for (int i = 0; i < length; i++)
   {
@@ -347,14 +346,6 @@ double errorSurvLikelihood(const double * const Y,
       local_error += pred * (pred * cache->getDouble(KEY_B, i) +
                              cache->getDouble(KEY_C, i));
 
-      // if (JGN_errorCacheVectorMap[SURV_LATER_EVENTS].size() > 0)
-      // {
-      //   // Censored before last event
-      //   // Error for events
-      //   local_error += JGN_errorCacheVectorMap[SURV_A].at(i) +
-      //     pred * (pred * JGN_errorCacheVectorMap[SURV_B].at(i) +
-      //             JGN_errorCacheVectorMap[SURV_C].at(i));
-      // }
       // Error due to tail-censored elements
       if (cache->getDouble(KEY_LAST_EVENT, i) == 0 &&
           pred < cache->getDouble(KEY_LAST_TIME, i))
@@ -362,12 +353,6 @@ double errorSurvLikelihood(const double * const Y,
         local_error += cache->getDouble(KEY_PAFTER, i) *
           std::pow(cache->getDouble(KEY_LAST_TIME, i) - pred, 2.0);
       }
-      // if (JGN_errorCacheVectorMap[SURV_LAST_EVENT].at(0) == 0 &&
-      //     pred < JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0))
-      // {
-      //   local_error += JGN_errorCacheVectorMap[SURV_P_AFTER].at(i) *
-      //     std::pow(JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0) - pred, 2.0);
-      // }
     }
     error += local_error;
   }
@@ -395,7 +380,6 @@ void derivativeSurvLikelihood(const double * const Y,
   double pred = outputs[idx];
 
   // Survival function only cares about first output neuron
-  //if (numOfOutput > 1 && idx > 0)
   unsigned int index = idx / numOfOutput;
 
   // Only first neuron is used
@@ -410,10 +394,6 @@ void derivativeSurvLikelihood(const double * const Y,
     result[0] = 2 * pred * cache->getDouble(KEY_B, index);
     result[0] += cache->getDouble(KEY_C, index);
 
-    // result[0] =
-    //   2 * pred * JGN_errorCacheVectorMap[SURV_B].at(index);
-    // result[0] += JGN_errorCacheVectorMap[SURV_C].at(index);
-
     // Tail censored ones
     if (cache->getDouble(KEY_LAST_EVENT, index) == 0 &&
         pred < cache->getDouble(KEY_LAST_TIME, index))
@@ -421,11 +401,5 @@ void derivativeSurvLikelihood(const double * const Y,
       result[0] += cache->getDouble(KEY_PAFTER, index) * 2 *
         (cache->getDouble(KEY_LAST_TIME, index) - pred);
     }
-    // if (JGN_errorCacheVectorMap[SURV_LAST_EVENT].at(0) == 0 &&
-    //     pred < JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0))
-    // {
-    //   result[0] += JGN_errorCacheVectorMap[SURV_P_AFTER].at(index) *
-    //     2 * (JGN_errorCacheVectorMap[SURV_LAST_TIME].at(0) - pred);
-    // }
   }
 }
