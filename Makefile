@@ -7,8 +7,8 @@ specialtest: test.py ann/_ann.so $(DEPS)
 	python test.py
 
 test: test.py ann/_ann.so $(DEPS)
-	#nosetests -v -x -s test.py
-	nosetests -v ./
+	nosetests -v -x -s test.py
+	#nosetests -v ./
 
 inplace: ann/_ann.so
 

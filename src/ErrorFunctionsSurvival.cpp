@@ -272,25 +272,22 @@ double errorSurvMSE(const double * const Y,
                     const unsigned int numOfOutput,
                     const double * const outputs)
 {
-  unsigned int i, n;
+  unsigned int i;
   double error = 0, time, event, output;
   // Evaluate each input set
   // Average over all inputs and number of outputs
   for (i = 0; i < length; i++)
   {
-    for (n = 0; n < numOfOutput; n++)
+    // Plus two because there is an event column as well
+    time = Y[2*i];
+    event = Y[2*i + 1];
+    // No event column in predictions
+    output = outputs[2*i];
+    if ((event == 0 && output < time) || event != 0)
     {
-      // Plus two because there is an event column as well
-      time = Y[2*n];
-      event = Y[2*n + 1];
-      // No event column in predictions
-      output = outputs[n];
-      if ((event == 0 && output < time) || event != 0)
-      {
-        // Censored event which we are underestimating
-        // Or real event
-        error += std::pow(output - time, 2.0) / 2.0;
-      }
+      // Censored event which we are underestimating
+      // Or real event
+      error += std::pow(output - time, 2.0) / 2.0;
     }
   }
   return error / ((double) length * numOfOutput);
@@ -303,14 +300,17 @@ void derivativeSurvMSE(const double * const Y,
                        const unsigned int index,
                        double * const result)
 {
-  double time = Y[numOfOutput * index];
-  double event = Y[numOfOutput * index + 1];
-  double pred = outputs[numOfOutput * index];
+  double time = Y[index];
+  double event = Y[index + 1];
+  double pred = outputs[index];
+
+  result[0] = 0;
+  result[1] = 0;
 
   // Only for events or underestimated censored
   if ((event == 0 && pred < time) || event != 0)
   {
-    result[0] = pred - time;
+    result[0] = time - pred;
   }
 }
 

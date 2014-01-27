@@ -26,7 +26,6 @@ def get_surv_censored(numweights, datasize=100, fraction=0.4):
     Returns a tuple of (inputs, targets)'''
     _inputs, _outputs = get_surv_uncensored(numweights, datasize)
 
-    print("Fraction = {}".format(fraction))
     def count_censed(times):
         return len(times[times[:, 1] == 0])
 
@@ -230,7 +229,7 @@ def test_gennetwork():
     #print(net)
     #print(dir(net))
 
-def test_rpropnetwork_mse():
+def test_rpropnetwork_mse_xor():
     from ann import rpropnetwork
 
     net = rpropnetwork(2, 8, 1)
@@ -282,7 +281,7 @@ def test_rpropnetwork_mse():
     print(dir(net))
 
 
-def rpropnetwork_survlik(datafunc, inputcount, censfrac):
+def rpropnetwork_surv(datafunc, inputcount, censfrac, errorfunc):
     '''
     Must specify output activation function and
     function which returns dataset.
@@ -314,16 +313,13 @@ def rpropnetwork_survlik(datafunc, inputcount, censfrac):
 
     net.max_error = 0.01
     net.max_epochs = 100
-    net.error_function = net.ERROR_SURV_LIKELIHOOD
+    net.error_function = errorfunc
 
     surv_in, surv_out = datafunc(net.input_count, 100, censfrac)
 
     censcount = len(surv_out[surv_out[:, 1] == 0])
     frac = censcount / len(surv_out)
-    print("censfrac = {:.2f}".format(censfrac))
-    print("frac = {:.2f}".format(frac))
-    #assert censfrac == frac,\
-    #"Expected {}% censored: actual {:.3f}%".format(censfrac*100, 100*frac)
+    print("\ncensfrac = {:.2f}".format(censfrac))
 
     #print("\nTarget - Pred")
     msg = "E={:.0f}        {:.3f} | {:.3f}"
@@ -355,14 +351,9 @@ def rpropnetwork_survlik(datafunc, inputcount, censfrac):
     cindex_after = get_C_index(surv_out, preds_after[:, 0])
     newdev = np.sqrt(newdev/len(surv_out))
     #import pdb; pdb.set_trace()
-    print("\n{:<10s} {:.3f} -> {:.3f}".format("C-index:",
+    print("{:<10s} {:.3f} -> {:.3f}".format("C-index:",
                                               cindex_before, cindex_after))
-    print("{:<10s} {:.3f} -> {:.3f}".format("Deviation:", olddev, newdev))
-#        print("T:", target, " P:", net.output(val)[0])
-        #if sum(val) != 1:
-        #    assert net.output(val) < 0.1, "xor solution doesnt work"
-        #else:
-        #    assert net.output(val) > 0.9, "xor solution doesnt work"
+    print("{:<10s} {:.3f} -> {:.3f}\n".format("Deviation:", olddev, newdev))
 
     assert newdev < olddev, "Expected deviation to go down!"
     assert cindex_before < cindex_after, "Expected c-index to increase!"
@@ -370,44 +361,51 @@ def rpropnetwork_survlik(datafunc, inputcount, censfrac):
     assert net.activation_functions[-2] == net.LINEAR,\
       "Not correct activation function"
 
-    #print(net)
-    #print(dir(net))
-    #print("\nWeights")
-    #print(conns.reshape((l, l)))
-    #print("\nActivation Functions")
-    #print(act)
+def test_rprop_mse_linear_uncens():
+    from ann import rpropnetwork
+    rpropnetwork_surv(get_surv_uncensored, 2, 0.0,
+                      rpropnetwork.ERROR_SURV_MSE)
 
+def test_rprop_mse_linear_cens():
+    from ann import rpropnetwork
+    for ratio in [0.1, 0.2, 0.4, 0.6, 0.8, 0.9]:
+        rpropnetwork_surv(get_surv_uncensored, 2, ratio,
+                          rpropnetwork.ERROR_SURV_MSE)
 
-def test_rprop_linear_uncens():
-    rpropnetwork_survlik(get_surv_uncensored, 2, 0.0)
+def test_rprop_lik_linear_uncens():
+    from ann import rpropnetwork
+    rpropnetwork_surv(get_surv_uncensored, 2, 0.0,
+                      rpropnetwork.ERROR_SURV_LIKELIHOOD)
 
-def test_rprop_hardsim():
-    data = np.loadtxt("hardsim.csv", delimiter=",")
-    def get_data(*args, **kwargs):
-        return data[:, :-2], data[:, -2:]
+def test_rprop_lik_linear_cens():
+    from ann import rpropnetwork
+    for ratio in [0.1, 0.2, 0.4, 0.6, 0.8, 0.9]:
+        rpropnetwork_surv(get_surv_censored, 2, ratio,
+                          rpropnetwork.ERROR_SURV_LIKELIHOOD)
 
-    rpropnetwork_survlik(get_data,
-                         len(data[0]) - 2,
-                         0.0)
-
-def test_rprop_linear_cens():
-    rpropnetwork_survlik(get_surv_censored, 2, 0.1)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.2)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.3)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.4)
-    propnetwork_survlik(get_surv_censored, 2, 0.5)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.6)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.7)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.8)
-    rpropnetwork_survlik(get_surv_censored, 2, 0.9)
+def test_rprop_lik_linear_totalcens():
+    from ann import rpropnetwork
     # Expect failure for this
     failed = False
     try:
-        rpropnetwork_survlik(get_surv_censored, 2, 1.0)
+        rpropnetwork_surv(get_surv_censored, 2, 1.0,
+                             rpropnetwork.ERROR_SURV_LIKELIHOOD)
     except AssertionError:
         failed = True
 
     assert failed, "Should not work with 100% censoring!"
+
+
+
+def test_rprop_lik_hardsim():
+    from ann import rpropnetwork
+    data = np.loadtxt("hardsim.csv", delimiter=",")
+    def get_data(*args, **kwargs):
+        return data[:, :-2], data[:, -2:]
+
+    rpropnetwork_surv(get_data,
+                         len(data[0]) - 2,
+                         0.0, rpropnetwork.ERROR_SURV_LIKELIHOOD)
 
 
 if __name__ == "__main__":
@@ -416,8 +414,8 @@ if __name__ == "__main__":
         failed = False
         # Running this first results in censored test not being censored!
         try:
-            test_rprop_linear_uncens()
-            test_rprop_linear_cens()
+            test_rprop_lik_linear_uncens()
+            test_rprop_lik_linear_cens()
         except AssertionError:
             print("It failed..\n")
             failed = True
