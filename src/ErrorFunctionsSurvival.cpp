@@ -50,7 +50,12 @@ void getIndicesSortedByTime(const double * const targets,
 }
 
 SurvErrorCache::SurvErrorCache() :
-  ErrorCache()
+  ErrorCache(),
+  a(std::vector<double>()),
+  b(std::vector<double>()),
+  c(std::vector<double>()),
+  lastEvent(0),
+  lastTime(0)
 {
 }
 
@@ -66,6 +71,8 @@ void SurvErrorCache::clear()
   this->b.clear();
   this->c.clear();
   this->probAfter.clear();
+  this->lastEvent = 0;
+  this->lastTime = 0;
 }
 
 double SurvErrorCache::getDouble(const int key, const unsigned int index)
@@ -126,13 +133,17 @@ void SurvErrorCache::init(const double * const targets,
   getIndicesSortedByTime(targets, length, sortedIndices);
 
   // Number of patients at risk
-  double atRisk[length];
+  //double atRisk[length];
+  std::vector<double> atRisk(length, 0);
   // Risk measure
-  double risk[length];
+  //double risk[length];
+  std::vector<double> risk(length, 0);
   // Survival fraction
-  double surv[length];
+  //double surv[length];
+  std::vector<double> surv(length, 1);
   // Probability of event (at events) is just risk * surv
-  double prob[length];
+  //double prob[length];
+  std::vector<double> prob(length, 0);
   // Difference to last index in survival
   double survDiff = 0;
   // Surv at last point
@@ -146,6 +157,13 @@ void SurvErrorCache::init(const double * const targets,
   double time, event, laterTime, laterEvent;
 
   std::vector<unsigned int>::iterator it, laterIt;
+
+  // Start with first time as last
+  this->lastTime = targets[0];
+  this->lastEvent = targets[1];
+
+  // Need to set this in case we have some patients that are censored first
+  prevIndex = 2*length;
 
   // First calculate the risk and survival
   for (it = sortedIndices.begin(); it < sortedIndices.end(); it++)
@@ -165,7 +183,7 @@ void SurvErrorCache::init(const double * const targets,
     atRisk[index] = 0;
     risk[index] = 0;
     prob[index] = 0;
-    if (index > 0) surv[index] = 0;
+    surv[index] = 0;
 
     // Look at later events.
     for (laterIt = it + 1; laterIt < sortedIndices.end(); laterIt++)
@@ -190,7 +208,7 @@ void SurvErrorCache::init(const double * const targets,
     // Calculate survival and risk
     if (event == 1) {
       // Risk is just inverse of number at risk
-      risk[index] = 1.0 / atRisk[index];
+      risk[index] = 1.0 / atRisk.at(index);
 
       if (firstEvent) {
         // By definition
@@ -198,20 +216,27 @@ void SurvErrorCache::init(const double * const targets,
         firstEvent = false;
       }
       else {
-        surv[index] = surv[prevIndex] + survDiff;
+        surv[index] = surv.at(prevIndex) + survDiff;
       }
 
-      prob[index] = risk[index] * surv[index];
+      prob[index] = risk.at(index) * surv.at(index);
 
       // Calculate surv diff for next round
-      survDiff =  - risk[index] * surv[index];
+      survDiff =  - risk.at(index) * surv.at(index);
       // Remember previous index next time
       prevIndex = index;
     }
     else {
-      // Not an event, nothing has changed
-      risk[index] = risk[prevIndex];
-      surv[index] = surv[prevIndex];
+      if (firstEvent) {
+        // No event has been seen yet
+        risk[index] = 0.0;
+        surv[index] = 1.0;
+      }
+      else {
+        // Not an event, nothing has changed
+        risk[index] = risk.at(prevIndex);
+        surv[index] = surv.at(prevIndex);
+      }
       // Zero probability of event
       prob[index] = 0;
     }
@@ -225,7 +250,7 @@ void SurvErrorCache::init(const double * const targets,
   }
   else {
     // Last point is censored
-    survAfter = surv[sortedIndices.back()] + survDiff;
+    survAfter = surv.at(sortedIndices.back()) + survDiff;
   }
 
   // Now, calculate the precomputed parts of each index
@@ -254,14 +279,14 @@ void SurvErrorCache::init(const double * const targets,
       {
         laterIndex = *laterIt;
         // Decrease for each event probability
-        this->probAfter[index] -= prob[laterIndex];
+        this->probAfter[index] -= prob.at(laterIndex);
         // a_i = sum[ prob_i * T_i^2 ]
-        this->a[index] += (prob[laterIndex] *
+        this->a[index] += (prob.at(laterIndex) *
                            (targets[2 * laterIndex] * targets[2 * laterIndex]));
         // b_i = sum[ prob_i ]
-        this->b[index] += prob[laterIndex];
+        this->b[index] += prob.at(laterIndex);
         // c_i = sum[ prob_i * -2 * T_i ]
-        this->c[index] += -2 * prob[laterIndex] * targets[2 * laterIndex];
+        this->c[index] += -2 * prob.at(laterIndex) * targets[2 * laterIndex];
       }
     }
   }

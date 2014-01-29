@@ -1,14 +1,17 @@
 DEPS = setup.py $(wildcard src/*.cpp) $(wildcard src/*.h*) $(wildcard ann/*.py)
 
+test: test.py ann/_ann.so $(DEPS) valgrind
+	nosetests -v -x -s test.py
+	#nosetests -v ./
+
 perf: test.py ann/_ann.so $(DEPS)
 	python -m cProfile -s cumulative test.py
 
 specialtest: test.py ann/_ann.so $(DEPS)
 	python test.py
 
-test: test.py ann/_ann.so $(DEPS)
-	nosetests -v -x -s test.py
-	#nosetests -v ./
+valgrind:
+	cd src;make valgrind
 
 inplace: ann/_ann.so
 

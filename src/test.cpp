@@ -13,49 +13,49 @@
 void matrixtest() {
   	printf( "\nStarting matrix test...\n\n" );
 
-    printf("\nConstructing 2, 2, 2");
+    //printf("\nConstructing 2, 2, 2");
     MatrixNetwork m(2, 0, 2);
 
-    printf("\nBIAS_INDEX = %d", m.BIAS_INDEX);
-    printf("\nINPUT_RANGE = %d - %d", m.INPUT_START, m.INPUT_END);
-    printf("\nHIDDEN_RANGE = %d - %d", m.HIDDEN_START, m.HIDDEN_END);
-    printf("\nOUTPUT_RANGE = %d - %d", m.OUTPUT_START, m.OUTPUT_END);
+    //printf("\nBIAS_INDEX = %d", m.BIAS_INDEX);
+    //printf("\nINPUT_RANGE = %d - %d", m.INPUT_START, m.INPUT_END);
+    //printf("\nHIDDEN_RANGE = %d - %d", m.HIDDEN_START, m.HIDDEN_END);
+    //printf("\nOUTPUT_RANGE = %d - %d", m.OUTPUT_START, m.OUTPUT_END);
 
-    printf("\n\nINPUT_COUNT = %d", m.INPUT_COUNT);
-    printf("\nHIDDEN_COUNT = %d", m.HIDDEN_COUNT);
-    printf("\nOUTPUT_COUNT = %d", m.OUTPUT_COUNT);
+    //printf("\n\nINPUT_COUNT = %d", m.INPUT_COUNT);
+    //printf("\nHIDDEN_COUNT = %d", m.HIDDEN_COUNT);
+    //printf("\nOUTPUT_COUNT = %d", m.OUTPUT_COUNT);
 
-    printf("\n\nLENGTH = %d", m.LENGTH);
+    //printf("\n\nLENGTH = %d", m.LENGTH);
 
     for (unsigned int i = 0; i < m.LENGTH; i++) {
-      printf("\n\nNeuron %d, default func = %d", i, m.actFuncs[i]);
+      //printf("\n\nNeuron %d, default func = %d", i, m.actFuncs[i]);
       m.actFuncs[i] =
         (ActivationFuncEnum) (i % 3);
 
       for (unsigned int j = 0; j < m.LENGTH; j++) {
-        printf("\nConnection %d = %d (%f) (default)",
-               j,
-               m.conns[m.LENGTH * i + j],
-               m.weights[m.LENGTH * i + j]);
+        // printf("\nConnection %d = %d (%f) (default)",
+        //       j,
+        //       m.conns[m.LENGTH * i + j],
+        //       m.weights[m.LENGTH * i + j]);
         m.conns[m.LENGTH * i + j] = 1;
         m.weights[m.LENGTH * i + j] = j + 1;
-        printf("\nConnection %d = %d (%f) (now)",
-               j,
-               m.conns[m.LENGTH * i + j],
-               m.weights[m.LENGTH * i + j]);
+        //printf("\nConnection %d = %d (%f) (now)",
+        //      j,
+        //      m.conns[m.LENGTH * i + j],
+        //      m.weights[m.LENGTH * i + j]);
       }
     }
 
     m.setHiddenActivationFunction(TANH);
     m.setOutputActivationFunction(LINEAR);
 
-    printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
+    // printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
     for (unsigned int i = m.HIDDEN_START; i < m.HIDDEN_END; i++) {
-      printf("\nHIDDEN(%d).actFunc = %d", i, m.actFuncs[i]);
+      // printf("\nHIDDEN(%d).actFunc = %d", i, m.actFuncs[i]);
     }
-    printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
+    // printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
     for (unsigned int i = m.OUTPUT_START; i < m.OUTPUT_END; i++) {
-      printf("\nOUTPUT(%d).actFunc = %d", i, m.actFuncs[i]);
+      // printf("\nOUTPUT(%d).actFunc = %d", i, m.actFuncs[i]);
     }
 
     double *outputs = new double[m.OUTPUT_COUNT]();
@@ -68,7 +68,7 @@ void matrixtest() {
     m.output(inputs, outputs);
 
     for (unsigned int i = 0; i < m.OUTPUT_COUNT; i++) {
-      printf("\nNetwork output[%d]: %f", i, outputs[i]);
+      // printf("\nNetwork output[%d]: %f", i, outputs[i]);
     }
 
 	printf( "\n\nEnding matrix test...\n\n" );
@@ -96,13 +96,13 @@ void randomtest() {
 }
 
 void lockTest() {
-    printf("\n\nLocking mutex...");
+    // printf("\n\nLocking mutex...");
     JGN_lockPopulation();
-    printf("\nMutex locked");
+    // printf("\nMutex locked");
 
-    printf("\nUnlocking mutex...");
+    // printf("\nUnlocking mutex...");
     JGN_unlockPopulation();
-    printf("\nMutex unlocked");
+    // printf("\nMutex unlocked");
 }
 
 void geneticTest1() {
@@ -113,10 +113,10 @@ void geneticTest1() {
                       net1.HIDDEN_COUNT,
                       net1.OUTPUT_COUNT);
 
-  printf("\n5 = %d\n3 = %d\n1 = %d",
-         net2.INPUT_COUNT,
-         net2.HIDDEN_COUNT,
-         net2.OUTPUT_COUNT);
+  // printf("\n5 = %d\n3 = %d\n1 = %d",
+//         net2.INPUT_COUNT,
+//         net2.HIDDEN_COUNT,
+ //        net2.OUTPUT_COUNT);
 
   Random rand;
   GeneticMutator mutator(rand);
@@ -125,28 +125,28 @@ void geneticTest1() {
 
   mutator.randomizeNetwork(net2, 1.0);
 
-  printf("\nWeight diff: %f vs %f \
-\nConn diff: %d vs %d\
-\nActF diff: %d vs %d",
-         net1.weights[9],
-         net2.weights[9],
-         net1.conns[9],
-         net2.conns[9],
-         net1.actFuncs[3],
-         net2.actFuncs[3]);
+  // printf("\nWeight diff: %f vs %f \
+//\nConn diff: %d vs %d              \
+//\nActF diff: %d vs %d",
+//         net1.weights[9],
+//         net2.weights[9],
+//         net1.conns[9],
+//         net2.conns[9],
+//         net1.actFuncs[3],
+//         net2.actFuncs[3]);
 
-  printf("\nCloning...");
+  // printf("\nCloning...");
   net2.cloneNetwork(net1);
 
-  printf("\nWeight diff: %f vs %f \
-\nConn diff: %d vs %d\
-\nActF diff: %d vs %d",
-         net1.weights[9],
-         net2.weights[9],
-         net1.conns[9],
-         net2.conns[9],
-         net1.actFuncs[3],
-         net2.actFuncs[3]);
+  // printf("\nWeight diff: %f vs %f \
+//\nConn diff: %d vs %d\
+//\nActF diff: %d vs %d",
+//         net1.weights[9],
+  //       net2.weights[9],
+    //     net1.conns[9],
+    //     net2.conns[9],
+     //    net1.actFuncs[3],
+      //   net2.actFuncs[3]);
 
 
   printf("\nGenetic test 1 done.");
@@ -166,46 +166,125 @@ void geneticXOR() {
       0,1,
       1,0,
       1,1};
-  printf("\nbah %f", X[7]);
+  // printf("\nbah %f", X[7]);
 
   // define targets
   double Y[4]{0, 1, 1, 0};
-  printf("\nbah %f", Y[2]);
+  // printf("\nbah %f", Y[2]);
 
   net.learn(X, Y, 4);
 
   double preds[1];
 
 
-  std::cout << "\nPredictions\n";
+  // std::cout << "\nPredictions\n";
   for (int i = 0; i < 4; i++) {
     net.output(X + 2 * i, preds);
-    std::cout << X[2*i] << " "<< X[2*i + 1]
-              << " : " << preds[0] << "\n";
+    // std::cout << X[2*i] << " "<< X[2*i + 1]
+      //        << " : " << preds[0] << "\n";
   }
 
   // Print structure
-  std::cout << "\n\nWeights";
+  // std::cout << "\n\nWeights";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    std::cout << "\nN" << i << ":";
+    // std::cout << "\nN" << i << ":";
     for (unsigned int j = 0; j < i; j++) {
-      std::cout << " " << net.weights[j + i*net.LENGTH];
+      // std::cout << " " << net.weights[j + i*net.LENGTH];
     }
   }
 
-  std::cout << "\n\nConss";
+  // std::cout << "\n\nConss";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    std::cout << "\nN" << i << ":";
+    // std::cout << "\nN" << i << ":";
     for (unsigned int j = 0; j < i; j++) {
-      std::cout << " " << net.conns[j + i*net.LENGTH];
+      // std::cout << " " << net.conns[j + i*net.LENGTH];
     }
   }
 
-  std::cout << "\n\nActFuncs";
+  // std::cout << "\n\nActFuncs";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    std::cout << "\nN" << i << ": " << net.actFuncs[i];
+    // std::cout << "\nN" << i << ": " << net.actFuncs[i];
   }
 
+}
+
+void rpropsurvlik() {
+  std::cout << "\n\nStart of RProp SurvLik test";
+
+  Random r;
+  RPropNetwork net(2, 8, 2);
+
+  // Set up a feedforward structure
+  for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
+    for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {
+      net.conns[net.LENGTH * i + j] = 1;
+      net.weights[net.LENGTH * i + j] = r.normal();
+    }
+  }
+  for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
+    for (unsigned int j = 0; j < net.BIAS_END; j++) {
+      net.conns[net.LENGTH * i + j] = 1;
+      net.weights[net.LENGTH * i + j] = r.normal();
+    }
+  }
+  net.setHiddenActivationFunction(TANH);
+  net.setOutputActivationFunction(LINEAR);
+
+  double X[2*8]{0,0,
+      0,1,
+      1,0,
+      1,1,
+      0,0,
+      0,1,
+      1,0,
+      1,1};
+
+  // define targets
+  // initial censored point which segfaulted at some time
+  double Y[2*8]{0, 0,
+      1, 1,
+      1, 1,
+      0, 1,
+      0, 1,
+      0.5, 0,
+      0.5, 0,
+      0, 0};
+
+  // Print structure
+  // std::cout << "\n\nWeights before";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    // std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j < i; j++) {
+      // std::cout << " " << net.weights[j + i*net.LENGTH];
+    }
+  }
+
+  net.setMaxEpochs(100);
+  net.setMaxError(0.001);
+  net.setErrorFunction(ErrorFunction::ERROR_SURV_LIKELIHOOD);
+  if (0 < net.learn(X, Y, 8)) {
+    throw "Shit hit the fan";
+  }
+
+  // Print structure
+  // std::cout << "\n\nWeights after";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    // std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j < i; j++) {
+      // std::cout << " " << net.weights[j + i*net.LENGTH];
+    }
+  }
+
+  double preds[1];
+  // std::cout << "\n\nPredictions\n";
+  for (int i = 0; i < 4; i++) {
+    net.output(X + 2 * i, preds);
+    // std::cout << X[2*i] << " "<< X[2*i + 1]
+       //       << " : " << std::round(preds[0])
+        //      << " (" << Y[i] << ")"<< "\n";
+  }
+
+  std::cout << "\nEnd of RProp SurvLik test";
 }
 
 void rproptest() {
@@ -240,38 +319,41 @@ void rproptest() {
   double Y[4]{0, 1, 1, 0};
 
   // Print structure
-  std::cout << "\n\nWeights before";
+  // std::cout << "\n\nWeights before";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    std::cout << "\nN" << i << ":";
+    // std::cout << "\nN" << i << ":";
     for (unsigned int j = 0; j < i; j++) {
-      std::cout << " " << net.weights[j + i*net.LENGTH];
+      // std::cout << " " << net.weights[j + i*net.LENGTH];
     }
   }
 
   net.setMaxEpochs(10000);
   net.setMaxError(0.001);
-  net.learn(X, Y, 4);
+  if ( 0 < net.learn(X, Y, 4)) {
+    throw "Shit hit the fan";
+  }
 
   // Print structure
-  std::cout << "\n\nWeights after";
+  // std::cout << "\n\nWeights after";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    std::cout << "\nN" << i << ":";
+    // std::cout << "\nN" << i << ":";
     for (unsigned int j = 0; j < i; j++) {
-      std::cout << " " << net.weights[j + i*net.LENGTH];
+      // std::cout << " " << net.weights[j + i*net.LENGTH];
     }
   }
 
   double preds[1];
-  std::cout << "\n\nPredictions\n";
+  // std::cout << "\n\nPredictions\n";
   for (int i = 0; i < 4; i++) {
     net.output(X + 2 * i, preds);
-    std::cout << X[2*i] << " "<< X[2*i + 1]
-              << " : " << std::round(preds[0])
-              << " (" << Y[i] << ")"<< "\n";
+    // std::cout << X[2*i] << " "<< X[2*i + 1]
+       //       << " : " << std::round(preds[0])
+        //      << " (" << Y[i] << ")"<< "\n";
   }
 
   std::cout << "\nEnd of RProp test";
 }
+
 
 int main( int argc, const char* argv[] )
 {
@@ -281,5 +363,6 @@ int main( int argc, const char* argv[] )
   //geneticTest1();
   //geneticXOR();
   rproptest();
+  rpropsurvlik();
   printf("\nEND OF TEST\n");
 }

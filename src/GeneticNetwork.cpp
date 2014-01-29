@@ -292,8 +292,6 @@ void GeneticNetwork::learn(const double * const X,
     breedCount = 1;
   }
 
-  printf("Breed count: %d\n", breedCount);
-
   // Pre-allocate space
   sortedPopulation.reserve(populationSize + extras);
   sortedFitness.reserve(populationSize + extras);
@@ -302,8 +300,6 @@ void GeneticNetwork::learn(const double * const X,
   unsigned int i;
   vector<GeneticNetwork*>::iterator netIt;
   vector<double>::iterator errorIt;
-
-  printf("Data size: %d\n", length);
 
   double fitness = 0;
   // predictions
@@ -385,9 +381,6 @@ void GeneticNetwork::learn(const double * const X,
     // Print some stats about the current best
     best = sortedPopulation.front();
 
-    cout << "\nGen: " << curGen << ", best fitness: "
-         << sortedFitness.front();
-
     // Save in log
     //cout << "\nLogging...\n";
     this->aLogPerf[curGen] = sortedFitness.front();
@@ -412,18 +405,8 @@ void GeneticNetwork::learn(const double * const X,
     }
     */
   }
-  cout << "\nDone\n";
-
-  // When done, make this network into the best network
-  printf("best eval fitness: %f\n", evaluateNetwork(fitnessFunction,
-                                                    best, X, Y, length,
-                                                    preds));
 
   this->cloneNetwork(*best);
-
-  printf("this eval fitness: %f\n", evaluateNetwork(fitnessFunction,
-                                                    this, X, Y, length,
-                                                    preds));
 
   // And destroy population
   // do this last of all!
