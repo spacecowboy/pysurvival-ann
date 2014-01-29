@@ -61,6 +61,12 @@ bool allLessThan(const double * const array,
  * Proceedings of the Second International Symposium on Neural Computation,
  *  NC’2000, pp. 115–121, ICSC Academic Press, 2000
  *
+ * Regarding error functions, make sure their derivatives return proper values.
+ * As an example for Mean Square Error:
+ * E = (T - Y)^2
+ * dE = -(T - Y) = (Y - T)
+ *
+ * The minus sign is important.
  */
 int RPropNetwork::learn(const double * const X,
                         const double * const Y,
@@ -128,7 +134,7 @@ int RPropNetwork::learn(const double * const X,
           // Propagate error backwards
           derivs[i] += derivs[n] * weights[n * LENGTH + i];
           // Calc update for this connection: dI/dWij
-          backPropValues[n * LENGTH + i] += derivs[n] * outputs[i];
+          backPropValues[n * LENGTH + i] += -derivs[n] * outputs[i];
         }
       }
     }

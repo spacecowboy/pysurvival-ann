@@ -3,7 +3,7 @@
 
 
 double SSEDeriv(double target, double output) {
-  return target - output;
+  return output - target;
 }
 
 double SSE(double target, double output) {
@@ -46,6 +46,6 @@ void derivativeMSE(const double * const Y,
                    double * const result)
 {
   for (unsigned int i = 0; i < numOfOutput; i++) {
-    result[i] = Y[index + i] - outputs[index + i];
+    result[i] = SSEDeriv(Y[index + i], outputs[index + i]);
   }
 }

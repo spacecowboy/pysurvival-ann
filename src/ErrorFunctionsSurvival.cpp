@@ -335,7 +335,8 @@ void derivativeSurvMSE(const double * const Y,
   // Only for events or underestimated censored
   if ((event == 0 && pred < time) || event != 0)
   {
-    result[0] = time - pred;
+    // Sign is important. dE = -(time - pred) = pred - time
+    result[0] = pred - time;
   }
 }
 
@@ -411,14 +412,22 @@ void derivativeSurvLikelihood(const double * const Y,
   result[1] = 0;
   if (event == 1)
   {
-    result[0] = 2 * (time - pred);
+    // Sign is important. dE = d(T - Y)^2 = -2 (T - Y) = 2 (Y - T)
+    result[0] = 2 * (pred - time);
+    // This print out is reported reasonable: -10 to 10 or so.
+    //std::cout << std::endl << "unc " << result[0] << std::endl;
   }
   else
   {
     // Later events
+    std::cout << std::endl << "B " << cache->getDouble(KEY_B, index);
     result[0] = 2 * pred * cache->getDouble(KEY_B, index);
+    std::cout << std::endl << "C " << cache->getDouble(KEY_C, index);
     result[0] += cache->getDouble(KEY_C, index);
 
+    std::cout << std::endl << "PA " << cache->getDouble(KEY_PAFTER, index);
+    std::cout << std::endl << "LE " << cache->getDouble(KEY_LAST_EVENT, index);
+    std::cout << std::endl << "LT " << cache->getDouble(KEY_LAST_TIME, index);
     // Tail censored ones
     if (cache->getDouble(KEY_LAST_EVENT, index) == 0 &&
         pred < cache->getDouble(KEY_LAST_TIME, index))
@@ -426,5 +435,7 @@ void derivativeSurvLikelihood(const double * const Y,
       result[0] += cache->getDouble(KEY_PAFTER, index) * 2 *
         (cache->getDouble(KEY_LAST_TIME, index) - pred);
     }
+    // This print out is reported as "-nan"
+    std::cout << std::endl << "cen " << result[0] << std::endl;
   }
 }
