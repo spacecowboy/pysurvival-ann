@@ -269,16 +269,16 @@ def test_rpropnetwork_mse_xor():
 
     net.learn(xor_in, xor_out)
 
-    print("\nResults")
+    #print("\nResults")
     for val in xor_in:
-        print("In:", val, " out:", net.output(val))
+        #print("In:", val, " out:", net.output(val))
         if sum(val) != 1:
             assert net.output(val) < 0.1, "xor solution doesnt work"
         else:
             assert net.output(val) > 0.9, "xor solution doesnt work"
 
-    print(net)
-    print(dir(net))
+    #print(net)
+    #print(dir(net))
 
 
 def rpropnetwork_surv(datafunc, inputcount, censfrac, errorfunc):
@@ -319,44 +319,41 @@ def rpropnetwork_surv(datafunc, inputcount, censfrac, errorfunc):
 
     censcount = len(surv_out[surv_out[:, 1] == 0])
     frac = censcount / len(surv_out)
-    print("\ncensfrac = {:.2f}".format(censfrac))
 
-    #print("\nTarget - Pred")
-    msg = "E={:.0f}        {:.3f} | {:.3f}"
     preds_before = np.zeros((len(surv_in), 2))
     olddev = 0
     for i, (val, target) in enumerate(zip(surv_in, surv_out)):
         preds_before[i] = net.output(val)
-        #print(msg.format(target[1], target[0],
-        #                 net.output(val)[0]))
         if target[1] > 0:
             olddev += (target[0] - net.output(val)[0])**2
-       #print("T:", target, " P:", net.output(val)[0])
 
     olddev = np.sqrt(olddev/len(surv_out))
     cindex_before = get_C_index(surv_out, preds_before[:, 0])
 
     net.learn(surv_in, surv_out)
 
-    #print("\nTarget - Pred")
     preds_after = np.zeros((len(surv_out), 2))
     newdev = 0
     for i, (val, target) in enumerate(zip(surv_in, surv_out)):
         preds_after[i] = net.output(val)
-        #print(msg.format(target[1], target[0],
-        #                 net.output(val)[0]))
         if target[1] > 0:
             newdev += (target[0] - net.output(val)[0])**2
 
     cindex_after = get_C_index(surv_out, preds_after[:, 0])
     newdev = np.sqrt(newdev/len(surv_out))
     #import pdb; pdb.set_trace()
-    print("{:<10s} {:.3f} -> {:.3f}".format("C-index:",
-                                              cindex_before, cindex_after))
-    print("{:<10s} {:.3f} -> {:.3f}\n".format("Deviation:", olddev, newdev))
 
-    assert newdev < olddev, "Expected deviation to go down!"
-    assert cindex_before < cindex_after, "Expected c-index to increase!"
+    stats = """
+    censfrac: {:.2f},
+    cindex: {:.3f} -> {:.3f},
+    deviation: {:.3f} -> {:.3f}""".format(censfrac,
+                                          cindex_before, cindex_after,
+                                          olddev, newdev)
+    msg = "Expected {} to change differently: " + stats
+
+    assert newdev < olddev, msg.format("deviation")
+
+    assert cindex_before < cindex_after, msg.format("cindex")
 
     assert net.activation_functions[-2] == net.LINEAR,\
       "Not correct activation function"
