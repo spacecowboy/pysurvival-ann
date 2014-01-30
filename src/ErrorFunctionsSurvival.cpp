@@ -7,11 +7,6 @@
 #include <exception>
 #include <stdio.h>
 
-/**
- * sortedIndices will have the indices in targets sorted by ascending
- * order of time. You will have to do targets[2*i] however. sortedIndices
- * will be < length.
- */
 void getIndicesSortedByTime(const double * const targets,
                             const unsigned int length,
                             std::vector<unsigned int>& sortedIndices)
@@ -29,7 +24,7 @@ void getIndicesSortedByTime(const double * const targets,
   {
     time_i = targets[2 * i];
     needInsert = true;
-    for (it=sortedIndices.begin(); it<sortedIndices.end(); it++)
+    for (it=sortedIndices.begin(); it != sortedIndices.end(); it++)
     {
       index = *it;
       time_j = targets[2 * index];
@@ -48,6 +43,232 @@ void getIndicesSortedByTime(const double * const targets,
     }
   } // outer for
 }
+
+
+void getProbs(const double * const targets,
+              const unsigned int length,
+              const std::vector<unsigned int> &sortedIndices,
+              std::vector<double> &probs)
+{
+  std::vector<unsigned int>::const_iterator it, laterIt;
+  unsigned int index, laterIndex;
+  double time, event;
+  double atRisk, risk, survival, survDiff;
+
+  // Set to zero initially
+  probs.clear();
+  probs.resize(length, 0);
+
+  // Survival starts at 1 and decreases towards zero
+  survival = 1.0;
+  // First step there has been no change in survival.
+  survDiff = 0;
+
+  for (it = sortedIndices.begin(); it != sortedIndices.end(); it++)
+  {
+    index = *it;
+
+    time = targets[2 * index];
+    event = targets[2 * index + 1];
+
+    // Calculate survival for index. Will start at 1.
+    survival -= survDiff;
+
+    // Reset risk to default values
+    atRisk = 0;
+    risk = 0;
+
+    // Calculate the risk, which is used to calculate survival
+    for (laterIt = it; laterIt != sortedIndices.end(); laterIt++)
+    {
+      laterIndex = *laterIt;
+
+      // Anything now or later is at risk
+      if (event) atRisk += 1;
+    }
+    // Risk is just the inverse
+    if (atRisk > 0) {
+      risk = 1.0 / atRisk;
+    }
+
+    // Probability of event is just risk * survival
+    probs[index] = risk * survival;
+
+    // Calculate next survDiff
+    survDiff = risk * survival;
+  }
+}
+
+double getScaledProbAfter(const double * const targets,
+                          const unsigned int length,
+                          const std::vector<double> &probs,
+                          const std::vector<unsigned int> &sortedIndices,
+                          const std::vector<unsigned int>::const_iterator &sortedIt)
+{
+  double probSum = 0;
+  std::vector<unsigned int>::const_iterator laterIt;
+  unsigned int index, laterIndex;
+
+  // An event has zero probability of living beyond the last event.
+  index = *sortedIt;
+  if (targets[2*index + 1]) {
+    return 0;
+  }
+
+  // Now we know that this is not an event
+  for (laterIt = sortedIt + 1; laterIt != sortedIndices.end(); laterIt++)
+  {
+    laterIndex = *laterIt;
+
+    probSum += probs.at(laterIndex);
+  }
+
+  return 1.0 - probSum;
+}
+
+double getPartA(const double * const targets,
+                const unsigned int length,
+                const std::vector<double> &probs,
+                const std::vector<unsigned int> &sortedIndices,
+                const std::vector<unsigned int>::const_iterator &sortedIt)
+{
+  unsigned int index, laterIndex;
+  std::vector<unsigned int>::const_iterator laterIt;
+  double laterTime, event, Ai;
+  Ai = 0;
+
+  index = *sortedIt;
+
+  event = targets[2* index + 1];
+
+  // Events will never have this included in their error.
+  if (event) {
+    return 0;
+  }
+
+  for (laterIt = sortedIt + 1; laterIt != sortedIndices.end(); laterIt++)
+  {
+    laterIndex = *laterIt;
+    laterTime = targets[2 * laterIndex];
+    // Probs is zero at censored points
+    Ai += probs.at(laterIndex) * std::pow(laterTime, 2.0);
+  }
+
+  return Ai;
+}
+
+double getPartB(const double * const targets,
+                const unsigned int length,
+                const std::vector<double> &probs,
+                const std::vector<unsigned int> &sortedIndices,
+                const std::vector<unsigned int>::const_iterator &sortedIt)
+{
+  unsigned int index, laterIndex;
+  std::vector<unsigned int>::const_iterator laterIt;
+  double event, Bi;
+  Bi = 0;
+
+  index = *sortedIt;
+
+  event = targets[2* index + 1];
+
+  // Events will never have this included in their error.
+  if (event) {
+    return 0;
+  }
+
+  for (laterIt = sortedIt + 1; laterIt != sortedIndices.end(); laterIt++)
+  {
+    laterIndex = *laterIt;
+    // Probs is zero at censored points
+    Bi += probs.at(laterIndex);
+  }
+
+  return Bi;
+}
+
+double getPartC(const double * const targets,
+                const unsigned int length,
+                const std::vector<double> &probs,
+                const std::vector<unsigned int> &sortedIndices,
+                const std::vector<unsigned int>::const_iterator &sortedIt)
+{
+  unsigned int index, laterIndex;
+  std::vector<unsigned int>::const_iterator laterIt;
+  double laterTime, event, Ci;
+  Ci = 0;
+
+  index = *sortedIt;
+
+  event = targets[2* index + 1];
+
+  // Events will never have this included in their error.
+  if (event) {
+    return 0;
+  }
+
+  for (laterIt = sortedIt + 1; laterIt != sortedIndices.end(); laterIt++)
+  {
+    laterIndex = *laterIt;
+    laterTime = targets[2 * laterIndex];
+    // Probs is zero at censored points
+    Ci -= 2 * probs.at(laterIndex) * laterTime;
+  }
+
+  return Ci;
+}
+
+double getLikelihoodError(const double * const targets,
+                          const unsigned int length,
+                          const unsigned int index,
+                          const double pred,
+                          const double A,
+                          const double B,
+                          const double C,
+                          const double probAfter)
+{
+  double e, time, lastTime;
+
+  // Fetch the times for convenience
+  time = targets[2 * index];
+  lastTime = targets[2 * (length - 1)];
+
+  // Calculate base error
+  e = A + pred * (pred * B + C);
+
+  // Should this compare the prediction instead?
+  if (time < lastTime) {
+    e += probAfter * std::pow(pred - lastTime, 2.0);
+  }
+
+  return e;
+}
+
+double getLikelihoodDeriv(const double * const targets,
+                          const unsigned int length,
+                          const unsigned int index,
+                          const double pred,
+                          const double B,
+                          const double C,
+                          const double probAfter)
+{
+  double d, time, lastTime;
+
+  // Fetch the times for convenience
+  time = targets[2 * index];
+  lastTime = targets[2 * (length - 1)];
+
+  // Calculate base error
+  d = 2 * pred * B  + C;
+
+  // Should this compare the prediction instead?
+  if (time < lastTime) {
+    d += probAfter * (pred - lastTime);
+  }
+
+  return d;
+}
+
 
 SurvErrorCache::SurvErrorCache() :
   ErrorCache(),
@@ -156,7 +377,7 @@ void SurvErrorCache::init(const double * const targets,
 
   double time, event, laterTime, laterEvent;
 
-  std::vector<unsigned int>::iterator it, laterIt;
+  std::vector<unsigned int>::const_iterator it, laterIt;
 
   // Start with first time as last
   this->lastTime = targets[0];
@@ -166,7 +387,7 @@ void SurvErrorCache::init(const double * const targets,
   prevIndex = 2*length;
 
   // First calculate the risk and survival
-  for (it = sortedIndices.begin(); it < sortedIndices.end(); it++)
+  for (it = sortedIndices.begin(); it != sortedIndices.end(); it++)
   {
     index = *it;
 
@@ -186,7 +407,7 @@ void SurvErrorCache::init(const double * const targets,
     surv[index] = 0;
 
     // Look at later events.
-    for (laterIt = it + 1; laterIt < sortedIndices.end(); laterIt++)
+    for (laterIt = it + 1; laterIt != sortedIndices.end(); laterIt++)
     {
       laterIndex = *laterIt;
 
@@ -274,7 +495,7 @@ void SurvErrorCache::init(const double * const targets,
       this->c[index] = 0;
       // Iterate over later events
       for (laterIt = allLaterEvents[index].begin();
-           laterIt < allLaterEvents[index].end();
+           laterIt != allLaterEvents[index].end();
            laterIt++)
       {
         laterIndex = *laterIt;
