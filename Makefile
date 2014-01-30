@@ -11,7 +11,7 @@ specialtest: test.py ann/_ann.so $(DEPS)
 	python test.py
 
 valgrind:
-	cd src;make valgrind
+	cd src;make -j4 valgrind
 
 inplace: ann/_ann.so
 

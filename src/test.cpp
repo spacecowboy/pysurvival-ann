@@ -281,7 +281,7 @@ void rpropsurvlik() {
     }
   }
 
-  double preds[1];
+  double preds[2];
   // std::cout << "\n\nPredictions\n";
   for (int i = 0; i < 4; i++) {
     net.output(X + 2 * i, preds);
@@ -363,9 +363,19 @@ void rproptest() {
 void testSurvCache() {
   std::cout << "\nTestSurvCache...";
   // Need some known data to work with.
-  unsigned int length = 35, index = 17;
-
+  const unsigned int length = 35, sortedIndex = 17;
+  unsigned int index;
+  // These are disordered
   double targets[] = {
+    0.20648482, 1.,
+    0.20824676, 1.,
+    0.21543471, 0.,
+    0.21772184, 0.,
+    0.22132258, 1.,
+    0.22375735, 0.,
+    0.22591362, 0.,
+    0.23053736, 0.,
+    0.23824816, 0.,
     0.10281301, 0.,
     0.10810285, 0.,
     0.1100851, 1.,
@@ -376,6 +386,11 @@ void testSurvCache() {
     0.14496066, 0.,
     0.14599487, 1.,
     0.14793153, 1.,
+    0.19055548, 0.,
+    0.19444517, 1.,
+    0.19481425, 0.,
+    0.19634443, 1.,
+    0.198517, 0.,
     0.14902403, 0.,
     0.15076501, 0.,
     0.15624607, 0.,
@@ -386,26 +401,14 @@ void testSurvCache() {
     0.17716717, 0.,
     0.18045819, 0.,
     0.18104029, 0.,
-    0.18960431, 1.,
-    0.19055548, 0.,
-    0.19444517, 1.,
-    0.19481425, 0.,
-    0.19634443, 1.,
-    0.198517, 0.,
-    0.20648482, 1.,
-    0.20824676, 1.,
-    0.21543471, 0.,
-    0.21772184, 0.,
-    0.22132258, 1.,
-    0.22375735, 0.,
-    0.22591362, 0.,
-    0.23053736, 0.,
-    0.23824816, 0.};
+    0.18960431, 1.
+};
 
   // First we need to get the sorted indices
   std::vector<unsigned int> sortedIndices;
   getIndicesSortedByTime(targets, length, sortedIndices);
   assert(sortedIndices.size() == length);
+  index = sortedIndices.at(sortedIndex);
   // Make sure index is pointing to correct time
   assert(targets[2*index] - 0.17716717 < 0.0000001);
   assert(targets[2*index+1] == 0);
@@ -438,7 +441,7 @@ void testSurvCache() {
   // Prob after method is just 1.0 - sum(Probs)
   double scaledProb;
   std::vector<unsigned int>::const_iterator it;
-  it = sortedIndices.begin() + index;
+  it = sortedIndices.begin() + sortedIndex;
   scaledProb = getScaledProbAfter(targets, length, probs,
                                   sortedIndices,
                                   it);
@@ -470,29 +473,30 @@ void testSurvCache() {
 
   double pred, e, d;
   double time = targets[2 * index];
+  double lastTime = targets[2 * (*(sortedIndices.end() - 1))];
 
   pred = 0.1 * time;
-  e = getLikelihoodError(targets, length, *it,
-                         pred, Ai, Bi, Ci, scaledProb);
+  e = getLikelihoodError(time, pred, lastTime,
+                         Ai, Bi, Ci, scaledProb);
   assert (e >= 0);
   std::cout << "\n  Eless: " << e;
   assert (e - 0.0434158785546 < 0.0000001);
 
-  d = getLikelihoodDeriv(targets, length, *it,
-                         pred, Bi, Ci, scaledProb);
+  d = getLikelihoodDeriv(time, pred, lastTime,
+                         Bi, Ci, scaledProb);
   assert (d < 0);
   std::cout << "\n  Dless: " << d;
   assert (d - -0.280063236247 < 0.000001);
 
   pred = 3 * time;
-  e = getLikelihoodError(targets, length, *it,
-                         pred, Ai, Bi, Ci, scaledProb);
+  e = getLikelihoodError(time, pred, lastTime,
+                         Ai, Bi, Ci, scaledProb);
   assert (e >= 0);
   std::cout << "\n  Emore: " << e;
   assert (e - 0.0940518786667 < 0.0000001);
 
-  d = getLikelihoodDeriv(targets, length, *it,
-                         pred, Bi, Ci, scaledProb);
+  d = getLikelihoodDeriv(time, pred, lastTime,
+                         Bi, Ci, scaledProb);
   assert (d > 0);
   std::cout << "\n  Dmore: " << d;
   assert (d - 0.432600771668 < 0.000001);
@@ -512,6 +516,6 @@ int main( int argc, const char* argv[] )
   //geneticXOR();
   rproptest();
   testSurvCache();
-  //rpropsurvlik();
+  rpropsurvlik();
   printf("\nEND OF TEST\n");
 }

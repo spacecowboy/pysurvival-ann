@@ -122,10 +122,9 @@ double getPartC(const double * const targets,
 /*
  * Calculate the error of the prediction
  */
-double getLikelihoodError(const double * const targets,
-                          const unsigned int length,
-                          const unsigned int index,
+double getLikelihoodError(const double targetTime,
                           const double pred,
+                          const double lastTime,
                           const double A,
                           const double B,
                           const double C,
@@ -134,10 +133,9 @@ double getLikelihoodError(const double * const targets,
 /*
  * Calculate the derivative of the error for prediction.
  */
-double getLikelihoodDeriv(const double * const targets,
-                          const unsigned int length,
-                          const unsigned int index,
+double getLikelihoodDeriv(const double targetTime,
                           const double pred,
+                          const double lastTime,
                           const double B,
                           const double C,
                           const double probAfter);
