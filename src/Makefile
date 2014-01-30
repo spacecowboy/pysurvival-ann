@@ -1,13 +1,14 @@
 # Makefile
 
-### Compilar and flags ###
-CPP = g++
+### Compiler and flags ###
 CPPFLAGS = -g -Wall -Werror -std=c++11 -pthread -O0 # -fsanitize=thread
 LDFLAGS = -lm
 
 CLANG = clang++ -std=c++11 -Werror -Wall -pthread# -fsyntax-only
 
+#CPP = g++
 #CC = $(CPP) $(CPPFLAGS)
+CPP = $(CLANG)
 CC = $(CLANG)
 
 #Used by Python build
