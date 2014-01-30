@@ -407,12 +407,6 @@ extern "C" {
 	PyObject *pyval = NULL;
 	unsigned int *ptr = NULL;
 
-    //PyArrayObject *a;
-    //if (!pylist) {
-    //  a = (PyArrayObject *)                               \
-          //    PyArray_FROM_OTF(inputs, NPY_UINT, NPY_IN_ARRAY);
-    //}
-
     for (int i = 0; (unsigned int)i < length; i++) {
       if (pylist) {
         // Actual python list

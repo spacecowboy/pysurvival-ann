@@ -125,8 +125,8 @@ void geneticTest1() {
 
   mutator.randomizeNetwork(net2, 1.0);
 
-  // printf("\nWeight diff: %f vs %f \
-//\nConn diff: %d vs %d              \
+  // printf("\nWeight diff: %f vs %f
+//\nConn diff: %d vs %d
 //\nActF diff: %d vs %d",
 //         net1.weights[9],
 //         net2.weights[9],
@@ -138,8 +138,8 @@ void geneticTest1() {
   // printf("\nCloning...");
   net2.cloneNetwork(net1);
 
-  // printf("\nWeight diff: %f vs %f \
-//\nConn diff: %d vs %d\
+  // printf("\nWeight diff: %f vs %f
+//\nConn diff: %d vs %d
 //\nActF diff: %d vs %d",
 //         net1.weights[9],
   //       net2.weights[9],
@@ -352,6 +352,17 @@ void rproptest() {
   }
 
   std::cout << "\nEnd of RProp test";
+}
+
+void test_survcache() {
+  // First method should be get prob, this is used in the rest
+  // This should be a vector with length equal to entire times vector.
+  // Probs at censored events is zero
+  // Cumulative sum must > 0 and <= 1
+
+  // Prob after method is just 1.0 - sum(Probs)
+
+
 }
 
 

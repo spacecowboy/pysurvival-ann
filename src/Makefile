@@ -13,10 +13,19 @@ CC = $(CLANG)
 
 #Used by Python build
 PYCPP = gcc
-PYFLAGS = -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -fPIC \
+
+PYFLAGS2 = -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -fPIC \
 -I/usr/lib/python2.7/dist-packages/numpy/core/include \
 -I/usr/include/python2.7 \
 -std=c++0x -Wall -Werror -pthread
+
+PYFLAGS3 = -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -fPIC \
+-I/usr/lib/python3.3/site-packages/numpy/core/include \
+-I/usr/include/python3.3m \
+-std=c++0x -Wall -Werror -pthread
+
+# Change this depending on your system
+PYFLAGS = $(PYFLAGS3)
 
 PYCC = $(PYCPP) $(PYFLAGS)
 
@@ -29,12 +38,6 @@ RPropNetwork.cpp
 
 ### And corresponding object files ###
 OBJ = $(addsuffix .o, $(basename $(SRC)))
-
-### SUFFIXX rule to compile files if not specified differently ###
-.SUFFIXES: .cpp
-
-.cpp.o:
-	$(CC) -c $<
 
 ### Main task ###
 valgrind: matrix
@@ -57,34 +60,11 @@ clean:
 matrix: $(OBJ) prep
 	$(CPP) $(CPPFLAGS) -o $@ $(OBJ)
 
-### Dependencies ###
-#test.o: test.cpp
+# Pattern rules
+# Object files depend on cpp and hpp files
+%.o: %.cpp %.hpp
+	$(CC) -c -o $@ $<
 
-#MatrixNetwork.o: MatrixNetwork.hpp MatrixNetwork.cpp
-
-#activationfunctions.o: activationfunctions.hpp activationfunctions.cpp
-
-#Random.o: Random.hpp Random.cpp
-
-#GeneticSelection.o: GeneticSelection.hpp GeneticSelection.cpp
-
-#GeneticFitness.o: GeneticFitness.hpp GeneticFitness.cpp
-
-#GeneticMutation.o: GeneticMutation.hpp GeneticMutation.cpp
-
-#GeneticCrossover.o: GeneticCrossover.hpp GeneticCrossover.cpp
-
-#global.o: global.hpp global.cpp
-
-#GeneticNetwork.o: GeneticNetwork.cpp GeneticNetwork.hpp
-
-#c_index.o: c_index.h c_index.cpp
-
-#ErrorFunctions.o: ErrorFunctions.cpp ErrorFunctions.hpp
-
-### Wrappers ###
-MatrixNetworkWrapper.o: MatrixNetworkWrapper.hpp MatrixNetworkWrapper.cpp
-	$(PYCC) -c $< -o $@
-
-GeneticNetworkWrapper.o: GeneticNetworkWrapper.hpp GeneticNetworkWrapper.cpp
-	$(PYCC) -c $< -o $@
+# Wrapper files compile with python
+%Wrapper.o: %Wrapper.cpp %Wrapper.hpp
+	$(PYCC) -c -o $@ $<
