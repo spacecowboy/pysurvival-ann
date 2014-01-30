@@ -11,7 +11,7 @@
 #include <cmath>
 
 void matrixtest() {
-  	printf( "\nStarting matrix test...\n\n" );
+  std::cout << "\nMatrixTest...";
 
     //printf("\nConstructing 2, 2, 2");
     MatrixNetwork m(2, 0, 2);
@@ -71,31 +71,32 @@ void matrixtest() {
       // printf("\nNetwork output[%d]: %f", i, outputs[i]);
     }
 
-	printf( "\n\nEnding matrix test...\n\n" );
     delete[] outputs;
     delete[] inputs;
+    std::cout << "\nMatrixTest Done.";
 }
 
 void randomtest() {
-
+  std::cout << "\nRandomTest...";
   Random r(0);
 
-  printf("\n\nRandom numbers:");
-  printf("\nUniform: %f", r.uniform());
+  printf("\n  Uniform: %f", r.uniform());
 
   Random rr;
 
-  printf("\nNormal: %f", rr.normal());
-  printf("\nGeometric(10): %d", rr.geometric(10));
+  printf("\n  Normal: %f", rr.normal());
+  printf("\n  Geometric(10): %d", rr.geometric(10));
 
-  std::cout << "\nUINT lim: " << std::numeric_limits<unsigned int>::max() << "\n";
+  std::cout << "\n  UINT lim: " << std::numeric_limits<unsigned int>::max();
 
-  std::cout << "\nUINT: " << r.uint();
+  std::cout << "\n  UINT: " << r.uint();
 
-  std::cout << "\nUniform number: " << rr.uniformNumber(1, 10);
+  std::cout << "\n  Uniform number: " << rr.uniformNumber(1, 10);
+  std::cout << "\nRandomTest Done.";
 }
 
 void lockTest() {
+  std::cout << "\nLockTest...";
     // printf("\n\nLocking mutex...");
     JGN_lockPopulation();
     // printf("\nMutex locked");
@@ -103,10 +104,11 @@ void lockTest() {
     // printf("\nUnlocking mutex...");
     JGN_unlockPopulation();
     // printf("\nMutex unlocked");
+    std::cout << "\nLockTest Done.";
 }
 
 void geneticTest1() {
-  printf("\n\nCreating genetic networks...");
+  printf("\nGeneticTest1...");
 
   GeneticNetwork net1(5, 3, 1);
   GeneticNetwork net2(net1.INPUT_COUNT,
@@ -149,12 +151,13 @@ void geneticTest1() {
       //   net2.actFuncs[3]);
 
 
-  printf("\nGenetic test 1 done.");
+  printf("\nGeneticTest1 Done.");
 }
 
 void geneticXOR() {
-  GeneticNetwork net(2, 2, 1);
-  net.setGenerations(10000);
+  std::cout << "\nGeneticXOR...";
+  GeneticNetwork net(2, 5, 1);
+  net.setGenerations(100);
   net.setWeightMutationChance(0.5);
   net.setWeightMutationFactor(0.3);
   net.connsMutationChance = 0.5;
@@ -206,10 +209,11 @@ void geneticXOR() {
     // std::cout << "\nN" << i << ": " << net.actFuncs[i];
   }
 
+  std::cout << "\nGeneticXOR Done.";
 }
 
 void rpropsurvlik() {
-  std::cout << "\n\nStart of RProp SurvLik test";
+  std::cout << "\nRPropSurvLikTest...";
 
   Random r;
   RPropNetwork net(2, 8, 2);
@@ -284,11 +288,11 @@ void rpropsurvlik() {
         //      << " (" << Y[i] << ")"<< "\n";
   }
 
-  std::cout << "\nEnd of RProp SurvLik test";
+  std::cout << "\nRPropSurvLikTest Done.";
 }
 
 void rproptest() {
-  std::cout << "\n\nStart of RProp test";
+  std::cout << "\nRPropTest...";
 
   Random r;
   RPropNetwork net(2, 8, 1);
@@ -351,7 +355,7 @@ void rproptest() {
         //      << " (" << Y[i] << ")"<< "\n";
   }
 
-  std::cout << "\nEnd of RProp test";
+  std::cout << "\nRPropTest Done.";
 }
 
 void test_survcache() {
