@@ -367,7 +367,7 @@ void assertSame(const double a, const double b)
   double diff = a - b;
   if (diff < 0) diff = -diff;
 
-  //std::cout << "\n  a: " << a << " b: " << b << " Diff: " << diff << "\n";
+  std::cout << "\n  a: " << a << " b: " << b << " Diff: " << diff << "\n";
   assert(diff < 0.00000000001);
 }
 
@@ -426,28 +426,30 @@ void testSurvCache() {
 
   // First method should be get prob, this is used in the rest
   std::vector<double> probs;
-  getProbs(targets, length, sortedIndices, probs);
-  // This should be a vector with length equal to entire times vector.
-  assert(probs.size() == length);
-  // Check prob at index -1 (which is not censored)
-  std::cout << "\n  Prob_{i-1}:" << probs.at(index-1);
-  assertSame(probs.at(index-1), 0.0419470942274);
+  getScaledProbs(targets, length, sortedIndices, probs);
+  // This should be a vector with length equal to entire times vector squared.
+  assert(probs.size() == length*length);
   // Probs at censored events is zero
   double cumprob = 0;
   for (unsigned int i = 0; i < length; i++) {
     if (targets[2*i + 1]) {
-      assert(probs.at(i) > 0);
+      assert(probs.at(i*length + i) > 0);
     }
     else {
-      assert(probs.at(i) == 0);
+      assert(probs.at(i*length + i) == 0);
     }
-    cumprob += probs.at(i);
+    // Calculate for first patient, which has unscaled probs
+    cumprob += probs.at(sortedIndices.at(0) * length + i);
   }
   // Cumulative sum must > 0 and <= 1
   assert(cumprob > 0);
   assert(cumprob <= 1.0);
   std::cout << "\n  cumprob: " << cumprob;
   assertSame(cumprob, 0.632038916092);
+
+  // Check prob at index -1 (which is not censored)
+  std::cout << "\n  Prob_{i-1}:" << probs.at(length * (index - 1) + index-1);
+  assertSame(probs.at(length * (index - 1) + index-1), 0.0526315789474);
 
   // Prob after method is just 1.0 - sum(Probs)
   double scaledProb;
@@ -458,29 +460,29 @@ void testSurvCache() {
                                   it);
   assert(scaledProb >= 0);
   assert(scaledProb <= 1);
-  std::cout << "\n  scaled_0: " << scaledProb;
-  assertSame(scaledProb, 0.612913387815);
+  std::cout << "\n  scaled_i: " << scaledProb;
+  assertSame(scaledProb, 0.487334887335);
 
   double Ai;
   Ai = getPartA(targets, length, probs,
                 sortedIndices, it);
   assert(Ai > 0);
   std::cout << "\n  Ai: " << Ai;
-  assertSame(Ai, 0.0162959678592);
+  assertSame(Ai, 0.0215826999321);
 
   double Bi;
   Bi = getPartB(targets, length, probs,
                 sortedIndices, it);
   assert(Bi > 0);
   std::cout << "\n  Bi: " << Bi;
-  assertSame(Bi, 0.387086612185);
+  assertSame(Bi, 0.512665112665);
 
   double Ci;
   Ci = getPartC(targets, length, probs,
                 sortedIndices, it);
   assert(Ci < 0);
   std::cout << "\n  Ci: " << Ci;
-  assertSame(Ci, -0.158612370323);
+  assertSame(Ci, -0.210069338856);
 
   double pred, e, d;
   double time = targets[2 * index];
@@ -491,26 +493,26 @@ void testSurvCache() {
                          Ai, Bi, Ci, scaledProb);
   assert (e >= 0);
   std::cout << "\n  Eless: " << e;
-  assertSame(e, 0.0434158785546);
+  assertSame(e, 0.0417229793877);
 
   d = getLikelihoodDeriv(time, pred, lastTime,
                          Bi, Ci, scaledProb);
   assert (d < 0);
   std::cout << "\n  Dless: " << d;
-  assertSame(d, -0.415229910096);
+  assertSame(d, -0.406849185279);
 
   pred = 3 * time;
   e = getLikelihoodError(time, pred, lastTime,
                          Ai, Bi, Ci, scaledProb);
   assert (e >= 0);
   std::cout << "\n  Emore: " << e;
-  assertSame(e, 0.041342842874);
+  assertSame(e, 0.0547552731939);
 
   d = getLikelihoodDeriv(time, pred, lastTime,
                          Bi, Ci, scaledProb);
   assert (d > 0);
   std::cout << "\n  Dmore: " << d;
-  assertSame (d, 0.252861867431);
+  assertSame (d, 0.334895224155);
 
 
 

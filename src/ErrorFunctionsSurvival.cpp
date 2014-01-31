@@ -45,25 +45,32 @@ void getIndicesSortedByTime(const double * const targets,
 }
 
 
-void getProbs(const double * const targets,
-              const unsigned int length,
-              const std::vector<unsigned int> &sortedIndices,
-              std::vector<double> &probs)
+void getScaledProbs(const double * const targets,
+                    const unsigned int length,
+                    const std::vector<unsigned int> &sortedIndices,
+                    std::vector<double> &scaledProbs)
 {
   std::vector<unsigned int>::const_iterator it, laterIt;
   unsigned int index, laterIndex;
   double time, event;
-  double atRisk, risk, survival, survDiff;
+  double atRisk, risk, surv, survDiff;
+  std::vector<double> survival(length);
+  std::vector<double> probs(length);
+
+  // Scaled probs is a "2-dimensional" array, but implemented as 1D
+  scaledProbs.clear();
+  scaledProbs.resize(length*length, 0);
 
   // Set to zero initially
   probs.clear();
   probs.resize(length, 0);
 
   // Survival starts at 1 and decreases towards zero
-  survival = 1.0;
+  surv = 1.0;
   // First step there has been no change in survival.
   survDiff = 0;
 
+  // First loop we calculate the survival and unscaled probabilities.
   for (it = sortedIndices.begin(); it != sortedIndices.end(); it++)
   {
     index = *it;
@@ -72,7 +79,9 @@ void getProbs(const double * const targets,
     event = targets[2 * index + 1];
 
     // Calculate survival for index. Will start at 1.
-    survival -= survDiff;
+    surv -= survDiff;
+    // And save for later
+    survival[index] = surv;
 
     // Reset risk to default values
     atRisk = 0;
@@ -83,7 +92,8 @@ void getProbs(const double * const targets,
     {
       laterIndex = *laterIt;
 
-      // Anything now or later is at risk
+      // Anything now or later is at risk.
+      // Only events can have a risk associated with them.
       if (event) atRisk += 1;
     }
     // Risk is just the inverse
@@ -92,16 +102,54 @@ void getProbs(const double * const targets,
     }
 
     // Probability of event is just risk * survival
-    probs[index] = risk * survival;
+    probs[index] = risk * surv;
 
     // Calculate next survDiff
-    survDiff = risk * survival;
+    survDiff = risk * surv;
+  }
+
+  // This loop we calculate the scaled probabilities, based on the
+  // survival and probabilities calculated previously. Need the entire
+  // probabilities array here.
+  for (it = sortedIndices.begin(); it != sortedIndices.end(); it++)
+  {
+    index = *it;
+    getScaledProbsFor(probs, sortedIndices, it,
+                      survival.at(index),
+                      scaledProbs);
+  }
+}
+
+
+void getScaledProbsFor(const std::vector<double> &probs,
+                       const std::vector<unsigned int> &sortedIndices,
+                       const std::vector<unsigned int>::const_iterator &sortedIt,
+                       const double survivalAtIndex,
+                       std::vector<double> &scaledProbs)
+{
+  std::vector<unsigned int>::const_iterator laterIt;
+  unsigned int length, index, laterIndex;
+
+  // Don't divide by zeros. Correct value already set.
+  if (survivalAtIndex == 0) return;
+
+  length = probs.size();
+  index = *sortedIt;
+
+  // Take yourself into account since events only have probability
+  // there, while censored have zero probability there.
+  for (laterIt = sortedIt; laterIt != sortedIndices.end(); laterIt++)
+  {
+    laterIndex = *laterIt;
+
+    scaledProbs[index * length + laterIndex] =
+      probs[laterIndex] / survivalAtIndex;
   }
 }
 
 double getScaledProbAfter(const double * const targets,
                           const unsigned int length,
-                          const std::vector<double> &probs,
+                          const std::vector<double> &scaledProbs,
                           const std::vector<unsigned int> &sortedIndices,
                           const std::vector<unsigned int>::const_iterator &sortedIt)
 {
@@ -120,7 +168,7 @@ double getScaledProbAfter(const double * const targets,
   {
     laterIndex = *laterIt;
 
-    probSum += probs.at(laterIndex);
+    probSum += scaledProbs.at(length * index + laterIndex);
   }
 
   return 1.0 - probSum;
@@ -128,7 +176,7 @@ double getScaledProbAfter(const double * const targets,
 
 double getPartA(const double * const targets,
                 const unsigned int length,
-                const std::vector<double> &probs,
+                const std::vector<double> &scaledProbs,
                 const std::vector<unsigned int> &sortedIndices,
                 const std::vector<unsigned int>::const_iterator &sortedIt)
 {
@@ -151,7 +199,8 @@ double getPartA(const double * const targets,
     laterIndex = *laterIt;
     laterTime = targets[2 * laterIndex];
     // Probs is zero at censored points
-    Ai += probs.at(laterIndex) * std::pow(laterTime, 2.0);
+    Ai += scaledProbs.at(length * index + laterIndex) *
+      std::pow(laterTime, 2.0);
   }
 
   return Ai;
@@ -159,7 +208,7 @@ double getPartA(const double * const targets,
 
 double getPartB(const double * const targets,
                 const unsigned int length,
-                const std::vector<double> &probs,
+                const std::vector<double> &scaledProbs,
                 const std::vector<unsigned int> &sortedIndices,
                 const std::vector<unsigned int>::const_iterator &sortedIt)
 {
@@ -181,7 +230,7 @@ double getPartB(const double * const targets,
   {
     laterIndex = *laterIt;
     // Probs is zero at censored points
-    Bi += probs.at(laterIndex);
+    Bi += scaledProbs.at(length * index + laterIndex);
   }
 
   return Bi;
@@ -189,7 +238,7 @@ double getPartB(const double * const targets,
 
 double getPartC(const double * const targets,
                 const unsigned int length,
-                const std::vector<double> &probs,
+                const std::vector<double> &scaledProbs,
                 const std::vector<unsigned int> &sortedIndices,
                 const std::vector<unsigned int>::const_iterator &sortedIt)
 {
@@ -212,7 +261,7 @@ double getPartC(const double * const targets,
     laterIndex = *laterIt;
     laterTime = targets[2 * laterIndex];
     // Probs is zero at censored points
-    Ci -= 2 * probs.at(laterIndex) * laterTime;
+    Ci -= 2 * scaledProbs.at(index * length + laterIndex) * laterTime;
   }
 
   return Ci;
@@ -339,8 +388,8 @@ void SurvErrorCache::init(const double * const targets,
   std::vector<unsigned int> sortedIndices;
   getIndicesSortedByTime(targets, length, sortedIndices);
   // First, calculate the probability at each event.
-  std::vector<double> probs;
-  getProbs(targets, length, sortedIndices, probs);
+  std::vector<double> scaledProbs;
+  getScaledProbs(targets, length, sortedIndices, scaledProbs);
 
   // The rest of the calculations are done for each index
   std::vector<unsigned int>::const_iterator it;
@@ -350,13 +399,14 @@ void SurvErrorCache::init(const double * const targets,
   {
     index = *it;
 
-    this->probAfter[index] = getScaledProbAfter(targets, length, probs,
+    this->probAfter[index] = getScaledProbAfter(targets, length,
+                                                scaledProbs,
                                                 sortedIndices, it);
-    this->a[index] = getPartA(targets, length, probs,
+    this->a[index] = getPartA(targets, length, scaledProbs,
                               sortedIndices, it);
-    this->b[index] = getPartB(targets, length, probs,
+    this->b[index] = getPartB(targets, length, scaledProbs,
                               sortedIndices, it);
-    this->c[index] = getPartC(targets, length, probs,
+    this->c[index] = getPartC(targets, length, scaledProbs,
                               sortedIndices, it);
     // Remember last time
     this->lastTime = targets[2 * index];

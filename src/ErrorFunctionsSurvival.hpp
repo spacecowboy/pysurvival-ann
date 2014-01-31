@@ -57,19 +57,35 @@ void getIndicesSortedByTime(const double * const targets,
                             std::vector<unsigned int>& sortedIndices);
 
 /*
- * This calculates the probabity to have an event at each time
- * point. Time points with events will have a non-zero probability
- * while time points with censored events will have zero probability.
+ * This calculates the scaled probabity to have an event at each time
+ * point, for each patient. Time points with events will have a
+ * non-zero probability while time points with censored events will
+ * have zero probability.
  *
  * The probabilities will only sum to one if the last time point had
  * an event.
  *
- * Probs is cleared and set as a result.
+ * scaledProbs is cleared and set. It will have size length*length.
  */
-void getProbs(const double * const targets,
-              const unsigned int length,
-              const std::vector<unsigned int> &sortedIndices,
-              std::vector<double> &probs);
+void getScaledProbs(const double * const targets,
+                    const unsigned int length,
+                    const std::vector<unsigned int> &sortedIndices,
+                    std::vector<double> &scaledProbs);
+
+/*
+ * Calculate the scaled probability values for the patient at index with
+ * specified survival at that index. Scaled probabilities are
+ * calculated as future probabilities divided by survival at index.
+ *
+ * scaledProbs is expected to be initialized to zero of size:
+ * length*length, where length = probs.size(). This function will set
+ * the values in range [index*length, (index+1)*length].
+ */
+void getScaledProbsFor(const std::vector<double> &probs,
+                       const std::vector<unsigned int> &sortedIndices,
+                       const std::vector<unsigned int>::const_iterator &it,
+                       const double survivalAtIndex,
+                       std::vector<double> &scaledProbs);
 
 /*
  * Calculate the probability to survive longer than the last
