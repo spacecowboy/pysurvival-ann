@@ -4,7 +4,7 @@
 git stash -q --keep-index
 
 # Test the commit
-make test
+make clean; make -j4 test
 RESULT=$?
 
 # Restore working dir

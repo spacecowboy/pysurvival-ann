@@ -360,6 +360,17 @@ void rproptest() {
   std::cout << "\nRPropTest Done.";
 }
 
+// Assert that the difference between a and b is (absolute value) less
+// than 10^-10
+void assertSame(const double a, const double b)
+{
+  double diff = a - b;
+  if (diff < 0) diff = -diff;
+
+  //std::cout << "\n  a: " << a << " b: " << b << " Diff: " << diff << "\n";
+  assert(diff < 0.00000000001);
+}
+
 void testSurvCache() {
   std::cout << "\nTestSurvCache...";
   // Need some known data to work with.
@@ -410,7 +421,7 @@ void testSurvCache() {
   assert(sortedIndices.size() == length);
   index = sortedIndices.at(sortedIndex);
   // Make sure index is pointing to correct time
-  assert(targets[2*index] - 0.17716717 < 0.0000001);
+  assertSame(targets[2*index], 0.17716717);
   assert(targets[2*index+1] == 0);
 
   // First method should be get prob, this is used in the rest
@@ -420,7 +431,7 @@ void testSurvCache() {
   assert(probs.size() == length);
   // Check prob at index -1 (which is not censored)
   std::cout << "\n  Prob_{i-1}:" << probs.at(index-1);
-  assert(probs.at(index-1) - 0.0419470942274 < 0.00001);
+  assertSame(probs.at(index-1), 0.0419470942274);
   // Probs at censored events is zero
   double cumprob = 0;
   for (unsigned int i = 0; i < length; i++) {
@@ -436,7 +447,7 @@ void testSurvCache() {
   assert(cumprob > 0);
   assert(cumprob <= 1.0);
   std::cout << "\n  cumprob: " << cumprob;
-  assert(cumprob - 0.632038916092 < 0.000001);
+  assertSame(cumprob, 0.632038916092);
 
   // Prob after method is just 1.0 - sum(Probs)
   double scaledProb;
@@ -448,28 +459,28 @@ void testSurvCache() {
   assert(scaledProb >= 0);
   assert(scaledProb <= 1);
   std::cout << "\n  scaled_0: " << scaledProb;
-  assert(scaledProb - 0.612913387815 < 0.0000001);
+  assertSame(scaledProb, 0.612913387815);
 
   double Ai;
   Ai = getPartA(targets, length, probs,
                 sortedIndices, it);
   assert(Ai > 0);
   std::cout << "\n  Ai: " << Ai;
-  assert(Ai - 0.0162959678592 < 0.0000001);
+  assertSame(Ai, 0.0162959678592);
 
   double Bi;
   Bi = getPartB(targets, length, probs,
                 sortedIndices, it);
   assert(Bi > 0);
   std::cout << "\n  Bi: " << Bi;
-  assert(Bi - 0.387086612185 < 0.0000001);
+  assertSame(Bi, 0.387086612185);
 
   double Ci;
   Ci = getPartC(targets, length, probs,
                 sortedIndices, it);
   assert(Ci < 0);
   std::cout << "\n  Ci: " << Ci;
-  assert(Ci - -0.158612370323 < 0.0000001);
+  assertSame(Ci, -0.158612370323);
 
   double pred, e, d;
   double time = targets[2 * index];
@@ -480,26 +491,26 @@ void testSurvCache() {
                          Ai, Bi, Ci, scaledProb);
   assert (e >= 0);
   std::cout << "\n  Eless: " << e;
-  assert (e - 0.0434158785546 < 0.0000001);
+  assertSame(e, 0.0434158785546);
 
   d = getLikelihoodDeriv(time, pred, lastTime,
                          Bi, Ci, scaledProb);
   assert (d < 0);
   std::cout << "\n  Dless: " << d;
-  assert (d - -0.280063236247 < 0.000001);
+  assertSame(d, -0.415229910096);
 
   pred = 3 * time;
   e = getLikelihoodError(time, pred, lastTime,
                          Ai, Bi, Ci, scaledProb);
   assert (e >= 0);
   std::cout << "\n  Emore: " << e;
-  assert (e - 0.0940518786667 < 0.0000001);
+  assertSame(e, 0.041342842874);
 
   d = getLikelihoodDeriv(time, pred, lastTime,
                          Bi, Ci, scaledProb);
   assert (d > 0);
   std::cout << "\n  Dmore: " << d;
-  assert (d - 0.432600771668 < 0.000001);
+  assertSame (d, 0.252861867431);
 
 
 

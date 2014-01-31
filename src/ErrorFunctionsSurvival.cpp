@@ -231,8 +231,9 @@ double getLikelihoodError(const double targetTime,
   // Calculate base error
   e = A + pred * (pred * B + C);
 
-  // Should this compare the prediction instead?
-  if (targetTime < lastTime) {
+  // Only consider last point if we are underestimating it
+  if (pred < lastTime) {
+
     e += probAfter * std::pow(pred - lastTime, 2.0);
   }
 
@@ -251,9 +252,9 @@ double getLikelihoodDeriv(const double targetTime,
   // Calculate base error
   d = 2 * pred * B  + C;
 
-  // Should this compare the prediction instead?
-  if (targetTime < lastTime) {
-    d += probAfter * (pred - lastTime);
+  // Only consider last point if we are underestimating it
+  if (pred < lastTime) {
+    d += 2 * probAfter * (pred - lastTime);
   }
 
   return d;
