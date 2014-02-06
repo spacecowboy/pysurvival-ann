@@ -6,21 +6,22 @@
  * A fitness function returns a number where higher is better
  */
 enum class FitnessFunction { FITNESS_MSE,
-        FITNESS_CINDEX,
-        FITNESS_MSE_CENS };
+    FITNESS_CINDEX,
+    FITNESS_MSE_CENS,
+    FITNESS_SURV_LIKELIHOOD};
 
 /*
  * Signature for a fitness function
  */
-typedef double (*FitnessFunctionPtr)(const double * const Y,
-                                     const unsigned int length,
-                                     const unsigned int numOfOutput,
-                                     const double * const outputs);
+// typedef double (*FitnessFunctionPtr)(const double * const Y,
+//                                      const unsigned int length,
+//                                      const unsigned int numOfOutput,
+//                                      const double * const outputs);
 
-/*
- * Given an enum value, returns appropriate function pointer
- */
-FitnessFunctionPtr getFitnessFunctionPtr(const FitnessFunction val);
+// /*
+//  * Given an enum value, returns appropriate function pointer
+//  */
+// FitnessFunctionPtr getFitnessFunctionPtr(const FitnessFunction val);
 
 // Evaluate the specified function
 double getFitness(FitnessFunction func,
@@ -29,19 +30,9 @@ double getFitness(FitnessFunction func,
                   const unsigned int numOfOutput,
                   const double * const outputs);
 
-double fitnessMSE(const double * const Y,
-                  const unsigned int length,
-                  const unsigned int numOfOutput,
-                  const double * const outputs);
-
 double fitnessCIndex(const double * const Y,
                      const unsigned int length,
                      const unsigned int numOfOutput,
                      const double * const outputs);
-
-double fitnessMSECens(const double * const Y,
-                      const unsigned int length,
-                      const unsigned int numOfOutput,
-                      const double * const outputs);
 
 #endif // _GENETICFITNESS_H_

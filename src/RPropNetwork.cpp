@@ -74,7 +74,7 @@ int RPropNetwork::learn(const double * const X,
 {
   int retval = 0;
   // Reset log
-  initLog(maxEpochs);
+  initLog(maxEpochs * OUTPUT_COUNT);
 
   // Used in training
   double dMax = 50, dMin = 0.00001, dPos = 1.2, dNeg = 0.5;
@@ -83,6 +83,9 @@ int RPropNetwork::learn(const double * const X,
   if (cache != NULL) {
     cache->clear();
   }
+
+  // Used to calculate error
+  double errors[OUTPUT_COUNT];
 
   // Local variables. () sets all to zero
   double meanError = 1 + maxError;
@@ -181,11 +184,23 @@ int RPropNetwork::learn(const double * const X,
       // First let all neurons evaluate
       output(X + i * INPUT_COUNT, preds + i * OUTPUT_COUNT);
     }
-    prevError = meanError;
-    meanError = getError(errorFunction, Y, length, OUTPUT_COUNT, preds, cache);
+
     epoch += 1;
-    // And log performance
-    this->aLogPerf[epoch - 1] = meanError;
+
+    // Calculate current error
+    getError(errorFunction, Y, length, OUTPUT_COUNT,
+             preds, cache, errors);
+
+    prevError = meanError;
+
+    // Calculate mean and log errors
+    meanError = 0;
+    for (int i = 0; i < OUTPUT_COUNT; i++) {
+      meanError += errors[i];
+      this->aLogPerf[OUTPUT_COUNT * (epoch - 1) + i] = errors[i];
+    }
+    meanError /= ((double) OUTPUT_COUNT);
+
   } while (epoch < maxEpochs && meanError > maxError);
 
   } catch (std::exception& e) {

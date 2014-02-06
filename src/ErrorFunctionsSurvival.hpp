@@ -159,10 +159,11 @@ double getLikelihoodDeriv(const double targetTime,
 
 // Errors and their derivatives
 
-double errorSurvMSE(const double * const Y,
-                    const unsigned int length,
-                    const unsigned int numOfOutput,
-                    const double * const outputs);
+void errorSurvMSE(const double * const Y,
+                  const unsigned int length,
+                  const unsigned int numOfOutput,
+                  const double * const outputs,
+                  double * const errors);
 
 void derivativeSurvMSE(const double * const Y,
                        const unsigned int length,
@@ -171,11 +172,12 @@ void derivativeSurvMSE(const double * const Y,
                        const unsigned int index,
                        double * const result);
 
-double errorSurvLikelihood(const double * const Y,
-                           const unsigned int length,
-                           const unsigned int numOfOutput,
-                           const double * const outputs,
-                           ErrorCache * const cache);
+void errorSurvLikelihood(const double * const Y,
+                         const unsigned int length,
+                         const unsigned int numOfOutput,
+                         const double * const outputs,
+                         ErrorCache * const cache,
+                         double * const errors);
 
 void derivativeSurvLikelihood(const double * const Y,
                               const unsigned int length,

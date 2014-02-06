@@ -14,23 +14,26 @@ double SSE(double target, double output) {
  * Y.size = length * numOfOutput
  * outputs.size = length * numOfOutput
  */
-double errorMSE(const double * const Y,
-                const unsigned int length,
-                const unsigned int numOfOutput,
-                const double * const outputs)
+void errorMSE(const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              double * const errors)
 {
   unsigned int i, n;
-  double error = 0;
+  // Set all to zero first
+  for (n = 0; n < numOfOutput; n++) {
+    errors[n] = 0;
+  }
   // Evaluate each input set
-  // Average over all inputs and number of outputs
+  // Average over all inputs
   for (i = 0; i < length; i++) {
     for (n = 0; n < numOfOutput; n++) {
-      error += SSE(Y[numOfOutput * i + n],
-                   outputs[numOfOutput * i + n]);
+      errors[n] += SSE(Y[numOfOutput * i + n],
+                       outputs[numOfOutput * i + n])
+        / ((double) length);
     }
   }
-
-  return error / ((double) length * numOfOutput);
 }
 
 /**

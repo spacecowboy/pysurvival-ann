@@ -46,9 +46,13 @@ extern "C" {
     PyDict_SetItemString(dict, "FITNESS_CINDEX",
                          Py_BuildValue("i",
                                        FitnessFunction::FITNESS_CINDEX));
-    PyDict_SetItemString(dict, "FITNESS_MSE_CENS",
+    PyDict_SetItemString(dict, "FITNESS_SURV_MSE",
                          Py_BuildValue("i",
                                        FitnessFunction::FITNESS_MSE_CENS));
+    PyDict_SetItemString(dict, "FITNESS_SURV_LIKELIHOOD",
+                         Py_BuildValue("i",
+                                       FitnessFunction::FITNESS_SURV_LIKELIHOOD));
+
   }
 
 

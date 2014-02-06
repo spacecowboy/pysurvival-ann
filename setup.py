@@ -33,6 +33,7 @@ sources = ['src/PythonModule.cpp',
            'src/GeneticMutation.cpp',
            'src/GeneticCrossover.cpp',
            'src/GeneticNetworkWrapper.cpp',
+           'src/ErrorFunctionsWrapper.cpp',
            'src/Random.cpp',
            'src/global.cpp']
 

@@ -20,7 +20,8 @@
 //#include "GeneticCascadeNetworkWrapper.h"
 #include "GeneticNetwork.hpp"
 #include "GeneticNetworkWrapper.hpp"
-
+#include "ErrorFunctionsWrapper.hpp"
+#include "ErrorFunctions.hpp"
 
 // Matrix network
 // ==============
@@ -416,6 +417,18 @@ static PyMethodDef annMethods[] = {
 are converted to one dimension. Targets should be                       \
 (survival time, event)\n\nInput: Targets, Predictions\nReturns: 0 if no \
 concordance could be found."},
+
+    {"get_error", (PyCFunction) ErrorFuncs_getError,
+     METH_VARARGS | METH_KEYWORDS, "Calculates the error using the \
+specified error function on the given target/output arrays. The result \
+is averaged over the first axis."},
+
+    {"get_deriv", (PyCFunction) ErrorFuncs_getDeriv,
+     METH_VARARGS | METH_KEYWORDS, "Calculates the derivative using the \
+specified error function on the given target/output arrays. The result \
+is averaged over the first axis."},
+
+
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
@@ -424,6 +437,17 @@ concordance could be found."},
    include it in that case.
  */
 extern "C" {
+  void setModuleConstants(PyObject *dict) {
+    // Error function
+    PyDict_SetItemString(dict, "ERROR_MSE",
+                         Py_BuildValue("i", ErrorFunction::ERROR_MSE));
+    PyDict_SetItemString(dict, "ERROR_SURV_MSE",
+                         Py_BuildValue("i", ErrorFunction::ERROR_SURV_MSE));
+    PyDict_SetItemString(dict, "ERROR_SURV_LIKELIHOOD",
+                         Py_BuildValue("i",
+                                       ErrorFunction::ERROR_SURV_LIKELIHOOD));
+  }
+
   MOD_INIT(_ann) {
     PyObject* mod;
 
@@ -434,9 +458,12 @@ extern "C" {
     MOD_DEF(mod, "_ann", "C++ implementation of the neural network.",
             annMethods)
 
-      if (mod == NULL) {
-        return MOD_ERROR_VAL;
-      }
+    if (mod == NULL) {
+      return MOD_ERROR_VAL;
+    }
+
+    // Module constants
+    setModuleConstants(PyModule_GetDict(mod));
 
     // MatrixNetwork
 

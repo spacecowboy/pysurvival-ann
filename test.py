@@ -42,6 +42,204 @@ def get_surv_censored(numweights, datasize=100, fraction=0.4):
 
     return (_inputs, _outputs)
 
+def test_errorfuncs_dims1():
+    import ann
+
+    x = np.zeros((2,2,2))
+    y = np.zeros((2,2,2))
+    MSE = ann.ERROR_MSE
+
+    failed = False
+    try:
+        ann.get_error(MSE, x, y)
+    except ValueError:
+        failed = True
+
+    assert failed, "Should not work with more than 2 dimensions"
+
+def test_errorfuncs_dims2():
+    import ann
+
+    # First, should fail if arrays differ in dimension
+    x = np.zeros((2,2))
+    y = np.zeros((3,3))
+    MSE = ann.ERROR_MSE
+
+    failed = False
+    try:
+        ann.get_error(MSE, x, y)
+    except ValueError:
+        failed = True
+
+    assert failed, "Dimensions should not match!"
+
+def test_errorfuncs_data2d():
+    import ann
+
+    rows, cols = 5, 2
+    x = np.zeros((rows, cols))
+    y = np.ones((rows, cols)) * 2
+    MSE = ann.ERROR_MSE
+
+    error = ann.get_error(MSE, x, y)
+
+    assert len(error.shape) == 1, "Should be one-dimensional result"
+    assert error.shape[0] == cols, "Count should match column number"
+
+    for e in error:
+        assert 0.000001 > e - 0.5*(2 - 0)**2, "Error is incorrect"
+
+
+def test_errorfuncs_data1d():
+    import ann
+
+    rows, cols = 5, 1
+    x = np.zeros(rows)
+    y = np.ones(rows) * 2
+    MSE = ann.ERROR_MSE
+
+    error = ann.get_error(MSE, x, y)
+
+    assert len(error.shape) == 1, "Should be one-dimensional result"
+    assert error.shape[0] == cols, "Count should match column number"
+
+    for e in error:
+        assert 0.000001 > e - 0.5*(2 - 0)**2, "Error is incorrect"
+
+
+def test_errorfuncs_data1dlists():
+    import ann
+
+    rows, cols = 5, 1
+    x = [0.0 for i in range(rows)]
+    y = [2.0 for i in range(rows)]
+    MSE = ann.ERROR_MSE
+
+    error = ann.get_error(MSE, x, y)
+
+    assert len(error.shape) == 1, "Should be one-dimensional result"
+    assert error.shape[0] == cols, "Count should match column number"
+
+    for e in error:
+        assert 0.000001 > e - 0.5*(2 - 0)**2, "Error is incorrect"
+
+def test_errorfuncs_data1dlistsminimal():
+    import ann
+
+    rows, cols = 1, 1
+    x = [0.0 for i in range(rows)]
+    y = [2.0 for i in range(rows)]
+    MSE = ann.ERROR_MSE
+
+    error = ann.get_error(MSE, x, y)
+
+    assert len(error.shape) == 1, "Should be one-dimensional result"
+    assert error.shape[0] == cols, "Count should match column number"
+
+    for e in error:
+        assert 0.000001 > e - 0.5*(2 - 0)**2, "Error is incorrect"
+
+### deriv
+def test_derivfuncs_dims1():
+    import ann
+
+    x = np.zeros((2,2,2))
+    y = np.zeros((2,2,2))
+    MSE = ann.ERROR_MSE
+
+    failed = False
+    try:
+        ann.get_deriv(MSE, x, y)
+    except ValueError:
+        failed = True
+
+    assert failed, "Should not work with more than 2 dimensions"
+
+def test_derivfuncs_dims2():
+    import ann
+
+    # First, should fail if arrays differ in dimension
+    x = np.zeros((2,2))
+    y = np.zeros((3,3))
+    MSE = ann.ERROR_MSE
+
+    failed = False
+    try:
+        ann.get_deriv(MSE, x, y)
+    except ValueError:
+        failed = True
+
+    assert failed, "Dimensions should not match!"
+
+def test_derivfuncs_data2d():
+    import ann
+
+    rows, cols = 5, 2
+    x = np.zeros((rows, cols))
+    y = np.ones((rows, cols)) * 2
+    MSE = ann.ERROR_MSE
+
+    error = ann.get_deriv(MSE, x, y)
+
+    assert len(error.shape) == 2, "Should be one-dimensional result"
+    assert error.shape[0] == rows, "Count should match row number"
+    assert error.shape[1] == cols, "Count should match col number"
+
+    for e in error.ravel():
+        assert 0.000001 > e - (2 - 0), "Error is incorrect"
+
+
+def test_derivfuncs_data1d():
+    import ann
+
+    rows, cols = 5, 1
+    x = np.zeros(rows)
+    y = np.ones(rows) * 2
+    MSE = ann.ERROR_MSE
+
+    error = ann.get_deriv(MSE, x, y)
+
+    assert len(error.shape) == 1, "Should be one-dimensional result"
+    assert error.shape[0] == rows, "Count should match row number"
+
+    for e in error.ravel():
+        assert 0.000001 > e - (2 - 0), "Error is incorrect"
+
+
+def test_derivfuncs_data1dlists():
+    import ann
+
+    rows, cols = 5, 1
+    x = [0.0 for i in range(rows)]
+    y = [2.0 for i in range(rows)]
+    MSE = ann.ERROR_MSE
+
+    error = ann.get_deriv(MSE, x, y)
+
+    assert len(error.shape) == 1, "Should be one-dimensional result"
+    assert error.shape[0] == rows, "Count should match row number"
+
+    for e in error.ravel():
+        assert 0.000001 > e - (2 - 0), "Error is incorrect"
+
+def test_derivfuncs_data1dlistsminimal():
+    import ann
+
+    rows, cols = 1, 1
+    x = [0.0 for i in range(rows)]
+    y = [2.0 for i in range(rows)]
+    MSE = ann.ERROR_MSE
+
+    error = ann.get_deriv(MSE, x, y)
+
+    assert len(error.shape) == 1, "Should be one-dimensional result"
+    assert error.shape[0] == rows, "Count should match row number"
+
+    for e in error.ravel():
+        assert 0.000001 > e - (2 - 0), "Error is incorrect"
+
+
+
 def test_surv_data():
     frac = 0.5
     inputs, outputs = get_surv_censored(3, 100, frac)

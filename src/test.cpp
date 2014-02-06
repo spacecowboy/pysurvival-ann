@@ -8,6 +8,7 @@
 #include "GeneticMutation.hpp"
 #include "RPropNetwork.hpp"
 #include "ErrorFunctionsSurvival.hpp"
+#include "ErrorFunctions.hpp"
 #include <iostream>
 #include <cmath>
 #include <assert.h>
@@ -367,7 +368,6 @@ void assertSame(const double a, const double b)
   double diff = a - b;
   if (diff < 0) diff = -diff;
 
-  std::cout << "\n  a: " << a << " b: " << b << " Diff: " << diff << "\n";
   assert(diff < 0.00000000001);
 }
 
@@ -519,9 +519,90 @@ void testSurvCache() {
   std::cout << "\nTestSurvCache Done.";
 }
 
+void errorTests()
+{
+  std::cout << "\nTestErrors...";
+
+  double x = 0.0;
+  double y = 2.0;
+
+  for (unsigned int rows = 1; rows < 10; rows++)
+  {
+    for (unsigned int cols = 1; cols < 10; cols++)
+    {
+      // MSE is 0.5 * (x - y)^2
+
+      double outputs[rows*cols];
+      double targets[rows*cols];
+      double errors[cols];
+
+      // init
+      for (unsigned int i = 0; i < rows; i++) {
+        for (unsigned int j = 0; j < cols; j++) {
+          outputs[i * cols + j] = x;
+          targets[i * cols + j] = y;
+        }
+      }
+
+      getError(ErrorFunction::ERROR_MSE,
+               targets, rows, cols,
+               outputs, errors);
+
+      for (unsigned int j = 0; j < cols; j++) {
+        assertSame(errors[j], (0.5*(x-y)*(x-y)));
+      }
+    }
+  }
+
+  std::cout << "\nTestErrors done.";
+}
+
+void derivTests()
+{
+  std::cout << "\nTestDerivs...";
+
+  double x = 0.0;
+  double y = 2.0;
+
+  for (unsigned int rows = 1; rows < 10; rows++)
+  {
+    for (unsigned int cols = 1; cols < 4; cols++)
+    {
+      // MSE is 0.5 * (x - y)^2
+
+      double outputs[rows*cols];
+      double targets[rows*cols];
+      double derivs[rows*cols];
+
+      // init
+      for (unsigned int i = 0; i < rows; i++) {
+        for (unsigned int j = 0; j < cols; j++) {
+          outputs[i * cols + j] = x;
+          targets[i * cols + j] = y;
+        }
+      }
+
+      for (unsigned int i = 0; i < rows; i++) {
+        unsigned int index = i * cols;
+        getDerivative(ErrorFunction::ERROR_MSE,
+                      targets, rows, cols,
+                      outputs, index, derivs + index);
+        for (unsigned int j = 0; j < cols; j++) {
+          std::cout << i << "," << j << " d: " << derivs[index + j] << "\n";;
+          assertSame(derivs[index + j], (x-y));
+        }
+      }
+    }
+  }
+
+  std::cout << "\nTestDerivs done.";
+}
+
 
 int main( int argc, const char* argv[] )
 {
+  errorTests();
+  derivTests();
   matrixtest();
   randomtest();
   lockTest();

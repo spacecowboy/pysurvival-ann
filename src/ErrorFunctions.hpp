@@ -64,17 +64,19 @@ typedef double (*ErrorFunctionPtr)(const double * const Y,
 //ErrorFunctionPtr getErrorFunctionPtr(const ErrorFunction val);
 
 // Evaluate the specified function
-double getError(ErrorFunction func,
-                const double * const Y,
-                const unsigned int length,
-                const unsigned int numOfOutput,
-                const double * const outputs,
-                ErrorCache * const cache);
-double getError(ErrorFunction func,
-                const double * const Y,
-                const unsigned int length,
-                const unsigned int numOfOutput,
-                const double * const outputs);
+void getError(ErrorFunction func,
+              const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              ErrorCache * const cache,
+              double * const errors);
+void getError(ErrorFunction func,
+              const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              double * const errors);
 
 /**
  * Y.size = length * numOfOutput

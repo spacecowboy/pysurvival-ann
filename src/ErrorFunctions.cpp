@@ -57,35 +57,36 @@ ErrorCache *getErrorCache(ErrorFunction func)
 }
 
 // Evaluate the specified function
-double getError(ErrorFunction func,
-                const double * const Y,
-                const unsigned int length,
-                const unsigned int numOfOutput,
-                const double * const outputs)
+void getError(ErrorFunction func,
+              const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              double * const errors)
 {
-  return getError(func, Y, length, numOfOutput, outputs, NULL);
+  return getError(func, Y, length, numOfOutput, outputs, NULL, errors);
 }
-double getError(ErrorFunction func,
-                const double * const Y,
-                const unsigned int length,
-                const unsigned int numOfOutput,
-                const double * const outputs,
-                ErrorCache * const cache)
+void getError(ErrorFunction func,
+              const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              ErrorCache * const cache,
+              double * const errors)
 {
-  double retval;
   switch (func) {
   case ErrorFunction::ERROR_SURV_MSE:
-    retval = errorSurvMSE(Y, length, numOfOutput, outputs);
+    errorSurvMSE(Y, length, numOfOutput, outputs, errors);
     break;
   case ErrorFunction::ERROR_SURV_LIKELIHOOD:
-    retval = errorSurvLikelihood(Y, length, numOfOutput, outputs, cache);
+    errorSurvLikelihood(Y, length, numOfOutput,
+                        outputs, cache, errors);
     break;
   case ErrorFunction::ERROR_MSE:
   default:
-    retval = errorMSE(Y, length, numOfOutput, outputs);
+    errorMSE(Y, length, numOfOutput, outputs, errors);
     break;
   }
-  return retval;
 }
 
 /**

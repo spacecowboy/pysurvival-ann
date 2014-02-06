@@ -9,7 +9,10 @@ from __future__ import division
 from ._ann import (matrixnetwork as _matrixnetwork,
                    rpropnetwork as _rpropnetwork,
                    gennetwork as _gennetwork,
-                   get_C_index)
+                   get_C_index, get_error,
+                   get_deriv)
+from ._ann import (ERROR_MSE, ERROR_SURV_MSE,
+                   ERROR_SURV_LIKELIHOOD)
 from .ensemble import Ensemble
 from random import uniform
 import numpy as np
