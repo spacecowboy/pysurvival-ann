@@ -64,7 +64,14 @@ void getError(ErrorFunction func,
               const double * const outputs,
               double * const errors)
 {
-  return getError(func, Y, length, numOfOutput, outputs, NULL, errors);
+  // Get a cache
+  ErrorCache *cache = getErrorCache(func);
+  // Calculate error
+  getError(func, Y, length, numOfOutput, outputs, NULL, errors);
+  // If a cache was allocated, deallocate it again
+  if (cache != NULL) {
+    delete cache;
+  }
 }
 void getError(ErrorFunction func,
               const double * const Y,
