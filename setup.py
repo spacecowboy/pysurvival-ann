@@ -34,6 +34,7 @@ sources = ['src/PythonModule.cpp',
            'src/GeneticCrossover.cpp',
            'src/GeneticNetworkWrapper.cpp',
            'src/ErrorFunctionsWrapper.cpp',
+           'src/WrapperHelpers.cpp',
            'src/Random.cpp',
            'src/global.cpp']
 

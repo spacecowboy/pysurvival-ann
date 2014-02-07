@@ -4,6 +4,7 @@
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include <algorithm>
 #include "ErrorFunctions.hpp"
+#include "WrapperHelpers.hpp"
 
 extern "C" {
   PyObject *ErrorFuncs_getError(PyObject *self, PyObject *args,
@@ -229,13 +230,7 @@ extern "C" {
       dims[1] = cols;
     }
     PyObject *result = PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
-    double *ptr;
-    if (ndim == 1) {
-      ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, 0);
-    }
-    else {
-      ptr = (double *) PyArray_GETPTR2((PyArrayObject*) result, 0, 0);
-    }
+    double *ptr = getArrayDataPtr((PyArrayObject*) result);
 
     std::copy(derivs, derivs + total,
               ptr);
