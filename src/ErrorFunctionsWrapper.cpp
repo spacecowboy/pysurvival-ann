@@ -94,12 +94,19 @@ extern "C" {
     unsigned int total = rows*cols;
     double errors[total];
 
-    getAllErrors((ErrorFunction) errorfunc,
-                 (double *)PyArray_DATA(targetArray),
-                 rows,
-                 cols,
-                 (double *)PyArray_DATA(outputArray),
-                 errors);
+    try {
+      getAllErrors((ErrorFunction) errorfunc,
+                   (double *)PyArray_DATA(targetArray),
+                   rows,
+                   cols,
+                   (double *)PyArray_DATA(outputArray),
+                   errors);
+    } catch (const std::exception& ex) {
+      PyErr_Format(PyExc_RuntimeError, "%s", ex.what());
+      Py_DECREF(outputArray);
+      Py_DECREF(targetArray);
+      return NULL;
+    }
 
     // Now convert to numpy array
     npy_intp dims[ndim];
@@ -216,16 +223,23 @@ extern "C" {
     double *outputdata = (double *)PyArray_DATA(outputArray);
     unsigned int index;
 
-    for (unsigned int i = 0; i < rows; i++)
-    {
-      index = i * cols;
-      getDerivative((ErrorFunction) errorfunc,
-                    Ydata,
-                    rows,
-                    cols,
-                    outputdata,
-                    index,
-                    derivs + index);
+    try {
+      for (unsigned int i = 0; i < rows; i++)
+      {
+        index = i * cols;
+        getDerivative((ErrorFunction) errorfunc,
+                      Ydata,
+                      rows,
+                      cols,
+                      outputdata,
+                      index,
+                      derivs + index);
+      }
+    } catch (const std::exception& ex) {
+      PyErr_Format(PyExc_RuntimeError, "%s", ex.what());
+      Py_DECREF(outputArray);
+      Py_DECREF(targetArray);
+      return NULL;
     }
 
     // Now convert to numpy array
