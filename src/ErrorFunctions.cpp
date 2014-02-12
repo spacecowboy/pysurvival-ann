@@ -162,7 +162,14 @@ void getDerivative(ErrorFunction func,
                    const unsigned int index,
                    double * const result)
 {
-  getDerivative(func, Y, length, numOfOutput, outputs, index, NULL, result);
+  // Get a cache
+  ErrorCache *cache = getErrorCache(func);
+  // Calculate derivative
+  getDerivative(func, Y, length, numOfOutput, outputs, index, cache, result);
+  // If a cache was allocated, deallocate it again
+  if (cache != NULL) {
+    delete cache;
+  }
 }
 void getDerivative(ErrorFunction func,
                    const double * const Y,
