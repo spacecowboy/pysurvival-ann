@@ -13,13 +13,15 @@ double errorToFitness(ErrorFunction errorfunc,
                       const double * const outputs)
 {
   double fitness = 0;
-  double errors[numOfOutput];
+  double errors[numOfOutput * length];
+  double avgErrors[numOfOutput];
 
-  getError(errorfunc, Y, length, numOfOutput, outputs, errors);
+  getAllErrors(errorfunc, Y, length, numOfOutput, outputs, errors);
+  averagePatternError(errors, length, numOfOutput, avgErrors);
 
   // Negative sum of errors
   for (int n = 0; n < numOfOutput; n++) {
-    fitness -= errors[n];
+    fitness -= avgErrors[n];
   }
 
   return fitness;

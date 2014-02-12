@@ -56,8 +56,41 @@ ErrorCache *getErrorCache(ErrorFunction func)
   return cache;
 }
 
-// Evaluate the specified function
-void getError(ErrorFunction func,
+void averagePatternError(const double * const errors,
+                         const unsigned int length,
+                         const unsigned int numOfOutput,
+                         double * const avgErrors)
+{
+  unsigned int i, n;
+  // Each output neuron is averaged separately
+  for (n = 0; n < numOfOutput; n++) {
+    avgErrors[n] = 0;
+    for (i = 0; i < length; i++) {
+      avgErrors[n] += errors[i * numOfOutput + n];
+    }
+    avgErrors[n] /= (double) length;
+  }
+}
+
+void getAllErrors(ErrorFunction func,
+              const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              ErrorCache * const cache,
+              double * const errors)
+{
+  unsigned int index;
+  // Iterate over all patterns
+  for (index = 0;
+       index < length * numOfOutput;
+       index += numOfOutput)
+  {
+    getError(func, Y, length, numOfOutput, outputs, index, cache, errors);
+  }
+}
+
+void getAllErrors(ErrorFunction func,
               const double * const Y,
               const unsigned int length,
               const unsigned int numOfOutput,
@@ -67,7 +100,26 @@ void getError(ErrorFunction func,
   // Get a cache
   ErrorCache *cache = getErrorCache(func);
   // Calculate error
-  getError(func, Y, length, numOfOutput, outputs, NULL, errors);
+  getAllErrors(func, Y, length, numOfOutput, outputs, cache, errors);
+  // If a cache was allocated, deallocate it again
+  if (cache != NULL) {
+    delete cache;
+  }
+}
+
+// Evaluate the specified function
+void getError(ErrorFunction func,
+              const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              const unsigned int index,
+              double * const errors)
+{
+  // Get a cache
+  ErrorCache *cache = getErrorCache(func);
+  // Calculate error
+  getError(func, Y, length, numOfOutput, outputs, index, cache, errors);
   // If a cache was allocated, deallocate it again
   if (cache != NULL) {
     delete cache;
@@ -78,20 +130,21 @@ void getError(ErrorFunction func,
               const unsigned int length,
               const unsigned int numOfOutput,
               const double * const outputs,
+              const unsigned int index,
               ErrorCache * const cache,
               double * const errors)
 {
   switch (func) {
   case ErrorFunction::ERROR_SURV_MSE:
-    errorSurvMSE(Y, length, numOfOutput, outputs, errors);
+    errorSurvMSE(Y, length, numOfOutput, outputs, index, errors);
     break;
   case ErrorFunction::ERROR_SURV_LIKELIHOOD:
-    errorSurvLikelihood(Y, length, numOfOutput,
-                        outputs, cache, errors);
+    errorSurvLikelihood(Y, length, numOfOutput, outputs,
+                        index, cache, errors);
     break;
   case ErrorFunction::ERROR_MSE:
   default:
-    errorMSE(Y, length, numOfOutput, outputs, errors);
+    errorMSE(Y, length, numOfOutput, outputs, index, errors);
     break;
   }
 }

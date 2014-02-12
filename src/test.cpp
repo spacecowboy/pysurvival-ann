@@ -534,7 +534,7 @@ void errorTests()
 
       double outputs[rows*cols];
       double targets[rows*cols];
-      double errors[cols];
+      double errors[rows*cols];
 
       // init
       for (unsigned int i = 0; i < rows; i++) {
@@ -544,9 +544,9 @@ void errorTests()
         }
       }
 
-      getError(ErrorFunction::ERROR_MSE,
-               targets, rows, cols,
-               outputs, errors);
+      getAllErrors(ErrorFunction::ERROR_MSE,
+                   targets, rows, cols,
+                   outputs, errors);
 
       for (unsigned int j = 0; j < cols; j++) {
         assertSame(errors[j], (0.5*(x-y)*(x-y)));

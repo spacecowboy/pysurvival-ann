@@ -59,9 +59,33 @@ typedef double (*ErrorFunctionPtr)(const double * const Y,
                                    const ErrorCache * const cache);
 
 /*
- * Given an enum value, returns appropriate function pointer
+ * Average over all patterns. If errors is a [100, 3] array, then the
+ * output from this procedure will be a [3] array, where 3 is
+ * numOfOutput.
  */
-//ErrorFunctionPtr getErrorFunctionPtr(const ErrorFunction val);
+void averagePatternError(const double * const errors,
+                         const unsigned int length,
+                         const unsigned int numOfOutput,
+                         double * const avgErrors);
+
+/*
+ * Calculate errors for each pattern in Y. Y, outputs and errors are
+ * all expected to be arrays of length [length * numOfOutput].
+ */
+void getAllErrors(ErrorFunction func,
+              const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              ErrorCache * const cache,
+              double * const errors);
+void getAllErrors(ErrorFunction func,
+              const double * const Y,
+              const unsigned int length,
+              const unsigned int numOfOutput,
+              const double * const outputs,
+              double * const errors);
+
 
 // Evaluate the specified function
 void getError(ErrorFunction func,
@@ -69,6 +93,7 @@ void getError(ErrorFunction func,
               const unsigned int length,
               const unsigned int numOfOutput,
               const double * const outputs,
+              const unsigned int index,
               ErrorCache * const cache,
               double * const errors);
 void getError(ErrorFunction func,
@@ -76,6 +101,7 @@ void getError(ErrorFunction func,
               const unsigned int length,
               const unsigned int numOfOutput,
               const double * const outputs,
+              const unsigned int index,
               double * const errors);
 
 /**

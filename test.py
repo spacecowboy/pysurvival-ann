@@ -83,11 +83,12 @@ def test_errorfuncs_data2d():
 
     error = ann.get_error(MSE, x, y)
 
-    assert len(error.shape) == 1, "Should be one-dimensional result"
-    assert error.shape[0] == cols, "Count should match column number"
+    for s1, s2 in zip(error.shape, y.shape):
+        assert s1 == s2, "Dimensions of result should match input"
 
     for e in error:
-        assert 0.000001 > e - 0.5*(2 - 0)**2, "Error is incorrect"
+        assert 0.000001 > e[0] - 0.5*(2 - 0)**2, "Error is incorrect"
+        assert 0.000001 > e[1] - 0.5*(2 - 0)**2, "Error is incorrect"
 
 
 def test_errorfuncs_data1d():
@@ -100,8 +101,8 @@ def test_errorfuncs_data1d():
 
     error = ann.get_error(MSE, x, y)
 
-    assert len(error.shape) == 1, "Should be one-dimensional result"
-    assert error.shape[0] == cols, "Count should match column number"
+    for s1, s2 in zip(error.shape, y.shape):
+        assert s1 == s2, "Dimensions of result should match input"
 
     for e in error:
         assert 0.000001 > e - 0.5*(2 - 0)**2, "Error is incorrect"
@@ -118,7 +119,7 @@ def test_errorfuncs_data1dlists():
     error = ann.get_error(MSE, x, y)
 
     assert len(error.shape) == 1, "Should be one-dimensional result"
-    assert error.shape[0] == cols, "Count should match column number"
+    assert error.shape[0] == rows, "Count should match rows"
 
     for e in error:
         assert 0.000001 > e - 0.5*(2 - 0)**2, "Error is incorrect"

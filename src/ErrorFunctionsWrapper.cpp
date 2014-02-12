@@ -91,21 +91,27 @@ extern "C" {
     if (ndim > 1) {
       cols = PyArray_DIM(outputArray, 1);
     }
-    double errors[cols];
+    unsigned int total = rows*cols;
+    double errors[total];
 
-    getError((ErrorFunction) errorfunc,
-             (double *)PyArray_DATA(targetArray),
-             rows,
-             cols,
-             (double *)PyArray_DATA(outputArray),
-             errors);
+    getAllErrors((ErrorFunction) errorfunc,
+                 (double *)PyArray_DATA(targetArray),
+                 rows,
+                 cols,
+                 (double *)PyArray_DATA(outputArray),
+                 errors);
 
     // Now convert to numpy array
-    npy_intp dims[1] = { (int) cols };
-    PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    double *ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, 0);
+    npy_intp dims[ndim];
+        dims[0] = rows;
+    if (ndim > 1)
+    {
+      dims[1] = cols;
+    }
+    PyObject *result = PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
+    double *ptr = getArrayDataPtr((PyArrayObject*) result);
 
-    std::copy(errors, errors + cols,
+    std::copy(errors, errors + total,
               ptr);
 
     // Decrement counters for inputArray and targetArray

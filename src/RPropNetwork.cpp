@@ -85,7 +85,8 @@ int RPropNetwork::learn(const double * const X,
   }
 
   // Used to calculate error
-  double errors[OUTPUT_COUNT];
+  double errors[OUTPUT_COUNT * length];
+  double avgErrors[OUTPUT_COUNT];
 
   // Local variables. () sets all to zero
   double meanError = 1 + maxError;
@@ -188,16 +189,17 @@ int RPropNetwork::learn(const double * const X,
     epoch += 1;
 
     // Calculate current error
-    getError(errorFunction, Y, length, OUTPUT_COUNT,
-             preds, cache, errors);
+    getAllErrors(errorFunction, Y, length, OUTPUT_COUNT,
+                 preds, cache, errors);
+    averagePatternError(errors, length, OUTPUT_COUNT, avgErrors);
 
     prevError = meanError;
 
     // Calculate mean and log errors
     meanError = 0;
     for (int i = 0; i < OUTPUT_COUNT; i++) {
-      meanError += errors[i];
-      this->aLogPerf[OUTPUT_COUNT * (epoch - 1) + i] = errors[i];
+      meanError += avgErrors[i];
+      this->aLogPerf[OUTPUT_COUNT * (epoch - 1) + i] = avgErrors[i];
     }
     meanError /= ((double) OUTPUT_COUNT);
 

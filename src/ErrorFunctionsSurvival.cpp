@@ -418,34 +418,28 @@ void errorSurvMSE(const double * const Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
                   const double * const outputs,
+                  const unsigned int index,
                   double * const errors)
 {
   unsigned int i;
   double time, event, output;
-  // Init to zero. Only concerned with first index later.
-  for (i = 0; i < numOfOutput; i++)
-  {
-    errors[i] = 0;
+
+  // Only first neuron has none-zero error
+  for (i = 0; i < numOfOutput; i++) {
+    errors[index + i] = 0;
   }
 
-  // Evaluate each input set
-  // Average over all inputs and number of outputs
-  for (i = 0; i < length; i++)
+  // Rest is just square-error if we are underestimating
+  time = Y[index];
+  event = Y[index + 1];
+  output = outputs[index];
+
+  if ((event == 0 && output < time) || event != 0)
   {
-    // Plus two because there is an event column as well
-    time = Y[2*i];
-    event = Y[2*i + 1];
-    // No event column in predictions
-    output = outputs[2*i];
-    if ((event == 0 && output < time) || event != 0)
-    {
-      // Censored event which we are underestimating
-      // Or real event
-      errors[0] += std::pow(output - time, 2.0) / 2.0;
-    }
+    // Censored event which we are underestimating
+    // Or real event
+    errors[index] = std::pow(output - time, 2.0) / 2.0;
   }
-  // Average over number of patterns
-  errors[0] /= ((double) length);
 }
 
 void derivativeSurvMSE(const double * const Y,
@@ -455,12 +449,14 @@ void derivativeSurvMSE(const double * const Y,
                        const unsigned int index,
                        double * const result)
 {
+  unsigned int i;
   double time = Y[index];
   double event = Y[index + 1];
   double pred = outputs[index];
 
-  result[0] = 0;
-  result[1] = 0;
+  for (i = 0; i < numOfOutput; i++) {
+    result[i] = 0;
+  }
 
   // Only for events or underestimated censored
   if ((event == 0 && pred < time) || event != 0)
@@ -474,11 +470,12 @@ void errorSurvLikelihood(const double * const Y,
                          const unsigned int length,
                          const unsigned int numOfOutput,
                          const double * const outputs,
+                         const unsigned int index,
                          ErrorCache * const cache,
                          double * const errors)
 {
   double time, event, pred;
-  unsigned int i;
+  unsigned int n, i;
 
   // Cache can't be null
   if (NULL == cache) {
@@ -488,33 +485,27 @@ void errorSurvLikelihood(const double * const Y,
   cache->verifyInit(Y, length);
 
   // Init to zero. Only concerned with first index later.
-  for (i = 0; i < numOfOutput; i++) {
-    errors[i] = 0;
+  for (n = 0; n < numOfOutput; n++) {
+    errors[index + n] = 0;
   }
 
-  for (i = 0; i < length; i++)
+  time = Y[index];
+  event = Y[index + 1];
+  pred = outputs[index];
+
+  if (event == 1) {
+    errors[index] = std::pow(time - pred, 2.0);
+  }
+  else
   {
-    time = Y[2 * i];
-    event = Y[2 * i + 1];
-    pred = outputs[numOfOutput * i];
-
-    if (event == 1)
-    {
-      errors[0] += std::pow(time - pred, 2.0);
-    }
-    else
-    {
-      errors[0] += getLikelihoodError(time, pred,
-                                      cache->getDouble(KEY_LAST_TIME, i),
-                                      cache->getDouble(KEY_A, i),
-                                      cache->getDouble(KEY_B, i),
-                                      cache->getDouble(KEY_C, i),
-                                      cache->getDouble(KEY_PAFTER, i));
-    }
+    i = index / numOfOutput;
+    errors[index] = getLikelihoodError(time, pred,
+                                       cache->getDouble(KEY_LAST_TIME, i),
+                                       cache->getDouble(KEY_A, i),
+                                       cache->getDouble(KEY_B, i),
+                                       cache->getDouble(KEY_C, i),
+                                       cache->getDouble(KEY_PAFTER, i));
   }
-
-  // Average over number of patterns
-  errors[0] /= ((double) length);
 }
 
 void derivativeSurvLikelihood(const double * const Y,
