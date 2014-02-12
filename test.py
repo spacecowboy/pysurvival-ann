@@ -239,6 +239,25 @@ def test_derivfuncs_data1dlistsminimal():
     for e in error.ravel():
         assert 0.000001 > e - (2 - 0), "Error is incorrect"
 
+def test_surv_likelihood():
+    import ann
+
+    dim = (20,2)
+    targets = np.ones(dim)
+    censlvl=0.0
+    for i in range(len(targets)):
+        if np.random.uniform() < censlvl:
+            targets[i, 1] = 0
+    outputs = np.random.normal(1, 10, size=dim)
+
+    #timesorting = outputs[:, 0].argsort()
+
+    cens = targets[:, 1] < 1
+    uncens = targets[:, 1] == 1
+
+    errors = ann.get_error(ann.ERROR_SURV_LIKELIHOOD, targets, outputs)
+    derivs = ann.get_deriv(ann.ERROR_SURV_LIKELIHOOD, targets, outputs)
+
 
 
 def test_surv_data():
@@ -605,15 +624,4 @@ def test_rprop_lik_hardsim():
 
 
 if __name__ == "__main__":
-    for i in range(1):
-        print("\n", i)
-        failed = False
-        # Running this first results in censored test not being censored!
-        try:
-            test_rprop_lik_linear_uncens()
-            test_rprop_lik_linear_cens()
-        except AssertionError:
-            print("It failed..\n")
-            failed = True
-
-        #assert failed, "It should bloody fail!"
+    test_surv_likelihood()

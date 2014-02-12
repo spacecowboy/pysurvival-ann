@@ -588,7 +588,7 @@ void derivTests()
                       targets, rows, cols,
                       outputs, index, derivs + index);
         for (unsigned int j = 0; j < cols; j++) {
-          std::cout << i << "," << j << " d: " << derivs[index + j] << "\n";;
+          //std::cout << i << "," << j << " d: " << derivs[index + j] << "\n";;
           assertSame(derivs[index + j], (x-y));
         }
       }
@@ -598,9 +598,120 @@ void derivTests()
   std::cout << "\nTestDerivs done.";
 }
 
+void survMSETests()
+{
+  std::cout << "\nTestSurvMSE...";
+
+  unsigned int rows = 10;
+  unsigned int cols = 2;
+
+  unsigned int i;
+
+  double outputs[rows*cols];
+  double targets[rows*cols];
+  double errors[rows*cols];
+
+  for (i = 0; i < rows; i++)
+  {
+      // Targets are always zero
+      targets[i * cols] = 0;
+      // Check censored
+      targets[i * cols + 1] = 0;
+      // Even indices underestimate
+      if (i % 2 == 0)
+      {
+        outputs[i * cols] = -1;
+      }
+      else // Odd overestimate
+      {
+        outputs[i * cols] = 1;
+      }
+  }
+
+  getAllErrors(ErrorFunction::ERROR_SURV_MSE,
+               targets, rows, cols,
+               outputs, errors);
+
+  for (i = 0; i < rows; i++) {
+      // Even indices underestimate
+      if (i % 2 == 0)
+      {
+        assertSame(errors[i * cols], 0.5 * (1.0 - 0.0));
+      }
+      else // overestimate
+      {
+        assertSame(errors[i * cols], 0.0);
+      }
+  }
+
+  std::cout << "\nTestSurvMSE done.";
+}
+
+void survLikTests()
+{
+  std::cout << "\nTestSurvLik...";
+
+  unsigned int rows = 20;
+  unsigned int cols = 2;
+
+  unsigned int i;
+
+  double outputs[rows*cols];
+  double targets[rows*cols];
+  double errors[rows*cols];
+
+  //////////////
+  // First I want to test uncensored points
+  // Then we go on to censored first
+  // censored middle
+  // censored last
+  //////////////
+
+  for (i = 0; i < rows; i++)
+  {
+      // Targets
+      targets[i * cols] = i;
+      targets[i * cols + 1] = 1.0;
+      // Even indices underestimate
+      if (i % 2 == 0)
+      {
+        outputs[i * cols] = i - 2.0;
+      }
+      else // Odd overestimate
+      {
+        outputs[i * cols] = i + 2.0;
+      }
+  }
+
+  // Censor first point
+  targets[0 + 1] = 0;
+
+  // Censor two in the middle
+  targets[10 * cols + 1] = 0;
+  targets[11 * cols + 1] = 0;
+
+  // Censor last two
+  targets[(rows - 2) * cols + 1] = 0;
+  targets[(rows - 1) * cols + 1] = 0;
+
+  getAllErrors(ErrorFunction::ERROR_SURV_LIKELIHOOD,
+               targets, rows, cols,
+               outputs, errors);
+
+  for (i = 0; i < rows; i++) {
+    printf("\n  E: %f", errors[i * cols]);
+      //std::cout << "\ne: " << errors[i * cols] << "\n";
+    //assertSame(errors[i * cols], 4.0);
+  }
+
+  std::cout << "\nTestSurvLik done.";
+}
+
 
 int main( int argc, const char* argv[] )
 {
+  survLikTests();
+  survMSETests();
   errorTests();
   derivTests();
   matrixtest();
