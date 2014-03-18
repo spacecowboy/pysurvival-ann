@@ -14,6 +14,7 @@ from ._ann import (matrixnetwork as _matrixnetwork,
 from ._ann import (ERROR_MSE, ERROR_SURV_MSE,
                    ERROR_SURV_LIKELIHOOD)
 from .ensemble import Ensemble
+from .utils import *
 from random import uniform
 import numpy as np
 
