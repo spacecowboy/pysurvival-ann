@@ -316,6 +316,8 @@ void GeneticNetwork::learn(const double * const X,
                                               HIDDEN_COUNT,
                                               OUTPUT_COUNT);
 
+    // Base it on the all-mother
+    pNet->cloneNetwork(*this);
     // Respect mutation chances.
     mutator.mutateWeights(*pNet, weightMutationChance,
                           weightMutationFactor);
