@@ -113,12 +113,20 @@ respectively.");
         return NULL;
       }
 
+    int result;
+
+    // Release the GIL
+    Py_BEGIN_ALLOW_THREADS;
+
     // Arguments are valid!
-    int result =
+    result =
       ((RPropNetwork*)self->super.net)
       ->learn((double *)PyArray_DATA(inputArray),
               (double *)PyArray_DATA(targetArray),
               PyArray_DIM(inputArray, 0));
+
+    // Acquire the GIL again
+    Py_END_ALLOW_THREADS;
 
     // Decrement counters for inputArray and targetArray
     Py_DECREF(inputArray);

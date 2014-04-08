@@ -4,6 +4,9 @@ test: test.py inplace $(DEPS) valgrind
 	nosetests -v -x -s test.py
 	#nosetests -v ./
 
+nose: inplace $(DEPS)
+	nosetests -v -x -s test.py
+
 perf: test.py ann/_ann.so $(DEPS)
 	python -m cProfile -s cumulative test.py
 
