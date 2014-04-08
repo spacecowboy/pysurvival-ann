@@ -476,7 +476,7 @@ def test_rpropnetwork_mse_xor():
 
     #print(net.weights.reshape(l, l))
     #print(net.connections.reshape(l, l))
-    print(net.activation_functions)
+    #print(net.activation_functions)
 
     xor_in, xor_out = getXOR()
 
