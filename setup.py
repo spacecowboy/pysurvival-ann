@@ -35,8 +35,7 @@ sources = ['src/PythonModule.cpp',
            'src/GeneticNetworkWrapper.cpp',
            'src/ErrorFunctionsWrapper.cpp',
            'src/WrapperHelpers.cpp',
-           'src/Random.cpp',
-           'src/global.cpp']
+           'src/Random.cpp']
 
 
 # Numpy stuff
@@ -59,7 +58,7 @@ _ann = Extension('ann._ann',
                  extra_compile_args = ['-std=c++11',
                                        '-Wall',
                                        '-O3',
-                                       '-pthread', '-fopenmp'] + compileargs,
+                                       '-fopenmp'] + compileargs,
                  extra_link_args = ['-fopenmp'] + linkargs,
                  libraries=libs, library_dirs=libdirs)
 

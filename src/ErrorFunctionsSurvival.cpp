@@ -1,10 +1,9 @@
 #include "ErrorFunctionsSurvival.hpp"
 #include "ErrorFunctions.hpp"
 #include <cmath>
-#include "global.hpp"
 #include <string>
 #include <vector>
-#include <exception>
+#include <stdexcept>
 #include <stdio.h>
 
 void getIndicesSortedByTime(const double * const targets,

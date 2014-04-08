@@ -1,7 +1,7 @@
 # Makefile
 
 ### Compiler and flags ###
-CPPFLAGS = -Wall -std=c++11 -pthread -O0 -g -fopenmp
+CPPFLAGS = -Wall -std=c++11 -O0 -g -fopenmp
 LDFLAGS = -lm
 
 CLANG = clang++ #-std=c++11 -Werror -Wall -pthread -fopenmp
@@ -31,7 +31,7 @@ PYCC = $(PYCPP) $(PYFLAGS)
 
 ### List source files ###
 SRC = MatrixNetwork.cpp test.cpp activationfunctions.cpp Random.cpp \
-GeneticSelection.cpp global.cpp GeneticNetwork.cpp GeneticFitness.cpp \
+GeneticSelection.cpp GeneticNetwork.cpp GeneticFitness.cpp \
 GeneticMutation.cpp GeneticCrossover.cpp c_index.cpp ErrorFunctions.cpp \
 ErrorFunctionsGeneral.cpp ErrorFunctionsSurvival.cpp \
 RPropNetwork.cpp

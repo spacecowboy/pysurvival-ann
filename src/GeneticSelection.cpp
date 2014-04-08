@@ -1,5 +1,4 @@
 #include "GeneticSelection.hpp"
-#include "global.hpp"
 #include <vector>
 
 using namespace std;

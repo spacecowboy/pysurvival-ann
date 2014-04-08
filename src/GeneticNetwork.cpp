@@ -11,14 +11,14 @@
 #include "GeneticSelection.hpp"
 #include "GeneticCrossover.hpp"
 #include "GeneticMutation.hpp"
-#include "global.hpp"
 #include <algorithm>
 #include <vector>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include <thread>
 #include <ctime>
+
+#include <omp.h>
 
 using namespace std;
 
@@ -145,130 +145,129 @@ void breedNetworks(GeneticNetwork &self,
                    const unsigned int length,
                    const unsigned int randomSeed)
 {
-  //std::cout << "Launched by thread " << std::this_thread::get_id() << std::endl;
+#pragma omp parallel default(none) shared(self, sortedPopulation, sortedFitness)
+  {
+    unsigned int motherIndex, fatherIndex;
 
-  unsigned int motherIndex, fatherIndex;
+    GeneticNetwork *pBrother, *pSister, *pMother, *pFather;
 
-  GeneticNetwork *pBrother, *pSister, *pMother, *pFather;
+    double bFitness, sFitness, mFitness, fFitness;
+    double *outputs = new double[self.OUTPUT_COUNT * length];
 
-  double bFitness, sFitness, mFitness, fFitness;
-  double *outputs = new double[self.OUTPUT_COUNT * length];
+    Random rand(randomSeed);
 
-  Random rand(randomSeed);
+    GeneticSelector selector(rand);
+    GeneticMutator mutator(rand);
+    GeneticCrosser crosser(rand);
 
-  GeneticSelector selector(rand);
-  GeneticMutator mutator(rand);
-  GeneticCrosser crosser(rand);
+    unsigned int threadChild;
+#pragma omp for
+    for (threadChild = 0; threadChild < childCount; threadChild++) {
+      // We recycle the worst networks
 
-  unsigned int threadChild;
-  for (threadChild = 0; threadChild < childCount; threadChild++) {
-    // We recycle the worst networks
-    //pChild = self->popLastNetwork(*sortedPopulation, *sortedFitness);
+      //JGN_lockPopulation();
+#pragma omp critical
+      {
+        // Select two networks
+        selector.getSelection(self.selectionMethod,
+                              sortedFitness,
+                              self.populationSize,
+                              &motherIndex, &fatherIndex);
 
-    JGN_lockPopulation();
+        pMother = popNetwork(motherIndex, sortedPopulation, sortedFitness);
+        pFather = popNetwork(fatherIndex, sortedPopulation, sortedFitness);
 
-    // Select two networks
-    selector.getSelection(self.selectionMethod,
-                          sortedFitness,
-                          self.populationSize,
-                          &motherIndex, &fatherIndex);
+        pBrother = popLastNetwork(sortedPopulation, sortedFitness);
+        pSister = popLastNetwork(sortedPopulation, sortedFitness);
+      }
+      // End critical
+      //JGN_unlockPopulation();
 
-    //cout << "\nindices: " << motherIndex << " - " << fatherIndex << "\n";
-    // get mother and father in a thread safe way
-    //cout << "size: " << sortedPopulation.size() << "\n";
-
-    pMother = popNetwork(motherIndex, sortedPopulation, sortedFitness);
-    pFather = popNetwork(fatherIndex, sortedPopulation, sortedFitness);
-
-    pBrother = popLastNetwork(sortedPopulation, sortedFitness);
-    pSister = popLastNetwork(sortedPopulation, sortedFitness);
-
-    //cout << "\nSelected Nets\n" << pMother << pFather << pSister
-    //     << pBrother << "\n";
-
-    JGN_unlockPopulation();
-
-    // Crossover
-    if (rand.uniform() < self.crossoverChance) {
-      crosser.evaluateCrossoverFunction(self.crossoverMethod,
-                                        *pMother, *pFather,
-                                        *pBrother, *pSister);
-    }
-    // No crossover, mutate parents
-    else {
-      pSister->cloneNetwork(*pMother);
-      pBrother->cloneNetwork(*pFather);
-    }
+      // Crossover
+      if (rand.uniform() < self.crossoverChance) {
+        crosser.evaluateCrossoverFunction(self.crossoverMethod,
+                                          *pMother, *pFather,
+                                          *pBrother, *pSister);
+      }
+      // No crossover, mutate parents
+      else {
+        pSister->cloneNetwork(*pMother);
+        pBrother->cloneNetwork(*pFather);
+      }
 
 
-    // Mutation brother
-    mutator.mutateWeights(*pBrother,
-                          self.weightMutationChance,
-                          self.weightMutationFactor);
-    mutator.mutateConns(*pBrother,
-                        self.connsMutationChance);
-    mutator.mutateActFuncs(*pBrother,
-                           self.actFuncMutationChance);
-    // Mutation sister
-    mutator.mutateWeights(*pSister,
-                          self.weightMutationChance,
-                          self.weightMutationFactor);
-    mutator.mutateConns(*pSister,
-                        self.connsMutationChance);
-    mutator.mutateActFuncs(*pSister,
-                           self.actFuncMutationChance);
+      // Mutation brother
+      mutator.mutateWeights(*pBrother,
+                            self.weightMutationChance,
+                            self.weightMutationFactor);
+      mutator.mutateConns(*pBrother,
+                          self.connsMutationChance);
+      mutator.mutateActFuncs(*pBrother,
+                             self.actFuncMutationChance);
+      // Mutation sister
+      mutator.mutateWeights(*pSister,
+                            self.weightMutationChance,
+                            self.weightMutationFactor);
+      mutator.mutateConns(*pSister,
+                          self.connsMutationChance);
+      mutator.mutateActFuncs(*pSister,
+                             self.actFuncMutationChance);
 
 
-    // evaluate fitness and insert back
-    // TODO multiple outputs
-    bFitness = evaluateNetwork(self.fitnessFunction,
-                               pBrother, X, Y, length,
-                               outputs);
-    sFitness = evaluateNetwork(self.fitnessFunction,
-                               pSister, X, Y, length,
-                               outputs);
-    mFitness = evaluateNetwork(self.fitnessFunction,
-                               pMother, X, Y, length,
-                               outputs);
-    fFitness = evaluateNetwork(self.fitnessFunction,
-                               pFather, X, Y, length,
-                               outputs);
+      // evaluate fitness and insert back
+      // TODO multiple outputs
+      bFitness = evaluateNetwork(self.fitnessFunction,
+                                 pBrother, X, Y, length,
+                                 outputs);
+      sFitness = evaluateNetwork(self.fitnessFunction,
+                                 pSister, X, Y, length,
+                                 outputs);
+      mFitness = evaluateNetwork(self.fitnessFunction,
+                                 pMother, X, Y, length,
+                                 outputs);
+      fFitness = evaluateNetwork(self.fitnessFunction,
+                                 pFather, X, Y, length,
+                                 outputs);
 
-    // Weight decay terms
-    // Up to the user to (not) mix these
-    // L2 weight decay
-    /*
-    if (self->decayL2 != 0) {
-      error += self->decayL2 * weightSquaredSum2(*pChild);
-    }
+      // Weight decay terms
+      // Up to the user to (not) mix these
+      // L2 weight decay
+      /*
+        if (self->decayL2 != 0) {
+        error += self->decayL2 * weightSquaredSum2(*pChild);
+        }
 
-    // L1 weight decay
-    if (self->decayL1 != 0) {
-      error += self->decayL1 * weightAbsoluteSum2(*pChild);
-    }
+        // L1 weight decay
+        if (self->decayL1 != 0) {
+        error += self->decayL1 * weightAbsoluteSum2(*pChild);
+        }
 
-    // Weight elimination
-    if (self->weightElimination != 0 &&
+        // Weight elimination
+        if (self->weightElimination != 0 &&
         self->weightEliminationLambda != 0) {
-      error += self->weightElimination *
+        error += self->weightElimination *
         weightEliminationSum2(*pChild, self->weightEliminationLambda);
+        }
+      */
+      // Insert into the sorted list
+      //JGN_lockPopulation();
+#pragma omp critical
+      {
+        // Place parents back
+        insertSorted(sortedPopulation, sortedFitness, mFitness, pMother);
+        insertSorted(sortedPopulation, sortedFitness, fFitness, pFather);
+
+        // Place children back
+        insertSorted(sortedPopulation, sortedFitness, bFitness, pBrother);
+        insertSorted(sortedPopulation, sortedFitness, sFitness, pSister);
+      }
+      // End critical
+      //JGN_unlockPopulation();
     }
-    */
-    // Insert into the sorted list
-    JGN_lockPopulation();
-
-    // Place parents back
-    insertSorted(sortedPopulation, sortedFitness, mFitness, pMother);
-    insertSorted(sortedPopulation, sortedFitness, fFitness, pFather);
-
-    // Place children back
-    insertSorted(sortedPopulation, sortedFitness, bFitness, pBrother);
-    insertSorted(sortedPopulation, sortedFitness, sFitness, pSister);
-
-    JGN_unlockPopulation();
+    // End for
+    delete[] outputs;
   }
-  delete[] outputs;
-  //cout << "\nBreeding done.";
+  // End parallel
 }
 
 void GeneticNetwork::learn(const double * const X,
@@ -282,15 +281,26 @@ void GeneticNetwork::learn(const double * const X,
   vector<double> sortedFitness;
 
   // Number of threads to use, TODO, dont hardcode this
-  unsigned int num_threads = 8;
-  unsigned int extras = num_threads * 4;
+  //unsigned int num_threads = 8;
+  //unsigned int extras = num_threads * 4;
   //std::thread threads[num_threads];
-  vector<thread> threads;
+  //  vector<thread> threads;
   // Each thread will breed these many networks each generation
-  unsigned int breedCount = round((double) populationSize / num_threads);
-  if (breedCount < 1) {
-    breedCount = 1;
+  //unsigned int breedCount = round((double) populationSize / num_threads);
+  //if (breedCount < 1) {
+  //  breedCount = 1;
+  //}
+
+  unsigned int extras;
+#pragma omp parallel
+  {
+#pragma omp master
+    {
+      extras = 4 * omp_get_num_threads();
+    }
+    // End master
   }
+  // End parallel
 
   // Pre-allocate space
   sortedPopulation.reserve(populationSize + extras);
@@ -307,8 +317,6 @@ void GeneticNetwork::learn(const double * const X,
 
   Random rand;
   GeneticMutator mutator(rand);
-
-  //JGN_lockPopulation();
 
   for (i = 0; i < populationSize + extras; i++) {
     // use references
@@ -329,16 +337,11 @@ void GeneticNetwork::learn(const double * const X,
                               pNet, X, Y, length,
                               preds);
 
-    //    error = -(*pFitnessFunction)(*pNet, X, Y, length, outputs);
-    //    error = evaluateNetwork(*pNet, X, Y, length, outputs);
-
     insertSorted(sortedPopulation, sortedFitness, fitness, pNet);
   }
 
   // Save the best network in the population
   GeneticNetwork *best = sortedPopulation.front();
-
-  //JGN_unlockPopulation();
 
   // For each generation
   unsigned int curGen;
@@ -346,35 +349,37 @@ void GeneticNetwork::learn(const double * const X,
     time_t start, end;
     time(&start);
 
-    for (i = 0; i < num_threads; i++) {
-      try {
-        threads.push_back(std::thread(breedNetworks, std::ref(*this),
-                                      std::ref(sortedPopulation),
-                                      std::ref(sortedFitness),
-                                      breedCount, curGen,
-                                      X, Y, length, rand.uint()));
+    //for (i = 0; i < num_threads; i++) {
+    //      try {
+        //        threads.push_back(std::thread(
+        breedNetworks(std::ref(*this),
+                      std::ref(sortedPopulation),
+                      std::ref(sortedFitness),
+                      populationSize, curGen,
+                      X, Y, length, rand.uint());
+            //                            ));
 
-      }
-      catch (const std::system_error& e) {
-        std::cout << "Caught system_error with code " << e.code()
-                  << " meaning " << e.what() << '\n';
-        throw(e);
-      }
-    }
+        //      }
+        //catch (const std::system_error& e) {
+        //std::cout << "Caught system_error with code " << e.code()
+        //          << " meaning " << e.what() << '\n';
+        //throw(e);
+        //}
+      //}
 
     // Wait for the threads to finish their work
-    for (auto t = threads.begin(); t != threads.end(); t++) {
-      try {
-        t->join();
-      }
-      catch (const std::system_error& e) {
-        std::cout << "Caught system_error with code " << e.code()
-                  << " meaning " << e.what() << '\n';
-        throw(e);
-      }
-    }
+    // for (auto t = threads.begin(); t != threads.end(); t++) {
+    //   try {
+    //     t->join();
+    //   }
+    //   catch (const std::system_error& e) {
+    //     std::cout << "Caught system_error with code " << e.code()
+    //               << " meaning " << e.what() << '\n';
+    //     throw(e);
+    //   }
+    // }
     //cout << "\nJoined threads\n";
-    threads.clear();
+        //threads.clear();
     time(&end);
     //    std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
 

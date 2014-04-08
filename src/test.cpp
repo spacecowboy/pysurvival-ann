@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <limits> // max int
 #include "Random.hpp"
-#include "global.hpp"
 #include "GeneticNetwork.hpp"
 #include "GeneticMutation.hpp"
 #include "RPropNetwork.hpp"
@@ -98,18 +97,6 @@ void randomtest() {
   std::cout << "\nRandomTest Done.";
 }
 
-void lockTest() {
-  std::cout << "\nLockTest...";
-    // printf("\n\nLocking mutex...");
-    JGN_lockPopulation();
-    // printf("\nMutex locked");
-
-    // printf("\nUnlocking mutex...");
-    JGN_unlockPopulation();
-    // printf("\nMutex unlocked");
-    std::cout << "\nLockTest Done.";
-}
-
 void geneticTest1() {
   printf("\nGeneticTest1...");
 
@@ -160,7 +147,7 @@ void geneticTest1() {
 void geneticXOR() {
   std::cout << "\nGeneticXOR...";
   GeneticNetwork net(2, 5, 1);
-  net.setGenerations(100);
+  net.setGenerations(10);
   net.setWeightMutationChance(0.5);
   net.setWeightMutationFactor(0.3);
   net.connsMutationChance = 0.5;
@@ -723,9 +710,8 @@ int main( int argc, const char* argv[] )
   derivTests();
   matrixtest();
   randomtest();
-  lockTest();
   //geneticTest1();
-  //geneticXOR();
+  geneticXOR();
   rproptest();
   testSurvCache();
   rpropsurvlik();

@@ -1,6 +1,5 @@
 #include "GeneticCrossover.hpp"
 #include "MatrixNetwork.hpp"
-#include "global.hpp"
 #include <algorithm> // std::copy
 
 // Returns a specific function pointer
