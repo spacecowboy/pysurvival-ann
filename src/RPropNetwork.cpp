@@ -124,27 +124,27 @@ int RPropNetwork::learn(const double * const X,
 
         // The class member "outputs" must be protected from
         // concurrent modifications, hence the critical region.
+        // This should not be a fairly short operation
 # pragma omp critical
         {
           // First let all neurons evaluate
           output(X + i * INPUT_COUNT, preds + i * OUTPUT_COUNT);
-
-          // Calc output derivative: dE/dY
-          getDerivative(errorFunction,
-                        Y,
-                        length,
-                        OUTPUT_COUNT,
-                        preds,
-                        i * OUTPUT_COUNT,
-                        cache,
-                        derivs + OUTPUT_START);
-
           // Copy to local array
           for (unsigned int nc = 0; nc < LENGTH; nc++) {
             outValues[nc] = outputs[nc];
           }
         }
         // End parallel critical
+
+        // Calc output derivative: dE/dY
+        getDerivative(errorFunction,
+                      Y,
+                      length,
+                      OUTPUT_COUNT,
+                      preds,
+                      i * OUTPUT_COUNT,
+                      cache,
+                      derivs + OUTPUT_START);
 
         // Iterate backwards over the network
         // Backwards operation so sign is very important
