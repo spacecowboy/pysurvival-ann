@@ -57,9 +57,10 @@ _ann = Extension('ann._ann',
                  sources = sources,
                  include_dirs = [numpy_include],
                  extra_compile_args = ['-std=c++11',
-                                       '-Wall', '-O2',
-                                       '-pthread'] + compileargs,
-                 extra_link_args = linkargs,
+                                       '-Wall',
+                                       '-O3',
+                                       '-pthread', '-fopenmp'] + compileargs,
+                 extra_link_args = ['-fopenmp'] + linkargs,
                  libraries=libs, library_dirs=libdirs)
 
 setup(name = 'pysurvival-ann',

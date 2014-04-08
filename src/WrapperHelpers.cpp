@@ -21,7 +21,7 @@ bool isArrayTypeDouble(PyArrayObject *array)
 
 bool isArrayNDim(PyArrayObject *array, unsigned int n)
 {
-  return PyArray_NDIM(array) == n;
+  return PyArray_NDIM(array) == (int) n;
 }
 
 //   Supply methods for 1 and 2 dimensions only, as that's all I use

@@ -93,9 +93,9 @@ int RPropNetwork::learn(const double * const X,
   // Local variables. () sets all to zero
   double meanError = 1 + maxError;
   double prevError = 1 + meanError;
-  double *preds = new double[length * OUTPUT_COUNT]();
+  double *preds2 = new double[length * OUTPUT_COUNT]();
   double *backPropValues = new double[LENGTH * LENGTH]();
-  double *derivs = new double[LENGTH];
+  //  double *derivs = new double[LENGTH];
   double *prevBackPropValues = new double[LENGTH * LENGTH]();
   std::fill(prevBackPropValues, prevBackPropValues + LENGTH * LENGTH, 1.0);
   double *weightUpdates = new double[LENGTH * LENGTH]();
@@ -113,50 +113,62 @@ int RPropNetwork::learn(const double * const X,
 
 # pragma omp parallel default(none) shared(backPropValues, cache)
     {
+      double *outValues = new double[LENGTH];
       double *preds = new double[length * OUTPUT_COUNT]();
       double *derivs = new double[LENGTH];
-    // Evaluate for each value in input vector
+      // Evaluate for each value in input vector
 # pragma omp for
-    for (unsigned int i = 0; i < length; i++) {
-      std::fill(derivs, derivs + LENGTH, 0.0);
-      std::fill(preds, preds +  length * OUTPUT_COUNT, 0.0);
+      for (unsigned int i = 0; i < length; i++) {
+        std::fill(derivs, derivs + LENGTH, 0.0);
+        std::fill(preds, preds +  length * OUTPUT_COUNT, 0.0);
 
-      // First let all neurons evaluate
-      output(X + i * INPUT_COUNT, preds + i * OUTPUT_COUNT);
+        // The class member "outputs" must be protected from
+        // concurrent modifications, hence the critical region.
+# pragma omp critical
+        {
+          // First let all neurons evaluate
+          output(X + i * INPUT_COUNT, preds + i * OUTPUT_COUNT);
 
-      // Calc output derivative: dE/dY
-      getDerivative(errorFunction,
-                    Y,
-                    length,
-                    OUTPUT_COUNT,
-                    preds,
-                    i * OUTPUT_COUNT,
-                    cache,
-                    derivs + OUTPUT_START);
+          // Calc output derivative: dE/dY
+          getDerivative(errorFunction,
+                        Y,
+                        length,
+                        OUTPUT_COUNT,
+                        preds,
+                        i * OUTPUT_COUNT,
+                        cache,
+                        derivs + OUTPUT_START);
 
-      // Iterate backwards over the network
-      // Backwards operation so sign is very important
-      for (int n = OUTPUT_END - 1; n >= (int) HIDDEN_START; n--) {
-        // Multiply with derivative to neuron input: dY/dI
-        derivs[n] *= evaluateActFuncDerivative(actFuncs[n], outputs[n]);
-        // Iterate over the connections of this neuron
-        for (int i = 0; i < n; i++) {
-          if (conns[n * LENGTH + i] != 1) {
-            continue;
+          // Copy to local array
+          for (unsigned int nc = 0; nc < LENGTH; nc++) {
+            outValues[nc] = outputs[nc];
           }
-          // Propagate error backwards
-          derivs[i] += derivs[n] * weights[n * LENGTH + i];
-          // Calc update for this connection: dI/dWij
-          // MP this is a shared variable, so needs atomic update
-          # pragma omp atomic
-          backPropValues[n * LENGTH + i] += -derivs[n] * outputs[i];
+        }
+        // End parallel critical
+
+        // Iterate backwards over the network
+        // Backwards operation so sign is very important
+        for (int n = OUTPUT_END - 1; n >= (int) HIDDEN_START; n--) {
+          // Multiply with derivative to neuron input: dY/dI
+          derivs[n] *= evaluateActFuncDerivative(actFuncs[n], outValues[n]);
+          // Iterate over the connections of this neuron
+          for (int i = 0; i < n; i++) {
+            if (conns[n * LENGTH + i] != 1) {
+              continue;
+            }
+            // Propagate error backwards
+            derivs[i] += derivs[n] * weights[n * LENGTH + i];
+            // Calc update for this connection: dI/dWij
+#pragma omp atomic
+            backPropValues[n * LENGTH + i] += -derivs[n] * outValues[i];
+          }
         }
       }
-    }
-    // End parallel for
+      // End parallel for
 
-    delete[] preds;
-    delete[] derivs;
+      delete[] outValues;
+      delete[] preds;
+      delete[] derivs;
     }
     // End parallel
 
@@ -200,14 +212,14 @@ int RPropNetwork::learn(const double * const X,
     // Evaluate again to calculate new error
     for (unsigned int i = 0; i < length; i++) {
       // First let all neurons evaluate
-      output(X + i * INPUT_COUNT, preds + i * OUTPUT_COUNT);
+      output(X + i * INPUT_COUNT, preds2 + i * OUTPUT_COUNT);
     }
 
     epoch += 1;
 
     // Calculate current error
     getAllErrors(errorFunction, Y, length, OUTPUT_COUNT,
-                 preds, cache, errors);
+                 preds2, cache, errors);
     averagePatternError(errors, length, OUTPUT_COUNT, avgErrors);
 
     prevError = meanError;
@@ -220,6 +232,7 @@ int RPropNetwork::learn(const double * const X,
     }
     meanError /= ((double) OUTPUT_COUNT);
 
+    //printf("jonas %d %f / %f", epoch, meanError, maxError);
   } while (epoch < maxEpochs && meanError > maxError);
 
   } catch (std::exception& e) {
@@ -228,9 +241,9 @@ int RPropNetwork::learn(const double * const X,
   }
 
   // Clean memory
-  delete[] preds;
+  delete[] preds2;
   delete[] backPropValues;
-  delete[] derivs;
+  //  delete[] derivs;
   delete[] prevBackPropValues;
   delete[] weightUpdates;
   delete[] prevUpdates;

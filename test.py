@@ -474,9 +474,9 @@ def test_rpropnetwork_mse_xor():
     net.connections = conns
     net.activation_functions = act
 
-    #print(net.weights)
-    #print(net.connections)
-    #print(net.activation_functions)
+    #print(net.weights.reshape(l, l))
+    #print(net.connections.reshape(l, l))
+    print(net.activation_functions)
 
     xor_in, xor_out = getXOR()
 
@@ -487,9 +487,10 @@ def test_rpropnetwork_mse_xor():
 
     net.learn(xor_in, xor_out)
 
-    #print("\nResults")
+    print("\nResults")
     for val in xor_in:
-        #print("In:", val, " out:", net.output(val))
+        print("In:", val, " out:", net.output(val))
+    for val in xor_in:
         if sum(val) != 1:
             assert net.output(val) < 0.1, "xor solution doesnt work"
         else:

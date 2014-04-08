@@ -316,6 +316,7 @@ void rproptest() {
   net.setHiddenActivationFunction(TANH);
   net.setOutputActivationFunction(LOGSIG);
 
+  // xor
   // define inputs
   double X[2*4]{0,0,
       0,1,
@@ -353,9 +354,15 @@ void rproptest() {
   // std::cout << "\n\nPredictions\n";
   for (int i = 0; i < 4; i++) {
     net.output(X + 2 * i, preds);
-    // std::cout << X[2*i] << " "<< X[2*i + 1]
-       //       << " : " << std::round(preds[0])
-        //      << " (" << Y[i] << ")"<< "\n";
+
+    std::cout << "\n  " << X[2*i] << " "<< X[2*i + 1]
+              << " : " << preds[0]
+              << " (" << Y[i] << ")";
+
+    double diff = preds[0] - Y[i];
+    if (diff < 0) diff = -diff;
+
+    assert(diff < 0.1);
   }
 
   std::cout << "\nRPropTest Done.";

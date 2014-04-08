@@ -16,18 +16,19 @@ valgrind:
 inplace: ann/_ann.so
 
 ann/__init__.py:
-	CC=clang++ python setup.py build_ext --inplace
+	#CC=clang++ python setup.py build_ext --inplace
+	python setup.py build_ext --inplace
 
 ann/_ann.so: $(DEPS)
-	CC=clang++ python setup.py build_ext --inplace
+	python setup.py build_ext --inplace
 
 install: $(DEPS)
-	#CC=clang++ python setup.py install
-	CC=clang++ pip install -r requirements.txt
-	CC=clang++ pip install -e .
+	#python setup.py install
+	pip install -r requirements.txt
+	pip install -e .
 
 build: $(DEPS)
-	CC=clang++ python setup.py build
+	python setup.py build
 
 clean:
 	rm -f ann/*.so
