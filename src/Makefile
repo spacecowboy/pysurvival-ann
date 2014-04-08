@@ -1,15 +1,15 @@
 # Makefile
 
 ### Compiler and flags ###
-CPPFLAGS = -g -Wall -Werror -std=c++11 -pthread -O0 # -fsanitize=thread
+CPPFLAGS = -Wall -Werror -std=c++11 -pthread -O2 -fopenmp
 LDFLAGS = -lm
 
-CLANG = clang++ -std=c++11 -Werror -Wall -pthread# -fsyntax-only
+CLANG = clang++ #-std=c++11 -Werror -Wall -pthread -fopenmp
 
-#CPP = g++
-#CC = $(CPP) $(CPPFLAGS)
-CPP = $(CLANG)
-CC = $(CLANG)
+CPP = g++
+CC = $(CPP) $(CPPFLAGS)
+#CPP = $(CLANG)
+#CC = $(CLANG) $(CPPFLAGS)
 
 #Used by Python build
 PYCPP = gcc
@@ -63,7 +63,7 @@ matrix: $(OBJ) prep
 # Pattern rules
 # Object files depend on cpp and hpp files
 %.o: %.cpp %.hpp
-	$(CC) -c -o $@ $<
+	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
 # Wrapper files compile with python
 %Wrapper.o: %Wrapper.cpp %Wrapper.hpp

@@ -51,8 +51,8 @@ void getScaledProbs(const double * const targets,
                     std::vector<double> &scaledProbs)
 {
   std::vector<unsigned int>::const_iterator it, laterIt;
-  unsigned int index, laterIndex;
-  double time, event;
+  unsigned int index;
+  double event;
   double atRisk, risk, surv, survDiff;
   std::vector<double> survival(length);
   std::vector<double> probs(length);
@@ -75,7 +75,7 @@ void getScaledProbs(const double * const targets,
   {
     index = *it;
 
-    time = targets[2 * index];
+    //time = targets[2 * index];
     event = targets[2 * index + 1];
 
     // Calculate survival for index. Will start at 1.
@@ -88,15 +88,16 @@ void getScaledProbs(const double * const targets,
     risk = 0;
 
     // Calculate the risk, which is used to calculate survival
-    for (laterIt = it; laterIt != sortedIndices.end(); laterIt++)
-    {
-      laterIndex = *laterIt;
-
-      // Anything now or later is at risk.
-      // Only events can have a risk associated with them.
-      if (event) atRisk += 1;
+    // Anything now or later is at risk.
+    // Only events can have a risk associated with them.
+    if (event) {
+      for (laterIt = it; laterIt != sortedIndices.end(); laterIt++)
+      {
+        atRisk += 1;
+      }
     }
     // Risk is just the inverse
+    // But only if any are at risk, else zero
     if (atRisk > 0) {
       risk = 1.0 / atRisk;
     }

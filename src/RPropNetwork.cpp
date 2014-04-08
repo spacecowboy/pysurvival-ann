@@ -43,7 +43,7 @@ bool allLessThan(const double * const array,
                  const unsigned int length,
                  const double value)
 {
-  for (int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     if (array[i] >= value) {
       return false;
     }
@@ -81,7 +81,9 @@ int RPropNetwork::learn(const double * const X,
   // Cache used for some error functions
   ErrorCache *cache = getErrorCache(errorFunction);
   if (cache != NULL) {
+    // Initialize it
     cache->clear();
+    cache->verifyInit(Y, length);
   }
 
   // Used to calculate error
@@ -107,11 +109,17 @@ int RPropNetwork::learn(const double * const X,
   // Train
   do {
     // Reset arrays
-    std::fill(backPropValues, backPropValues + LENGTH * LENGTH, 0);
+    std::fill(backPropValues, backPropValues + LENGTH * LENGTH, 0.0);
 
+# pragma omp parallel default(none) shared(backPropValues, cache)
+    {
+      double *preds = new double[length * OUTPUT_COUNT]();
+      double *derivs = new double[LENGTH];
     // Evaluate for each value in input vector
-    for (int i = 0; i < length; i++) {
-      std::fill(derivs, derivs + LENGTH, 0);
+# pragma omp for
+    for (unsigned int i = 0; i < length; i++) {
+      std::fill(derivs, derivs + LENGTH, 0.0);
+      std::fill(preds, preds +  length * OUTPUT_COUNT, 0.0);
 
       // First let all neurons evaluate
       output(X + i * INPUT_COUNT, preds + i * OUTPUT_COUNT);
@@ -127,7 +135,8 @@ int RPropNetwork::learn(const double * const X,
                     derivs + OUTPUT_START);
 
       // Iterate backwards over the network
-      for (int n = OUTPUT_END - 1; n >= HIDDEN_START; n--) {
+      // Backwards operation so sign is very important
+      for (int n = OUTPUT_END - 1; n >= (int) HIDDEN_START; n--) {
         // Multiply with derivative to neuron input: dY/dI
         derivs[n] *= evaluateActFuncDerivative(actFuncs[n], outputs[n]);
         // Iterate over the connections of this neuron
@@ -138,13 +147,21 @@ int RPropNetwork::learn(const double * const X,
           // Propagate error backwards
           derivs[i] += derivs[n] * weights[n * LENGTH + i];
           // Calc update for this connection: dI/dWij
+          // MP this is a shared variable, so needs atomic update
+          # pragma omp atomic
           backPropValues[n * LENGTH + i] += -derivs[n] * outputs[i];
         }
       }
     }
+    // End parallel for
+
+    delete[] preds;
+    delete[] derivs;
+    }
+    // End parallel
 
     // Apply updates
-    for (int n = HIDDEN_START * LENGTH; n < LENGTH * LENGTH; n++) {
+    for (unsigned int n = HIDDEN_START * LENGTH; n < LENGTH * LENGTH; n++) {
       if (prevBackPropValues[n] * backPropValues[n] > 0) {
         // On the right track, increase speed!
         weightUpdates[n] = abs(prevUpdates[n]) * dPos;
@@ -181,7 +198,7 @@ int RPropNetwork::learn(const double * const X,
     }
 
     // Evaluate again to calculate new error
-    for (int i = 0; i < length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
       // First let all neurons evaluate
       output(X + i * INPUT_COUNT, preds + i * OUTPUT_COUNT);
     }
@@ -197,7 +214,7 @@ int RPropNetwork::learn(const double * const X,
 
     // Calculate mean and log errors
     meanError = 0;
-    for (int i = 0; i < OUTPUT_COUNT; i++) {
+    for (unsigned int i = 0; i < OUTPUT_COUNT; i++) {
       meanError += avgErrors[i];
       this->aLogPerf[OUTPUT_COUNT * (epoch - 1) + i] = avgErrors[i];
     }

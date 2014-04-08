@@ -20,7 +20,7 @@ double errorToFitness(ErrorFunction errorfunc,
   averagePatternError(errors, length, numOfOutput, avgErrors);
 
   // Negative sum of errors
-  for (int n = 0; n < numOfOutput; n++) {
+  for (unsigned int n = 0; n < numOfOutput; n++) {
     fitness -= avgErrors[n];
   }
 
