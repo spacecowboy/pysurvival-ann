@@ -414,19 +414,21 @@ Module methods
 static PyMethodDef annMethods[] = {
     {"get_C_index", (PyCFunction) CIndex_getCindex,                     \
      METH_VARARGS | METH_KEYWORDS, "Calculates the C-index. Note that outputs \
-are converted to one dimension. Targets should be                       \
-(survival time, event)\n\nInput: Targets, Predictions\nReturns: 0 if no \
-concordance could be found."},
+are converted to one dimension. Targets should be (survival time,\
+ event)\n\nInput: Targets, Predictions\nReturns: 0 if no concordance \
+could be found."},
 
     {"get_error", (PyCFunction) ErrorFuncs_getError,
-     METH_VARARGS | METH_KEYWORDS, "Calculates the error using the \
-specified error function on the given target/output arrays. The result \
-is averaged over the first axis."},
+     METH_VARARGS | METH_KEYWORDS, \
+     "get_error(errorfunc, targets, outputs)\n\n \
+\nCalculates the error using the specified error function on the given \
+target/output arrays. The result is averaged over the first axis."},
 
     {"get_deriv", (PyCFunction) ErrorFuncs_getDeriv,
-     METH_VARARGS | METH_KEYWORDS, "Calculates the derivative using the \
-specified error function on the given target/output arrays. The result \
-is averaged over the first axis."},
+     METH_VARARGS | METH_KEYWORDS, \
+     "get_deriv(error_func, targets, outputs)\n\n \
+Calculates the derivative using the specified error function on the given \
+target/output arrays. The result is averaged over the first axis."},
 
 
     {NULL, NULL, 0, NULL} /* Sentinel */
