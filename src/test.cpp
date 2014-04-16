@@ -355,6 +355,70 @@ void rproptest() {
   std::cout << "\nRPropTest Done.";
 }
 
+void rpropalloctest() {
+  std::cout << "\nRPropAllocTest...";
+
+  Random r;
+  RPropNetwork net(2, 8, 2);
+
+  // Set up a feedforward structure
+  for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
+    for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {
+      net.conns[net.LENGTH * i + j] = 1;
+      net.weights[net.LENGTH * i + j] = r.normal();
+    }
+  }
+  for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
+    for (unsigned int j = 0; j < net.BIAS_END; j++) {
+      net.conns[net.LENGTH * i + j] = 1;
+      net.weights[net.LENGTH * i + j] = r.normal();
+    }
+  }
+  net.setHiddenActivationFunction(TANH);
+  net.setOutputActivationFunction(LOGSIG);
+
+  // xor
+  // define inputs
+  unsigned int limit = 100000;
+
+  double *X = new double[2*limit]();
+  // define targets
+  double *Y = new double[2*limit]();
+
+  // Not interested in training result
+
+  net.setMaxEpochs(1);
+  net.setMaxError(0.001);
+
+  net.setErrorFunction(ErrorFunction::ERROR_MSE);
+  if ( 0 < net.learn(X, Y, limit)) {
+    throw "Shit hit the fan";
+  }
+
+  delete[] X;
+  delete[] Y;
+
+  std::cout << "\nRPropAllocTest Done.";
+}
+
+// Takes a few minutes to run
+void survcachealloctest() {
+  std::cout << "\nSurvCacheAllocTest...";
+
+  unsigned int limit = 100000;
+  double *Y = new double[2*limit]();
+
+  SurvErrorCache *cache = new SurvErrorCache();
+
+  cache->verifyInit(Y, limit);
+
+  delete[] Y;
+  delete cache;
+
+  std::cout << "\nSurvCacheAllocTest Done";
+}
+
+
 // Assert that the difference between a and b is (absolute value) less
 // than 10^-10
 void assertSame(const double a, const double b)
@@ -420,20 +484,23 @@ void testSurvCache() {
 
   // First method should be get prob, this is used in the rest
   std::vector<double> probs;
-  getScaledProbs(targets, length, sortedIndices, probs);
+  std::vector<double> survival;
+  getProbsAndSurvival(targets, length, sortedIndices, probs, survival);
+
   // This should be a vector with length equal to entire times vector squared.
-  assert(probs.size() == length*length);
+  assert(probs.size() == length);
+  assert(survival.size() == length);
   // Probs at censored events is zero
   double cumprob = 0;
   for (unsigned int i = 0; i < length; i++) {
     if (targets[2*i + 1]) {
-      assert(probs.at(i*length + i) > 0);
+      assert(probs.at(i) > 0);
     }
     else {
-      assert(probs.at(i*length + i) == 0);
+      assert(probs.at(i) == 0);
     }
     // Calculate for first patient, which has unscaled probs
-    cumprob += probs.at(sortedIndices.at(0) * length + i);
+    cumprob += probs.at(i);
   }
   // Cumulative sum must > 0 and <= 1
   assert(cumprob > 0);
@@ -441,15 +508,11 @@ void testSurvCache() {
   std::cout << "\n  cumprob: " << cumprob;
   assertSame(cumprob, 0.632038916092);
 
-  // Check prob at index -1 (which is not censored)
-  std::cout << "\n  Prob_{i-1}:" << probs.at(length * (index - 1) + index-1);
-  assertSame(probs.at(length * (index - 1) + index-1), 0.0526315789474);
-
   // Prob after method is just 1.0 - sum(Probs)
   double scaledProb;
   std::vector<unsigned int>::const_iterator it;
   it = sortedIndices.begin() + sortedIndex;
-  scaledProb = getScaledProbAfter(targets, length, probs,
+  scaledProb = getScaledProbAfter(targets, probs, survival,
                                   sortedIndices,
                                   it);
   assert(scaledProb >= 0);
@@ -458,21 +521,21 @@ void testSurvCache() {
   assertSame(scaledProb, 0.487334887335);
 
   double Ai;
-  Ai = getPartA(targets, length, probs,
+  Ai = getPartA(targets, probs, survival,
                 sortedIndices, it);
   assert(Ai > 0);
   std::cout << "\n  Ai: " << Ai;
   assertSame(Ai, 0.0215826999321);
 
   double Bi;
-  Bi = getPartB(targets, length, probs,
+  Bi = getPartB(targets, probs, survival,
                 sortedIndices, it);
   assert(Bi > 0);
   std::cout << "\n  Bi: " << Bi;
   assertSame(Bi, 0.512665112665);
 
   double Ci;
-  Ci = getPartC(targets, length, probs,
+  Ci = getPartC(targets, probs, survival,
                 sortedIndices, it);
   assert(Ci < 0);
   std::cout << "\n  Ci: " << Ci;
@@ -710,6 +773,8 @@ int main( int argc, const char* argv[] )
   derivTests();
   matrixtest();
   randomtest();
+  rpropalloctest();
+  //survcachealloctest();
   //geneticTest1();
   geneticXOR();
   rproptest();

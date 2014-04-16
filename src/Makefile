@@ -44,7 +44,7 @@ valgrind: matrix
 	valgrind --tool=memcheck --leak-check=yes --track-origins=yes ./matrix
 
 helgrind: matrix
-	valgrind --tool=helgrind --read-var-info=yes --log-file=helgrind.txt ./matrix
+	OMP_NUM_THREADS=1 valgrind --tool=helgrind --read-var-info=yes --log-file=helgrind.txt ./matrix
 
 test: matrix
 	./matrix

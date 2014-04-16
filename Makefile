@@ -1,6 +1,6 @@
 DEPS = setup.py $(wildcard src/*.cpp) $(wildcard src/*.h*) $(wildcard ann/*.py)
 
-test: test.py inplace $(DEPS) valgrind
+test: test.py inplace $(DEPS) srctest
 	nosetests -v -x -s test.py
 	#nosetests -v ./
 
@@ -15,6 +15,9 @@ specialtest: test.py ann/_ann.so $(DEPS)
 
 valgrind:
 	cd src;make -j4 valgrind
+
+srctest:
+	cd src;make -j4 test
 
 inplace: ann/_ann.so
 

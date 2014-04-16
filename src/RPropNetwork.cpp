@@ -87,14 +87,14 @@ int RPropNetwork::learn(const double * const X,
   }
 
   // Used to calculate error
-  double errors[OUTPUT_COUNT * length];
+  double *errors = new double[OUTPUT_COUNT * length];
   double avgErrors[OUTPUT_COUNT];
 
   // Local variables. () sets all to zero
   double meanError = 1 + maxError;
   double prevError = 1 + meanError;
-  double *preds2 = new double[length * OUTPUT_COUNT]();
-  double *backPropValues = new double[LENGTH * LENGTH]();
+  double *preds2 = new double[length * OUTPUT_COUNT];
+  double *backPropValues = new double[LENGTH * LENGTH];
   //  double *derivs = new double[LENGTH];
   double *prevBackPropValues = new double[LENGTH * LENGTH]();
   std::fill(prevBackPropValues, prevBackPropValues + LENGTH * LENGTH, 1.0);
@@ -241,6 +241,7 @@ int RPropNetwork::learn(const double * const X,
   }
 
   // Clean memory
+  delete[] errors;
   delete[] preds2;
   delete[] backPropValues;
   //  delete[] derivs;

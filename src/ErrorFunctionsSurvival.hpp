@@ -57,35 +57,28 @@ void getIndicesSortedByTime(const double * const targets,
                             std::vector<unsigned int>& sortedIndices);
 
 /*
- * This calculates the scaled probabity to have an event at each time
- * point, for each patient. Time points with events will have a
+ * This calculates the probability and survival at each time
+ * point. Time points with events will have a
  * non-zero probability while time points with censored events will
  * have zero probability.
  *
- * The probabilities will only sum to one if the last time point had
- * an event.
- *
- * scaledProbs is cleared and set. It will have size length*length.
+ * The vectors are cleared and resized to length.
  */
-void getScaledProbs(const double * const targets,
-                    const unsigned int length,
-                    const std::vector<unsigned int> &sortedIndices,
-                    std::vector<double> &scaledProbs);
+void getProbsAndSurvival(const double * const targets,
+                         const unsigned int length,
+                         const std::vector<unsigned int> &sortedIndices,
+                         std::vector<double> &probs,
+                         std::vector<double> &survival);
 
 /*
- * Calculate the scaled probability values for the patient at index with
+ * Calculate the scaled probability value for the patient at index with
  * specified survival at that index. Scaled probabilities are
- * calculated as future probabilities divided by survival at index.
- *
- * scaledProbs is expected to be initialized to zero of size:
- * length*length, where length = probs.size(). This function will set
- * the values in range [index*length, (index+1)*length].
+ * calculated as later probability divided by survival at index.
  */
-void getScaledProbsFor(const std::vector<double> &probs,
-                       const std::vector<unsigned int> &sortedIndices,
-                       const std::vector<unsigned int>::const_iterator &it,
-                       const double survivalAtIndex,
-                       std::vector<double> &scaledProbs);
+double getScaledProbFor(const std::vector<double> &probs,
+                        const std::vector<double> &survival,
+                        const std::vector<unsigned int>::const_iterator &sortedIt,
+                        const std::vector<unsigned int>::const_iterator &laterIt);
 
 /*
  * Calculate the probability to survive longer than the last
@@ -96,15 +89,12 @@ void getScaledProbsFor(const std::vector<double> &probs,
  * lived to some time t_i (the censoring time), we have to adjust the
  * probability to take that into account. Thus making the result:
  *
- * =This I am not sure about! Isn't prob_i zero?!=
- * p_{after} = 1.0 - ( sum(probs) / prob_i ).
- *
  * sortedIt is an iterator of sortedIndices. Only probabilities
  * occuring afterwards are considered.
  */
 double getScaledProbAfter(const double * const targets,
-                          const unsigned int length,
                           const std::vector<double> &probs,
+                          const std::vector<double> &survival,
                           const std::vector<unsigned int> &sortedIndices,
                           const std::vector<unsigned int>::const_iterator &sortedIt);
 
@@ -112,8 +102,8 @@ double getScaledProbAfter(const double * const targets,
  * Calculate A of the equations for the index pointed to by sortedIt.
  */
 double getPartA(const double * const targets,
-                const unsigned int length,
                 const std::vector<double> &probs,
+                const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
                 const std::vector<unsigned int>::const_iterator &sortedIt);
 
@@ -121,8 +111,8 @@ double getPartA(const double * const targets,
  * Calculate B of the equations for the index pointed to by sortedIt.
  */
 double getPartB(const double * const targets,
-                const unsigned int length,
                 const std::vector<double> &probs,
+                const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
                 const std::vector<unsigned int>::const_iterator &sortedIt);
 
@@ -130,8 +120,8 @@ double getPartB(const double * const targets,
  * Calculate C of the equations for the index pointed to by sortedIt.
  */
 double getPartC(const double * const targets,
-                const unsigned int length,
                 const std::vector<double> &probs,
+                const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
                 const std::vector<unsigned int>::const_iterator &sortedIt);
 
