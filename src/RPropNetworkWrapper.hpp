@@ -59,6 +59,10 @@ extern "C" {
   int RPropNetwork_setMaxError(PyRPropNetwork *self, PyObject *value,
                                void *closure);
 
+  PyObject *RPropNetwork_getMinErrorFrac(PyRPropNetwork *self, void *closure);
+  int RPropNetwork_setMinErrorFrac(PyRPropNetwork *self, PyObject *value,
+                               void *closure);
+
   PyObject *RPropNetwork_getErrorFunction(PyRPropNetwork *self, void *closure);
   int RPropNetwork_setErrorFunction(PyRPropNetwork *self, PyObject *value,
                                     void *closure);

@@ -160,6 +160,12 @@ static PyGetSetDef RPropNetworkGetSetters[] = {
    (setter)RPropNetwork_setMaxError,                            \
    (char*)"Maximum error allowed for early stopping", NULL},
 
+  {(char*)"minErrorFrac", \
+   (getter)RPropNetwork_getMinErrorFrac, \
+   (setter)RPropNetwork_setMinErrorFrac, \
+   (char*)"Minimum relative change in error over 100 epochs to allow before stopping", \
+   NULL},
+
   {(char*)"maxEpochs",
    (getter)RPropNetwork_getMaxEpochs,                               \
    (setter)RPropNetwork_setMaxEpochs,                               \

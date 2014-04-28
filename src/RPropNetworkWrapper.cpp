@@ -191,6 +191,27 @@ Please see std_err for info.");
     return 0;
   }
 
+  PyObject *RPropNetwork_getMinErrorFrac(PyRPropNetwork *self, void *closure) {
+    return Py_BuildValue("d",
+                         ((RPropNetwork*)self->super.net)->getMinErrorFrac());
+  }
+
+  int RPropNetwork_setMinErrorFrac(PyRPropNetwork *self, PyObject *value,
+                               void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((RPropNetwork*)self->super.net)->setMinErrorFrac(val);
+    return 0;
+  }
+
   PyObject *RPropNetwork_getErrorFunction(PyRPropNetwork *self, void *closure) {
     return Py_BuildValue("i", ((RPropNetwork*)self->super.net)->
                          getErrorFunction());
