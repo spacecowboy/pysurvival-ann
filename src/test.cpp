@@ -323,7 +323,8 @@ void rproptest() {
   }
 
   net.setMaxEpochs(10000);
-  net.setMaxError(0.001);
+  net.setMaxError(0.0);
+  net.setMinErrorFrac(0.01);
   if ( 0 < net.learn(X, Y, 4)) {
     throw "Shit hit the fan";
   }
@@ -774,7 +775,7 @@ int main( int argc, const char* argv[] )
   matrixtest();
   randomtest();
   rpropalloctest();
-  //survcachealloctest();
+  survcachealloctest();
   //geneticTest1();
   geneticXOR();
   rproptest();

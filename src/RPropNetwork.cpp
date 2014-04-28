@@ -28,11 +28,11 @@ RPropNetwork::RPropNetwork(const unsigned int numOfInputs,
                            const unsigned int numOfHidden,
                            const unsigned int numOfOutputs) :
   MatrixNetwork(numOfInputs, numOfHidden, numOfOutputs),
-  maxEpochs(10000),
+  maxEpochs(1000),
   maxError(0.0001),
+  minErrorFrac(0.01),
   errorFunction(ErrorFunction::ERROR_MSE)
 {
-
 }
 
 /**
@@ -86,6 +86,10 @@ int RPropNetwork::learn(const double * const X,
     cache->verifyInit(Y, length);
   }
 
+  // Used for early stopping
+  const unsigned int relDiffCount = 100;
+  double relDiffLimit, relDiff;
+
   // Used to calculate error
   double *errors = new double[OUTPUT_COUNT * length];
   double avgErrors[OUTPUT_COUNT];
@@ -105,7 +109,6 @@ int RPropNetwork::learn(const double * const X,
   unsigned int epoch = 0;
 
   try {
-
   // Train
   do {
     // Reset arrays
@@ -148,7 +151,7 @@ int RPropNetwork::learn(const double * const X,
 
         // Iterate backwards over the network
         // Backwards operation so sign is very important
-        for (int n = OUTPUT_END - 1; n >= (int) HIDDEN_START; n--) {
+        for (int n = OUTPUT_END - 1; n >= static_cast<int>(HIDDEN_START); n--) {
           // Multiply with derivative to neuron input: dY/dI
           derivs[n] *= evaluateActFuncDerivative(actFuncs[n], outValues[n]);
           // Iterate over the connections of this neuron
@@ -182,8 +185,7 @@ int RPropNetwork::learn(const double * const X,
         weightUpdates[n] *= sign(backPropValues[n]);
         // remember for next round
         prevUpdates[n] = weightUpdates[n];
-      }
-      else if (prevBackPropValues[n] * backPropValues[n] < 0) {
+      } else if (prevBackPropValues[n] * backPropValues[n] < 0) {
         // Overshot the target, go back
         // This if turns the algorithm into iRprop+ instead of Rprop+
         // Normal Rprop+ did this every time
@@ -196,8 +198,7 @@ int RPropNetwork::learn(const double * const X,
           prevUpdates[n] = dMin;
         // Next time forget this step
         backPropValues[n] = 0;
-      }
-      else {
+      } else {
         // Previous round we overshot, go forward here
         weightUpdates[n] = sign(backPropValues[n]) * prevUpdates[n];
         // remember for next round
@@ -230,11 +231,22 @@ int RPropNetwork::learn(const double * const X,
       meanError += avgErrors[i];
       this->aLogPerf[OUTPUT_COUNT * (epoch - 1) + i] = avgErrors[i];
     }
-    meanError /= ((double) OUTPUT_COUNT);
+    meanError /= static_cast<double>(OUTPUT_COUNT);
 
-    //printf("jonas %d %f / %f", epoch, meanError, maxError);
+    // Calculate relative error change
+    // If the error did not change enough during the last
+    // 100 epochs, then terminate.
+    if (epoch - 1 > relDiffCount && this->minErrorFrac > 0) {
+      relDiffLimit = this->minErrorFrac * avgErrors[0];
+      relDiff = abs(this->aLogPerf[OUTPUT_COUNT * (epoch - 1)] -
+                    this->aLogPerf[OUTPUT_COUNT * (epoch - 1 - relDiffCount)]);
+      if (relDiff < relDiffLimit) {
+        // It's small, break the loop.
+        // printf("\nTermination time epoch %d", epoch);
+        break;
+      }
+    }
   } while (epoch < maxEpochs && meanError > maxError);
-
   } catch (std::exception& e) {
     std::cerr << "\nException thrown: " << e.what() << "\n\n";
     retval = 1;
@@ -274,6 +286,14 @@ double RPropNetwork::getMaxError() const
 void RPropNetwork::setMaxError(double maxError)
 {
   this->maxError = maxError;
+}
+
+double RPropNetwork::getMinErrorFrac() const {
+  return minErrorFrac;
+}
+
+void RPropNetwork::setMinErrorFrac(double minErrorFrac) {
+  this->minErrorFrac = minErrorFrac;
 }
 
 ErrorFunction RPropNetwork::getErrorFunction() const

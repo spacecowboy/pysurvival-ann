@@ -12,6 +12,7 @@ class RPropNetwork: public MatrixNetwork {
 
   unsigned int maxEpochs;
   double maxError;
+  double minErrorFrac;
   ErrorFunction errorFunction;
 
   // Methods
@@ -32,6 +33,8 @@ class RPropNetwork: public MatrixNetwork {
   void setMaxEpochs(unsigned int maxEpochs);
   double getMaxError() const;
   void setMaxError(double maxError);
+  double getMinErrorFrac() const;
+  void setMinErrorFrac(double minErrorFrac);
   ErrorFunction getErrorFunction() const;
   void setErrorFunction(ErrorFunction val);
 };
