@@ -8,66 +8,67 @@ The Y vector on the other hand is an A[N] array! Be wary of this.
  */
 double get_C_index(const double * const Y,
                    const double * const T,
-                   const unsigned int length)
-{
-	double total = 0, sum = 0, Tx1, Ty1, Tx0, Ty0, outputsx0, outputsy0;
-	unsigned int countx,county;
+                   const unsigned int length) {
+  double total = 0, sum = 0;
+#pragma omp parallel default(none) shared(total, sum)
+  {
+    double Tx1, Ty1, Tx0, Ty0, outputsx0, outputsy0;
+    unsigned int countx, county;
 
-	for(countx = 0; countx < length; countx++) {
-		Tx0 = T[countx*2];
-		Tx1 = T[countx*2 + 1];
-		outputsx0 = Y[countx];
+#pragma omp for schedule(dynamic)
+    for (countx = 0; countx < length; countx++) {
+      Tx0 = T[countx*2];
+      Tx1 = T[countx*2 + 1];
+      outputsx0 = Y[countx];
 
-        //printf("targ: %f out: %f\n", Tx0, outputsx0);
+      for (county = 0; county < length; county++) {
+        if (countx == county)
+          continue;
 
-		for(county = 0; county < length; county++) {
-			if(countx == county)
-			    continue;
+        Ty0 = T[county*2];
+        Ty1 = T[county*2 + 1];
+        outputsy0 = Y[county];
 
-			Ty0 = T[county*2];
-			Ty1 = T[county*2 + 1];
-			outputsy0 = Y[county];
+        if (Tx1 == 1 && Ty1 == 1) {
+          // Non-censored, compare with all other non-censored
+          // First time seeing thing pair
+          if (Tx0 < Ty0) {
+#pragma omp atomic
+            total++;
 
-			if(Tx1 == 1 && Ty1 == 1) {
-              //Non-censored, compare with all other non-censored
-                // First time seeing thing pair
-				if (Tx0 < Ty0) {
-					total++;
-					if (outputsx0 < outputsy0) {
-						sum++;
-                        //printf("noncbah outputs: %f == %f\n", outputsx0, outputsy0);
-					}
-                    else if (outputsx0 == outputsy0) {
-                        sum += 0.5;
-                        //printf("nonc outputs: %f == %f\n", outputsx0, outputsy0);
-                    }
-				}
-			}
-			else if(Tx1 == 1) { //Non-censored and censored. Compare if
-				// Compare noncensored with later censored
-				// X noncensored
-				if(Tx0 < Ty0) {
-					total++;
-					if(outputsx0 < outputsy0) {
-						sum++;
-                        //printf("yescbah outputs: %f == %f\n", outputsx0, outputsy0);
-                    }
-                    else if (outputsx0 == outputsy0) {
-                        sum += 0.5;
-                        //printf("yesc outputs %f == %f\n", outputsx0, outputsy0);
-                    }
-				}
-			}
-		}
-	}
+            if (outputsx0 < outputsy0) {
+#pragma omp atomic
+              sum++;
+            } else if (outputsx0 == outputsy0) {
+#pragma omp atomic
+              sum += 0.5;
+            }
+          }
+        } else if (Tx1 == 1) {
+          // Non-censored and censored. Compare if
+          // Compare noncensored with later censored
+          // X noncensored
+          if (Tx0 < Ty0) {
+#pragma omp atomic
+            total++;
 
-    if (total == 0) {
-      //printf("Nothing was in concordance\n");
-      return 0;
-    } else {
-        //printf("%f / %f\n", sum, total);
-      return sum / total;
-    }
+            if (outputsx0 < outputsy0) {
+#pragma omp atomic
+              sum++;
+            } else if (outputsx0 == outputsy0) {
+#pragma omp atomic
+              sum += 0.5;
+            }
+          }
+        }
+      }  // end for
+    }  // end for
+  }  // end parallel
+  if (total == 0) {
+    return 0;
+  } else {
+    return sum / total;
+  }
 };
 
 
