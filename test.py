@@ -42,6 +42,29 @@ def get_surv_censored(numweights, datasize=100, fraction=0.4):
 
     return (_inputs, _outputs)
 
+def test_output():
+    """Numpy array results in different output from Python list"""
+
+    from ann import rpropnetwork
+    from ann.utils import connect_feedforward
+
+    data = np.random.normal(size=(10,6))
+    np.random.shuffle(data)
+
+    incols = list(range(2,6))
+    outcols = [1, 0]
+
+    net = rpropnetwork(len(incols), 3, len(outcols))
+    connect_feedforward(net)
+
+    for row in data[:3, incols]:
+        np_out = net.output(row)
+        py_out = net.output(list(row))
+
+        for n, p in zip(np_out, py_out):
+            assert n == p
+
+
 def test_errorfuncs_dims1():
     import ann
 

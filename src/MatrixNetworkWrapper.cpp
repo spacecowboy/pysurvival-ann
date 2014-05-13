@@ -70,7 +70,7 @@ extern "C" {
 	PyObject *pyval = NULL;
 	double *ptr = NULL;
 
-	double dInputs[self->net->INPUT_COUNT];
+	double *dInputs = new double[self->net->INPUT_COUNT];
 
     if (pylist) {
       for (int i = 0; (unsigned int)i < self->net->INPUT_COUNT; i++) {
@@ -80,21 +80,24 @@ extern "C" {
           PyErr_Format(PyExc_ValueError,
                        "Something went wrong when iterating of input\
  values. Possibly wrong length?");
+          delete[] dInputs;
           return NULL;
         }
         dInputs[i] = PyFloat_AsDouble(pyval);
       }
     } else {
       // Numpy array
-      ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, 0);
-      if (ptr == NULL) {
-        PyErr_Format(PyExc_ValueError,
-                     "Something went wrong when iterating of input \
+      for (int i = 0; (unsigned int)i < self->net->INPUT_COUNT; i++) {
+        ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, i);
+        if (ptr == NULL) {
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input \
  values. Possibly wrong length?");
-        return NULL;
+          delete[] dInputs;
+          return NULL;
+        }
+        dInputs[i] = *ptr;
       }
-      std::copy(ptr, ptr + self->net->INPUT_COUNT,
-                dInputs);
     }
 
 	// compute output
@@ -108,6 +111,8 @@ extern "C" {
 
     std::copy(dResult, dResult + self->net->OUTPUT_COUNT,
               ptr);
+
+    delete[] dInputs;
 
 	return result;
   }
