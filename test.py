@@ -22,8 +22,7 @@ def get_surv_uncensored(numweights, datasize=100, *args, **kwargs):
     return (_inputs, _outputs)
 
 def get_surv_censored(numweights, datasize=100, fraction=0.4):
-    '''
-    Returns a tuple of (inputs, targets)'''
+    '''Returns a tuple of (inputs, targets)'''
     _inputs, _outputs = get_surv_uncensored(numweights, datasize)
 
     def count_censed(times):
@@ -66,6 +65,7 @@ def test_output():
 
 
 def test_errorfuncs_dims1():
+    """Should fail with more than 2 dimensions"""
     import ann
 
     x = np.zeros((2,2,2))
@@ -81,6 +81,7 @@ def test_errorfuncs_dims1():
     assert failed, "Should not work with more than 2 dimensions"
 
 def test_errorfuncs_dims2():
+    """Should fail if arrays have different dimensions"""
     import ann
 
     # First, should fail if arrays differ in dimension
@@ -97,6 +98,7 @@ def test_errorfuncs_dims2():
     assert failed, "Dimensions should not match!"
 
 def test_errorfuncs_data2d():
+    """Result must match dimension of input"""
     import ann
 
     rows, cols = 5, 2
@@ -115,6 +117,7 @@ def test_errorfuncs_data2d():
 
 
 def test_errorfuncs_data1d():
+    """Result must match dimensions of input"""
     import ann
 
     rows, cols = 5, 1
@@ -132,6 +135,7 @@ def test_errorfuncs_data1d():
 
 
 def test_errorfuncs_data1dlists():
+    """Verify dimensions of result"""
     import ann
 
     rows, cols = 5, 1
@@ -148,6 +152,7 @@ def test_errorfuncs_data1dlists():
         assert 0.000001 > e - 0.5*(2 - 0)**2, "Error is incorrect"
 
 def test_errorfuncs_data1dlistsminimal():
+    """Verify dimensions and value of result"""
     import ann
 
     rows, cols = 1, 1
