@@ -25,6 +25,8 @@ protected:
                            boost::geometric_distribution<int, double> >
   *geometric_num;
 
+  void init(const unsigned int seed);
+
  public:
 
   Random();

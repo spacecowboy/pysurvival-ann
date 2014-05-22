@@ -5,12 +5,17 @@
 #include <stdio.h>
 #include <limits> // max int
 
-Random::Random() : Random(time(NULL))
+Random::Random()
 {
+  init(time(NULL));
 }
 
 Random::Random(const unsigned int seed)
 {
+  init(seed);
+}
+
+void Random::init(const unsigned int seed) {
   eng = new boost::mt19937(); // a core engine class
   eng->seed(seed);
 

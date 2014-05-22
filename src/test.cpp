@@ -774,8 +774,8 @@ int main( int argc, const char* argv[] )
   derivTests();
   matrixtest();
   randomtest();
-  rpropalloctest();
-  survcachealloctest();
+  //rpropalloctest();
+  //survcachealloctest();
   //geneticTest1();
   geneticXOR();
   rproptest();

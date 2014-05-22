@@ -55,7 +55,7 @@ if ("--help" in sys.argv or
 _ann = Extension('ann._ann',
                  sources = sources,
                  include_dirs = [numpy_include],
-                 extra_compile_args = ['-std=c++11',
+                 extra_compile_args = ['-std=c++0x',
                                        '-Wall',
                                        '-O3',
                                        '-fopenmp'] + compileargs,

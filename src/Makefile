@@ -1,7 +1,7 @@
 # Makefile
 
 ### Compiler and flags ###
-CPPFLAGS = -Wall -std=c++11 -O0 -g -fopenmp
+CPPFLAGS = -Wall -std=c++0x -O0 -g -fopenmp
 LDFLAGS = -lm
 
 CLANG = clang++ #-std=c++11 -Werror -Wall -pthread -fopenmp
