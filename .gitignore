@@ -6,3 +6,4 @@ build/
 src/helgrind.txt
 src/matrix
 *egg-info*
+.ipynb*
