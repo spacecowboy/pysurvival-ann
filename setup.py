@@ -44,10 +44,10 @@ numpy_include = numpy.get_include()
 compileargs = []
 libs=[]
 libdirs=[]
-linkargs, libs = [], []
+linkargs, libs = [], ['boost_random']
 
-if ("--help" in sys.argv or
-    "-h" in sys.argv or
+#if ("--help" in sys.argv or
+if ("-h" in sys.argv or
     len(sys.argv) == 1):
     sys.exit(__doc__)
 
@@ -67,7 +67,7 @@ setup(name = 'pysurvival-ann',
       description = 'A C++ neural network package for survival data',
       author = 'Jonas Kalderstam',
       author_email = 'jonas@kalderstam.se',
-      url = 'None at this time',
+      url = 'https://github.com/spacecowboy/pysurvival-ann',
       packages = ['ann'],
       package_dir = {'ann': 'ann'},
       ext_modules = [_ann],
