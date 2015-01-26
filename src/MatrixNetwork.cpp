@@ -95,7 +95,11 @@ ActivationFuncEnum MatrixNetwork::getHiddenActivationFunction() {
 double *MatrixNetwork::output(const double * const inputs,
                double * const ret_outputs) {
   unsigned int i, j, target;
-  double sum;
+  double sum, outputSum, outputMax;
+
+  // outputMax is used to normalize the outputs to avoid overflow
+  outputMax = 0;
+
   // First set input values
   for (i = INPUT_START; i < INPUT_END; i++) {
     outputs[i] = inputs[i];
@@ -115,6 +119,30 @@ double *MatrixNetwork::output(const double * const inputs,
     //printf("\nSum = %f", sum);
     outputs[i] = evaluateActFunction(actFuncs[i], sum);
     //printf("\nOut = %f", outputs[i]);
+
+    // Keep track of largest value for normalization
+    if (i >= OUTPUT_START && SOFTMAX == actFuncs[i]
+        && abs(outputs[i] > outputMax)) {
+        outputMax = abs(outputs[i]);
+    }
+  }
+
+  // Outputmax > 0 only if softmax is active
+  // Also neatly avoids divisions by zero
+  if (outputMax > 0) {
+    // Set outputSum to zero
+    outputSum = 0;
+
+    // First calculate exponential outputs of normalized values
+    for (i = OUTPUT_START; i < OUTPUT_END; i++) {
+      outputs[i] = exp(outputs[i] / outputMax);
+      // Remember sum of all outputs
+      outputSum += outputs[i];
+    }
+    // Then divide by the sum
+    for (i = OUTPUT_START; i < OUTPUT_END; i++) {
+      outputs[i] /= outputSum;
+    }
   }
 
   // Copy values to output array

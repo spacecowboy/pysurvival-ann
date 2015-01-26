@@ -8,7 +8,7 @@
 #ifndef ACTIVATIONFUNCTIONS_H_
 #define ACTIVATIONFUNCTIONS_H_
 
-enum ActivationFuncEnum { LINEAR=0, LOGSIG, TANH };
+enum ActivationFuncEnum { LINEAR=0, LOGSIG, TANH, SOFTMAX };
 
 // Accepts input sum
 double evaluateActFunction(ActivationFuncEnum func, double x);

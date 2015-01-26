@@ -17,6 +17,10 @@ double evaluateActFunction(ActivationFuncEnum func, double x) {
   case TANH:
     retval = hyperbole(x);
     break;
+  case SOFTMAX:
+    // Handle in MatrixNetwork.output
+    retval = x;
+    break;
   case LINEAR:
   default:
     retval = linear(x);
@@ -34,6 +38,10 @@ double evaluateActFuncDerivative(ActivationFuncEnum func, double y) {
   case TANH:
     retval = hyperboleDeriv(y);
     break;
+  case SOFTMAX:
+    // Not implemented
+    retval = 0;
+    break;
   case LINEAR:
   default:
     retval = linearDeriv(y);
@@ -48,6 +56,8 @@ ActivationFuncEnum getFuncFromNumber(int num) {
     return LOGSIG;
   case TANH:
     return TANH;
+  case SOFTMAX:
+    return SOFTMAX;
   case LINEAR:
   default:
     return LINEAR;

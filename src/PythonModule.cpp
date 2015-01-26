@@ -490,6 +490,8 @@ extern "C" {
                          Py_BuildValue("i", LOGSIG));
     PyDict_SetItemString(MatrixNetworkType.tp_dict, "TANH",
                          Py_BuildValue("i", TANH));
+    PyDict_SetItemString(MatrixNetworkType.tp_dict, "SOFTMAX",
+                         Py_BuildValue("i", SOFTMAX));
 
 
     // Add the type to the module.

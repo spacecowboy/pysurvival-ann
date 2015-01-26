@@ -159,7 +159,7 @@ extern "C" {
 
     long i = PyInt_AsLong(value);
 
-    self->net->setOutputActivationFunction((ActivationFuncEnum) i);
+    self->net->setOutputActivationFunction(getFuncFromNumber((int) i));
 
     return 0;
   }
@@ -179,7 +179,7 @@ extern "C" {
 
     long i = PyInt_AsLong(value);
 
-    self->net->setHiddenActivationFunction((ActivationFuncEnum) i);
+    self->net->setHiddenActivationFunction(getFuncFromNumber((int) i));
 
     return 0;
   }
