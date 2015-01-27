@@ -43,6 +43,10 @@ def connect_feedforward(net, layers=None, hidden_act=None, out_act=None):
     # reset connections
     conns[:, :] = 0
 
+    # Activate all neurons (controlled by diagonal element)
+    for i in range(dim):
+        conns[i, i] = 1
+
     # Get some random weights
     weights = np.random.normal(size=net.weights.shape).reshape((dim, dim))
 

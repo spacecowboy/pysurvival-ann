@@ -18,6 +18,7 @@ from .utils import *
 from random import uniform
 import numpy as np
 
+
 def _getmatrixstate(net):
     '''Returns the state of the network as a list of attributes:
     (neuron_numbers, attrs...)
@@ -33,6 +34,7 @@ def _getmatrixstate(net):
 
     return attrs
 
+
 def _setmatrixstate(net, state):
     neurons = state.pop('neuron_numbers')
     net.__init__(*neurons)
@@ -40,6 +42,7 @@ def _setmatrixstate(net, state):
     for k, v in state.items():
         setattr(net, k, v)
     pass
+
 
 # Used for Matrix Networks
 def _repr_matrix(net):
@@ -51,6 +54,7 @@ def _repr_matrix(net):
 
 ### These should be at the bottom of file ###
 
+
 def UtilMatrix(cls):
     '''Adds util funcs to matrix networks'''
     cls.__repr__ = _repr_matrix
@@ -58,20 +62,24 @@ def UtilMatrix(cls):
     cls.__setstate__ = _setmatrixstate
     return cls
 
+
 @UtilMatrix
 class matrixnetwork(_matrixnetwork):
     __doc__ = _matrixnetwork.__doc__
     pass
+
 
 @UtilMatrix
 class rpropnetwork(_rpropnetwork):
     __doc__ = _rpropnetwork.__doc__
     pass
 
+
 @UtilMatrix
 class geneticnetwork(_gennetwork):
     __doc__ = _gennetwork.__doc__
     pass
+
 
 @UtilMatrix
 class gensurvnetwork(_gennetwork):
