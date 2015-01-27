@@ -53,7 +53,7 @@ public:
  * will be < length.
  */
 void getIndicesSortedByTime(const double * const targets,
-                            const unsigned int lengt,
+                            const unsigned int length,
                             std::vector<unsigned int>& sortedIndices);
 
 /*
