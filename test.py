@@ -413,13 +413,19 @@ def test_matrixnetwork():
     conns[3*length + 0] = 1
     conns[3*length + 1] = 1
     conns[3*length + 2] = 1
+    # self
+    conns[3*length + 3] = 1
 
     conns[4*length + 0] = 1
     conns[4*length + 1] = 1
     conns[4*length + 2] = 1
+    # self
+    conns[4*length + 4] = 1
 
     conns[(length-1)*length + 3] = 1
     conns[(length-1)*length + 4] = 1
+    # self
+    conns[(length-1)*length + (length-1)] = 1
 
     net.connections = conns
 
@@ -491,6 +497,7 @@ def test_rpropnetwork_mse_xor():
         # connect hidden to inputs and bias
         weights[l * i: l * i + 3] = np.random.normal()
         conns[l * i: l * i + 3] = 1
+        conns[l * i + i] = 1
         act[i] = net.TANH
 
     #Output

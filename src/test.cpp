@@ -214,12 +214,16 @@ void rpropsurvlik() {
       net.conns[net.LENGTH * i + j] = 1;
       net.weights[net.LENGTH * i + j] = r.normal();
     }
+    // Also activate self
+    net.conns[net.LENGTH * i + i] = 1;
   }
   for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
     for (unsigned int j = 0; j < net.BIAS_END; j++) {
       net.conns[net.LENGTH * i + j] = 1;
       net.weights[net.LENGTH * i + j] = r.normal();
     }
+    // Also activate self
+    net.conns[net.LENGTH * i + i] = 1;
   }
   net.setHiddenActivationFunction(TANH);
   net.setOutputActivationFunction(LINEAR);
@@ -293,12 +297,16 @@ void rproptest() {
       net.conns[net.LENGTH * i + j] = 1;
       net.weights[net.LENGTH * i + j] = r.normal();
     }
+    // Also activate self
+    net.conns[net.LENGTH * i + i] = 1;
   }
   for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
     for (unsigned int j = 0; j < net.BIAS_END; j++) {
       net.conns[net.LENGTH * i + j] = 1;
       net.weights[net.LENGTH * i + j] = r.normal();
     }
+    // Also activate self
+    net.conns[net.LENGTH * i + i] = 1;
   }
   net.setHiddenActivationFunction(TANH);
   net.setOutputActivationFunction(LOGSIG);
@@ -314,11 +322,11 @@ void rproptest() {
   double Y[4]{0, 1, 1, 0};
 
   // Print structure
-  // std::cout << "\n\nWeights before";
+  std::cout << "\n\nConns before";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    // std::cout << "\nN" << i << ":";
-    for (unsigned int j = 0; j < i; j++) {
-      // std::cout << " " << net.weights[j + i*net.LENGTH];
+    std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j <= i; j++) {
+      std::cout << " " << net.conns[j + i*net.LENGTH];
     }
   }
 
@@ -789,7 +797,7 @@ void testSoftmax() {
       m.actFuncs[i] =
         (ActivationFuncEnum) (i % 3);
 
-      for (unsigned int j = 0; j < m.LENGTH; j++) {
+      for (unsigned int j = 0; j <= i; j++) {
         // printf("\nConnection %d = %d (%f) (default)",
         //       j,
         //       m.conns[m.LENGTH * i + j],
@@ -811,8 +819,9 @@ void testSoftmax() {
       // printf("\nHIDDEN(%d).actFunc = %d", i, m.actFuncs[i]);
     }
     // printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
-    for (unsigned int i = m.OUTPUT_START; i < m.OUTPUT_END; i++) {
-      // printf("\nOUTPUT(%d).actFunc = %d", i, m.actFuncs[i]);
+    for (unsigned int i = m.OUTPUT_START + 1; i < m.OUTPUT_END; i += 2) {
+      // Disable every second output neuron
+      m.conns[m.LENGTH * i + i] = 0;
     }
 
     double *outputs = new double[m.OUTPUT_COUNT]();
@@ -830,6 +839,7 @@ void testSoftmax() {
       printf("\nNetwork output[%d]: %f", i, outputs[i]);
     }
     printf("\nOutputsum = %f", out_sum);
+    assert(abs(out_sum - 1.0) < 0.000001);
 
     delete[] outputs;
     delete[] inputs;

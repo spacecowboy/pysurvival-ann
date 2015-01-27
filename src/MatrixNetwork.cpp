@@ -109,21 +109,26 @@ double *MatrixNetwork::output(const double * const inputs,
 
   // Calculate neurons
   for (i = HIDDEN_START; i < OUTPUT_END; i++) {
-    sum = 0;
-    // No recursive connections allowed
-    for (j = INPUT_START; j < i; j++) {
-      target = LENGTH * i + j;
-      if (conns[target] != 0)
-        sum += weights[target] * outputs[j];
-    }
-    //printf("\nSum = %f", sum);
-    outputs[i] = evaluateActFunction(actFuncs[i], sum);
-    //printf("\nOut = %f", outputs[i]);
+    // A connection to self means neuron is active
+    if (1 == conns[LENGTH * i + i]) {
+      sum = 0;
+      // No recursive connections allowed
+      for (j = INPUT_START; j < i; j++) {
+        target = LENGTH * i + j;
+        if (1 == conns[target])
+          sum += weights[target] * outputs[j];
+      }
 
-    // Keep track of largest value for normalization
-    if (i >= OUTPUT_START && SOFTMAX == actFuncs[i]
-        && abs(outputs[i] > outputMax)) {
+      outputs[i] = evaluateActFunction(actFuncs[i], sum);
+
+      // Keep track of largest output neuron value for normalization
+      if (i >= OUTPUT_START && SOFTMAX == actFuncs[i]
+          && abs(outputs[i] > outputMax)) {
         outputMax = abs(outputs[i]);
+      }
+    } else {
+      // Neuron is not active
+      outputs[i] = 0;
     }
   }
 
@@ -135,13 +140,18 @@ double *MatrixNetwork::output(const double * const inputs,
 
     // First calculate exponential outputs of normalized values
     for (i = OUTPUT_START; i < OUTPUT_END; i++) {
-      outputs[i] = exp(outputs[i] / outputMax);
-      // Remember sum of all outputs
-      outputSum += outputs[i];
+      if (1 == conns[LENGTH * i + i]) {
+        // Only active neurons are included, other should have been set to 0
+        outputs[i] = exp(outputs[i] / outputMax);
+        // Remember sum of all outputs
+        outputSum += outputs[i];
+      }
     }
     // Then divide by the sum
     for (i = OUTPUT_START; i < OUTPUT_END; i++) {
-      outputs[i] /= outputSum;
+      if (1 == conns[LENGTH * i + i]) {
+        outputs[i] /= outputSum;
+      }
     }
   }
 
