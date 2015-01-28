@@ -34,7 +34,7 @@ SRC = MatrixNetwork.cpp test.cpp activationfunctions.cpp Random.cpp \
 GeneticSelection.cpp GeneticNetwork.cpp GeneticFitness.cpp \
 GeneticMutation.cpp GeneticCrossover.cpp c_index.cpp ErrorFunctions.cpp \
 ErrorFunctionsGeneral.cpp ErrorFunctionsSurvival.cpp \
-RPropNetwork.cpp
+RPropNetwork.cpp Statistics.cpp
 
 ### And corresponding object files ###
 OBJ = $(addsuffix .o, $(basename $(SRC)))

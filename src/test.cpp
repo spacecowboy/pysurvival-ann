@@ -8,6 +8,8 @@
 #include "RPropNetwork.hpp"
 #include "ErrorFunctionsSurvival.hpp"
 #include "ErrorFunctions.hpp"
+#include "Statistics.hpp"
+
 #include <iostream>
 #include <cmath>
 #include <assert.h>
@@ -848,9 +850,111 @@ void testSoftmax() {
   std::cout << "\nTestSoftmax done.";
 }
 
+void testLogRank() {
+  std::cout << "\nTestLogRank...";
+
+  // This test data is from
+  // http://web.stanford.edu/~lutian/coursepdf/unitweek3.pdf Note that
+  // the slide actually has a mistake when it denotes the value of E
+  // in the example
+
+  // 2 groups
+  const unsigned int groupCount = 2;
+  int *groupCounts = new int[groupCount];
+  // 5 in g0, 6 in g1
+  groupCounts[0] = 6;
+  groupCounts[1] = 6;
+
+  // 11 times total
+  const unsigned int length = 12;
+
+  assert(groupCounts[0] + groupCounts[1] == length);
+
+  double *targets = new double[2*length];
+  int *groups = new int[length];
+
+  // Define time, event and group status
+  // Make sure it is time ordered
+  int i = 0;
+  groups[i] = 1;
+  targets[2*i] = 3.1;
+  targets[2*i + 1] = 1;
+
+  i = 1;
+  groups[i] = 1;
+  targets[2*i] = 6.8;
+  targets[2*i + 1] = 0;
+
+  i = 2;
+  groups[i] = 0;
+  targets[2*i] = 8.7;
+  targets[2*i + 1] = 1;
+
+  i = 3;
+  groups[i] = 0;
+  targets[2*i] = 9.0;
+  targets[2*i + 1] = 1;
+
+  i = 4;
+  groups[i] = 1;
+  targets[2*i] = 9.0;
+  targets[2*i + 1] = 1;
+
+  i = 5;
+  groups[i] = 1;
+  targets[2*i] = 9.0;
+  targets[2*i + 1] = 1;
+
+  i = 6;
+  groups[i] = 0;
+  targets[2*i] = 10.1;
+  targets[2*i + 1] = 0;
+
+  i = 7;
+  groups[i] = 1;
+  targets[2*i] = 11.3;
+  targets[2*i + 1] = 0;
+
+  i = 8;
+  groups[i] = 0;
+  targets[2*i] = 12.1;
+  targets[2*i + 1] = 0;
+
+  i = 9;
+  groups[i] = 1;
+  targets[2*i] = 16.2;
+  targets[2*i + 1] = 1;
+
+  i = 10;
+  groups[i] = 0;
+  targets[2*i] = 18.7;
+  targets[2*i + 1] = 1;
+
+  i = 11;
+  groups[i] = 0;
+  targets[2*i] = 23.1;
+  targets[2*i + 1] = 0;
+
+  double stat = logRankStatistic(targets, groups, groupCounts,
+                                 length, groupCount);
+
+  printf("\nStat = %f", stat);
+  printf("\nsqrt(Stat) = %f", sqrt(stat));
+
+  assert(abs(stat - 1.620508) < 0.000001);
+
+  // Cleanup
+  delete[] targets;
+  delete[] groupCounts;
+  delete[] groups;
+
+  std::cout << "\nTestLogRank done.";
+}
+
 
 int main( int argc, const char* argv[] )
 {
+  testLogRank();
   testSoftmax();
   survLikTests();
   survMSETests();

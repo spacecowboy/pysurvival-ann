@@ -1,0 +1,15 @@
+#ifndef _STATISTICS_H_
+#define _STATISTICS_H_
+
+/**
+ * Note that targets is 2*length, groups is length containing
+ * groupCount unique integers from 0 to groupCount -1. groupCounts is
+ * groupCount long and sums to length.
+ */
+double logRankStatistic(const double * const targets,
+                        const int * const groups,
+                        const int * const groupCounts,
+                        const unsigned int length,
+                        const unsigned int groupCount);
+
+#endif /* _STATISTICS_H_ */
