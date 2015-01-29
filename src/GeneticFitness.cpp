@@ -28,6 +28,21 @@ double errorToFitness(ErrorFunction errorfunc,
   return fitness;
 }
 
+int getExpectedTargetCount(const FitnessFunction func) {
+  switch(func) {
+  case FitnessFunction::FITNESS_SURV_LIKELIHOOD:
+  case FitnessFunction::FITNESS_MSE_CENS:
+  case FitnessFunction::FITNESS_CINDEX:
+  case FitnessFunction::FITNESS_LOGRANK_MEAN:
+    // Expecting time and event
+    return 2;
+  default:
+    // By default, expecting same as number of outputs
+    return -1;
+  }
+}
+
+
 double getFitness(const FitnessFunction func,
                   const double * const Y,
                   const unsigned int length,

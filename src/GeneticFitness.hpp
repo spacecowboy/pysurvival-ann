@@ -36,4 +36,7 @@ double fitnessCIndex(const double * const Y,
                      const unsigned int numOfOutput,
                      const double * const outputs);
 
+// Anything less than 1 should be interpreted as number of outputs
+int getExpectedTargetCount(const FitnessFunction func);
+
 #endif // _GENETICFITNESS_H_

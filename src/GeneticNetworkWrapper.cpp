@@ -123,21 +123,38 @@ targets (2d array)");
       return NULL;
     }
 
-    // Objects were converted successfully. But make sure they are the same length!
+    // Objects were converted successfully. But make sure they are the
+    // correct length!
+    int expectedTargetCount =
+      getExpectedTargetCount(((GeneticNetwork*)self->super.net)->getFitnessFunction());
+    if (expectedTargetCount < 1) {
+      // Then expect output count
+      expectedTargetCount = self->super.net->OUTPUT_COUNT;
+    }
 
-    if (PyArray_DIM(inputArray, 0)!= PyArray_DIM(targetArray, 0) ||
-        (unsigned int)PyArray_DIM(inputArray, 1) != self->super.net->INPUT_COUNT ||
-        (unsigned int)PyArray_DIM(targetArray, 1) < self->super.net->OUTPUT_COUNT)
-      {
-        // Decrement, set error and return
-        PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same\
- number of rows. Also the target columns cannot be less than the number of\
- output neurons.");
-        Py_DECREF(inputArray);
-        Py_DECREF(targetArray);
+    int error = 0;
+    if (PyArray_DIM(inputArray, 0)!= PyArray_DIM(targetArray, 0)) {
+      error = 1;
+      PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same\
+ number of rows.");
+    }
+    if ((unsigned int)PyArray_DIM(inputArray, 1) != self->super.net->INPUT_COUNT) {
+      error = 1;
+      PyErr_Format(PyExc_ValueError, "Number of input columns must match number\
+of input neurons in network.");
+    }
 
-        return NULL;
-      }
+    if ((int)PyArray_DIM(targetArray, 1) != expectedTargetCount) {
+      error = 1;
+      PyErr_Format(PyExc_ValueError, "Number of target columns does not match\
+expected number based on fitness function.");
+    }
+
+    if (error == 1) {
+      Py_DECREF(inputArray);
+      Py_DECREF(targetArray);
+      return NULL;
+    }
 
     // Arguments are valid!
 /*
