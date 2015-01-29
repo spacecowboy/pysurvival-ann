@@ -11,6 +11,7 @@
 #include "GeneticSelection.hpp"
 #include "GeneticCrossover.hpp"
 #include "GeneticMutation.hpp"
+#include "Statistics.hpp"
 #include <algorithm>
 #include <vector>
 #include <stdio.h>
@@ -45,6 +46,74 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
   //printf("\n Gen Net Constructor\n");
 }
 
+double getClassFitness(const FitnessFunction func,
+                       GeneticNetwork * const pNet,
+                       const double * const X,
+                       const double * const Y,
+                       const unsigned int length,
+                       double * const outputs)
+{
+  double retval, winningOutput, outVal;
+  unsigned int i, j, nextGroup, groupCount = 0, winningGroup;
+  // Index of each output neuron
+  unsigned int activeOutputs[pNet->OUTPUT_COUNT];
+  // Store number of members in each group
+  unsigned int groupCounts[pNet->OUTPUT_COUNT];
+  // Group membership
+  unsigned int *groups = new unsigned int[length];
+
+  // Count active output neurons
+  for (i = pNet->OUTPUT_START; i < pNet->OUTPUT_END; i++) {
+    // Check diagonal connections
+    if (pNet->conns[i * pNet->LENGTH + i] == 1) {
+      // Active, remember index
+      activeOutputs[groupCount] = i - pNet->OUTPUT_START;
+      groupCount++;
+    }
+  }
+
+  // Classify each pattern, increasing group counts etc as we go along
+  for (i = 0; i < length; i++) {
+    pNet->output(X + i * pNet->INPUT_COUNT,
+                 outputs + i * pNet->OUTPUT_COUNT);
+    // Start with first group
+    nextGroup = 0;
+    // Default value is first active neuron
+    winningGroup = nextGroup;
+    winningOutput = outputs[i * pNet->OUTPUT_COUNT + activeOutputs[nextGroup]];
+    for (j = 0; j < pNet->OUTPUT_COUNT; j++) {
+      // Ignore inactive outputs
+      if (j == activeOutputs[nextGroup]) {
+        outVal = outputs[i * pNet->OUTPUT_COUNT + activeOutputs[nextGroup]];
+        // greater output, possible winner
+        if (outVal > winningOutput) {
+          winningGroup = nextGroup;
+          winningOutput = outVal;
+        }
+        // Check next group, next time
+        nextGroup++;
+      } else {
+        // This output is not active, ignore it
+      }
+    }
+
+    // Increment count of group members
+    groupCounts[winningGroup]++;
+    // And note winner
+    groups[i] = winningGroup;
+  }
+
+
+  // Evaluate performance, only one class function so far
+  retval = logRankStatistic(Y, groups, groupCounts, length, groupCount);
+
+  // Clean up
+  delete[] groups;
+
+  return retval;
+}
+
+
 double evaluateNetwork(const FitnessFunction fitnessFunction,
                        GeneticNetwork * const pNet,
                        const double * const X,
@@ -52,15 +121,25 @@ double evaluateNetwork(const FitnessFunction fitnessFunction,
                        const unsigned int length,
                        double * const outputs)
 {
-  unsigned int i;
-  for (i = 0; i < length; i++) {
-    pNet->output(X + i * pNet->INPUT_COUNT,
-                     outputs + i * pNet->OUTPUT_COUNT);
+  if (FitnessFunction::FITNESS_LOGRANK_MEAN == fitnessFunction) {
+    // Need to support a slightly different API for groups
+    return getClassFitness(fitnessFunction,
+                           pNet,
+                           X, Y, length,
+                           outputs);
+  } else {
+    unsigned int i;
+
+    for (i = 0; i < length; i++) {
+      pNet->output(X + i * pNet->INPUT_COUNT,
+                   outputs + i * pNet->OUTPUT_COUNT);
+    }
+
+    return getFitness(fitnessFunction,
+                      Y, length,
+                      pNet->OUTPUT_COUNT,
+                      outputs);
   }
-  return getFitness(fitnessFunction,
-                    Y, length,
-                    pNet->OUTPUT_COUNT,
-                    outputs);
 }
 
 void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,

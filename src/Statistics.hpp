@@ -7,8 +7,8 @@
  * groupCount long and sums to length.
  */
 double logRankStatistic(const double * const targets,
-                        const int * const groups,
-                        const int * const groupCounts,
+                        const unsigned int * const groups,
+                        const unsigned int * const groupCounts,
                         const unsigned int length,
                         const unsigned int groupCount);
 

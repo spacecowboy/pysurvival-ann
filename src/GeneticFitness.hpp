@@ -8,7 +8,8 @@
 enum class FitnessFunction { FITNESS_MSE,
     FITNESS_CINDEX,
     FITNESS_MSE_CENS,
-    FITNESS_SURV_LIKELIHOOD};
+    FITNESS_SURV_LIKELIHOOD,
+    FITNESS_LOGRANK_MEAN};
 
 /*
  * Signature for a fitness function
@@ -24,7 +25,7 @@ enum class FitnessFunction { FITNESS_MSE,
 // FitnessFunctionPtr getFitnessFunctionPtr(const FitnessFunction val);
 
 // Evaluate the specified function
-double getFitness(FitnessFunction func,
+double getFitness(const FitnessFunction func,
                   const double * const Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,

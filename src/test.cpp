@@ -860,7 +860,7 @@ void testLogRank() {
 
   // 2 groups
   const unsigned int groupCount = 2;
-  int *groupCounts = new int[groupCount];
+  unsigned int *groupCounts = new unsigned int[groupCount];
   // 5 in g0, 6 in g1
   groupCounts[0] = 6;
   groupCounts[1] = 6;
@@ -871,7 +871,7 @@ void testLogRank() {
   assert(groupCounts[0] + groupCounts[1] == length);
 
   double *targets = new double[2*length];
-  int *groups = new int[length];
+  unsigned int *groups = new unsigned int[length];
 
   // Define time, event and group status
   // Make sure it is time ordered
@@ -950,7 +950,6 @@ void testLogRank() {
 
   std::cout << "\nTestLogRank done.";
 }
-
 
 int main( int argc, const char* argv[] )
 {

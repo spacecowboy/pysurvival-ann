@@ -1,6 +1,7 @@
 #include "GeneticFitness.hpp"
 #include "ErrorFunctions.hpp"
 #include "c_index.h"
+#include "Statistics.hpp"
 #include <math.h>
 
 /**
@@ -27,7 +28,7 @@ double errorToFitness(ErrorFunction errorfunc,
   return fitness;
 }
 
-double getFitness(FitnessFunction func,
+double getFitness(const FitnessFunction func,
                   const double * const Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
