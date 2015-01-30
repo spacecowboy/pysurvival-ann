@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include <algorithm>
 #include "Statistics.hpp"
 
 
@@ -21,15 +22,23 @@ double logRankStatistic(const double * const targets,
   double fails[groupCount], cens[groupCount], atRisk[groupCount],
     expectedSum[groupCount*groupCount], observedSum[groupCount],
     varianceSum[groupCount*groupCount];
+
+  std::fill(fails, fails + groupCount, 0);
+  std::fill(cens, cens + groupCount, 0);
+  std::fill(observedSum, observedSum + groupCount, 0);
+  std::fill(expectedSum, expectedSum + groupCount*groupCount, 0);
+  std::fill(varianceSum, varianceSum + groupCount*groupCount, 0);
+
   for (i = 0; i < groupCount; i++) {
-    fails[i] = 0;
-    cens[i] = 0;
+    //fails[i] = 0;
+    //cens[i] = 0;
+    //printf("\nGroup %i has %i members\n", i, groupCounts[i]);
     atRisk[i] = groupCounts[i];
-    observedSum[i] = 0;
-    for (j = i + 1; j < groupCount; j++) {
-      expectedSum[i * groupCount + j] = 0;
-      varianceSum[i * groupCount + j] = 0;
-    }
+    //observedSum[i] = 0;
+    //for (j = i + 1; j < groupCount; j++) {
+    //  expectedSum[i * groupCount + j] = 0;
+    //  varianceSum[i * groupCount + j] = 0;
+    //}
   }
 
   double expected, var, totalRisk, totalFail;
@@ -74,9 +83,15 @@ double logRankStatistic(const double * const targets,
             //printf("\nExpect: %f", expected);
             expectedSum[j * groupCount + k] += expected;
             // Variance, includes expected as a term
-            var = (atRisk[k] / (totalRisk - 1)) * (1 - totalFail/totalRisk) * expected;
-            //printf("\nVariance: %f", var);
-            varianceSum[j * groupCount + k] += var;
+            // Not sure how to handle this correctly... TODO
+            if (expected > 0 && totalRisk > 1) {
+              // Or we might get a NaN
+              var = (atRisk[k] / (totalRisk - 1)) * (1 - totalFail/totalRisk) * expected;
+              //printf("Var: (%f / %f) * %f * %f = %f\n", atRisk[k], (totalRisk - 1),
+              //       (1 - totalFail/totalRisk), expected, var);
+              //printf("\nVariance: %f", var);
+              varianceSum[j * groupCount + k] += var;
+            }
           }
         }
         // Last thing to do is to reset counts again
@@ -119,7 +134,7 @@ double logRankStatistic(const double * const targets,
   double stat;
   // n will be groupcount * (groupcount - 1) / 2
   double n = 0;
-  printf("\nChecking pairwise...\n");
+  //printf("\nChecking pairwise...\n");
   for (j = 0; j < groupCount; j++) {
     for (k = j + 1; k < groupCount; k++) {
       n++;
@@ -127,10 +142,15 @@ double logRankStatistic(const double * const targets,
       //printf("\nExpectedSum = %f", expectedSum[j * groupCount + k]);
       //printf("\nVarianceSum = %f", varianceSum[j * groupCount + k]);
 
+      //printf("Pre stat: %f - %f = %f **2 = %f\n", observedSum[j],
+      //       expectedSum[j * groupCount + k],
+      //       observedSum[j] - expectedSum[j * groupCount + k],
+      //       pow(observedSum[j] - expectedSum[j * groupCount + k], 2));
+
       stat = pow(observedSum[j] - expectedSum[j * groupCount + k], 2)
         / varianceSum[j * groupCount + k];
-      printf("Pairwise stat %i-%i: %f (%i vs %i)\n", j, k, stat,
-             groupCounts[j], groupCounts[k]);
+      //printf("Pairwise stat %i-%i: %f (%i vs %i) [%f]\n", j, k, stat,
+      //       groupCounts[j], groupCounts[k], varianceSum[j * groupCount + k]);
       sum += stat;
     }
   }
@@ -145,6 +165,6 @@ double logRankStatistic(const double * const targets,
     }
     }*/
 
-  //printf("\nReturning fitness %f\n", sum / n);
+  //printf("\nReturning fitness %f / %f = %f\n", sum, n, sum / n);
   return sum / n;
 }

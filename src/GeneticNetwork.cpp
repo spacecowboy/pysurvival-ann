@@ -74,7 +74,7 @@ double getClassFitness(const FitnessFunction func,
     }
   }
 
-  printf("Length: %i, Groups: %i\n", length, groupCount);
+  //printf("Length: %i, Groups: %i\n", length, groupCount);
 
   // Classify each pattern, increasing group counts etc as we go along
   for (i = 0; i < length; i++) {
