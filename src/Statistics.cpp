@@ -116,8 +116,10 @@ double logRankStatistic(const double * const targets,
 
   // Test statistic is now simply the mean
   double sum = 0;
+  double stat;
   // n will be groupcount * (groupcount - 1) / 2
   double n = 0;
+  printf("\nChecking pairwise...\n");
   for (j = 0; j < groupCount; j++) {
     for (k = j + 1; k < groupCount; k++) {
       n++;
@@ -125,10 +127,24 @@ double logRankStatistic(const double * const targets,
       //printf("\nExpectedSum = %f", expectedSum[j * groupCount + k]);
       //printf("\nVarianceSum = %f", varianceSum[j * groupCount + k]);
 
-      sum += pow(observedSum[j] - expectedSum[j * groupCount + k], 2)
+      stat = pow(observedSum[j] - expectedSum[j * groupCount + k], 2)
         / varianceSum[j * groupCount + k];
+      printf("Pairwise stat %i-%i: %f (%i vs %i)\n", j, k, stat,
+             groupCounts[j], groupCounts[k]);
+      sum += stat;
     }
   }
 
+  /*
+  // This is just for testing
+  for (j = 0; j < groupCount; j++) {
+    // Return 0 if any groups are less than some value
+    if (groupCounts[j] < 30) {
+      printf("\nReturning zero fitness...\n");
+      return 0;
+    }
+    }*/
+
+  //printf("\nReturning fitness %f\n", sum / n);
   return sum / n;
 }

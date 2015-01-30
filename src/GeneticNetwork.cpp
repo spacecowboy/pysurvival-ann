@@ -59,6 +59,8 @@ double getClassFitness(const FitnessFunction func,
   unsigned int activeOutputs[pNet->OUTPUT_COUNT];
   // Store number of members in each group
   unsigned int groupCounts[pNet->OUTPUT_COUNT];
+  // Need to initialize it to zero
+  std::fill(groupCounts, groupCounts + pNet->OUTPUT_COUNT, 0);
   // Group membership
   unsigned int *groups = new unsigned int[length];
 
@@ -71,6 +73,8 @@ double getClassFitness(const FitnessFunction func,
       groupCount++;
     }
   }
+
+  printf("Length: %i, Groups: %i\n", length, groupCount);
 
   // Classify each pattern, increasing group counts etc as we go along
   for (i = 0; i < length; i++) {
