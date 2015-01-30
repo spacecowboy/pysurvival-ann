@@ -99,6 +99,7 @@ double *MatrixNetwork::output(const double * const inputs,
 
   // outputMax is used to normalize the outputs to avoid overflow
   outputMax = 0;
+  printf("\nIn output: %f", inputs[INPUT_START]);
 
   // First set input values
   for (i = INPUT_START; i < INPUT_END; i++) {
@@ -120,6 +121,19 @@ double *MatrixNetwork::output(const double * const inputs,
       }
 
       outputs[i] = evaluateActFunction(actFuncs[i], sum);
+      if (i >= OUTPUT_START) {
+        printf("\n1 ");
+        if (SOFTMAX == actFuncs[i]) {
+          printf("SOFT ");
+        } else {
+          printf("HARD%i ", actFuncs[i]);
+        }
+        if (abs(outputs[i]) > outputMax) {
+          printf("%f > %f", abs(outputs[i]), outputMax);
+        } else {
+          printf("%f <= %f (%f)", abs(outputs[i]), outputMax, outputs[i]);
+        }
+      }
 
       // Keep track of largest output neuron value for normalization
       if (i >= OUTPUT_START && SOFTMAX == actFuncs[i]

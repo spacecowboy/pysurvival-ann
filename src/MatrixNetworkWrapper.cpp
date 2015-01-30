@@ -100,13 +100,13 @@ extern "C" {
       }
     }
 
-	// compute output
-	double dResult[self->net->OUTPUT_COUNT];
-	self->net->output(dInputs, dResult);
+    // compute output
+    double dResult[self->net->OUTPUT_COUNT];
+    self->net->output(dInputs, dResult);
 
-	// Now convert to numpy array
-	npy_intp dims[1] = { (int) self->net->OUTPUT_COUNT };
-	PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    // Now convert to numpy array
+    npy_intp dims[1] = { (int) self->net->OUTPUT_COUNT };
+    PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, 0);
 
     std::copy(dResult, dResult + self->net->OUTPUT_COUNT,
@@ -114,7 +114,7 @@ extern "C" {
 
     delete[] dInputs;
 
-	return result;
+    return result;
   }
 
   /*
