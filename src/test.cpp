@@ -830,7 +830,7 @@ void testSoftmax() {
     double *inputs = new double[m.INPUT_COUNT]();
 
     for (unsigned int i = m.INPUT_START; i < m.INPUT_END; i++) {
-      inputs[i] = 2;
+      inputs[i] = -99;
     }
 
     m.output(inputs, outputs);

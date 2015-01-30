@@ -123,7 +123,7 @@ double *MatrixNetwork::output(const double * const inputs,
 
       // Keep track of largest output neuron value for normalization
       if (i >= OUTPUT_START && SOFTMAX == actFuncs[i]
-          && abs(outputs[i] > outputMax)) {
+          && abs(outputs[i]) > outputMax) {
         outputMax = abs(outputs[i]);
       }
     } else {
