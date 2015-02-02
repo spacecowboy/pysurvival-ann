@@ -96,9 +96,10 @@ double *MatrixNetwork::output(const double * const inputs,
                double * const ret_outputs) {
   unsigned int i, j, target;
   double sum, outputSum, outputMax;
+  bool first = true;
 
   // outputMax is used to normalize the outputs to avoid overflow
-  outputMax = 0;
+  // outputMax = 0;
 
   // First set input values
   for (i = INPUT_START; i < INPUT_END; i++) {
@@ -123,8 +124,9 @@ double *MatrixNetwork::output(const double * const inputs,
 
       // Keep track of largest output neuron value for normalization
       if (i >= OUTPUT_START && SOFTMAX == actFuncs[i]
-          && abs(outputs[i]) > outputMax) {
-        outputMax = abs(outputs[i]);
+          && (first || outputs[i] > outputMax)) {
+        outputMax = outputs[i];
+        first = false;
       }
     } else {
       // Neuron is not active
@@ -142,7 +144,7 @@ double *MatrixNetwork::output(const double * const inputs,
     for (i = OUTPUT_START; i < OUTPUT_END; i++) {
       if (1 == conns[LENGTH * i + i]) {
         // Only active neurons are included, other should have been set to 0
-        outputs[i] = exp(outputs[i] / outputMax);
+        outputs[i] = exp(outputs[i] - outputMax);
         // Remember sum of all outputs
         outputSum += outputs[i];
       }
