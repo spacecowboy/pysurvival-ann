@@ -134,9 +134,8 @@ double *MatrixNetwork::output(const double * const inputs,
     }
   }
 
-  // Outputmax > 0 only if softmax is active
-  // Also neatly avoids divisions by zero
-  if (outputMax > 0) {
+  // Need to do Softmax calculation
+  if (SOFTMAX == actFuncs[OUTPUT_START]) {
     // Set outputSum to zero
     outputSum = 0;
 
