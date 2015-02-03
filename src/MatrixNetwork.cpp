@@ -95,11 +95,8 @@ ActivationFuncEnum MatrixNetwork::getHiddenActivationFunction() {
 double *MatrixNetwork::output(const double * const inputs,
                double * const ret_outputs) {
   unsigned int i, j, target;
-  double sum, outputSum, outputMax;
+  double sum, outputSum, outputMax=0;
   bool first = true;
-
-  // outputMax is used to normalize the outputs to avoid overflow
-  // outputMax = 0;
 
   // First set input values
   for (i = INPUT_START; i < INPUT_END; i++) {
@@ -143,6 +140,7 @@ double *MatrixNetwork::output(const double * const inputs,
     for (i = OUTPUT_START; i < OUTPUT_END; i++) {
       if (1 == conns[LENGTH * i + i]) {
         // Only active neurons are included, other should have been set to 0
+        // Use outputmax to protect against overflow
         outputs[i] = exp(outputs[i] - outputMax);
         // Remember sum of all outputs
         outputSum += outputs[i];
