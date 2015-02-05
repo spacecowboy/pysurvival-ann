@@ -52,9 +52,9 @@ extern "C" {
     PyDict_SetItemString(dict, "FITNESS_SURV_LIKELIHOOD",
                          Py_BuildValue("i",
                                        FitnessFunction::FITNESS_SURV_LIKELIHOOD));
-    PyDict_SetItemString(dict, "FITNESS_LOGRANK_MEAN",
+    PyDict_SetItemString(dict, "FITNESS_TARONEWARE_MEAN",
                          Py_BuildValue("i",
-                                       FitnessFunction::FITNESS_LOGRANK_MEAN));
+                                       FitnessFunction::FITNESS_TARONEWARE_MEAN));
 
     // Statistics
         // Fitness

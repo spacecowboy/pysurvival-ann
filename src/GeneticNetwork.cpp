@@ -128,7 +128,7 @@ double evaluateNetwork(const FitnessFunction fitnessFunction,
                        const unsigned int length,
                        double * const outputs)
 {
-  if (FitnessFunction::FITNESS_LOGRANK_MEAN == fitnessFunction) {
+  if (FitnessFunction::FITNESS_TARONEWARE_MEAN == fitnessFunction) {
     // Need to support a slightly different API for groups
     return getClassFitness(fitnessFunction,
                            pNet,

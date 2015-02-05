@@ -296,7 +296,11 @@ Zero by default.", NULL},
    (setter)GenNetwork_setWeightEliminationLambda,                      \
    (char*)"Coefficient (l) for soft weight elimination: \
 P = sum( w^2 / [l^2 + w^2] ). Zero by default.", NULL},
-
+  {(char*)"taroneware_statistic",                  \
+   (getter)GenNetwork_getTaroneWareStatistic, \
+   (setter)GenNetwork_setTaroneWareStatistic,                      \
+   (char*)"What weighting to use with TaroneWare fitness function. \
+LogRank (weights=1) used by default.", NULL},
   /*
   {(char*)"resume",              \
    (getter)GenNetwork_getResume, \
