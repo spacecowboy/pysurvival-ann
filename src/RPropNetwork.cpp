@@ -8,7 +8,6 @@
 #include "RPropNetwork.hpp"
 #include "ErrorFunctions.hpp"
 #include "activationfunctions.hpp"
-#include "drand.h"
 #include <cmath>
 #include <stdio.h>
 #include <iostream>
