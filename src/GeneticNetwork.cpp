@@ -228,8 +228,7 @@ void breedNetworks(GeneticNetwork &self,
                    const unsigned int curGen,
                    const double * const X,
                    const double * const Y,
-                   const unsigned int length,
-                   const unsigned int randomSeed)
+                   const unsigned int length)
 {
 #pragma omp parallel default(none) shared(self, sortedPopulation, sortedFitness)
   {
@@ -240,7 +239,7 @@ void breedNetworks(GeneticNetwork &self,
     double bFitness, sFitness, mFitness, fFitness;
     double *outputs = new double[self.OUTPUT_COUNT * length];
 
-    Random rand(randomSeed);
+    Random rand;
 
     GeneticSelector selector(rand);
     GeneticMutator mutator(rand);
@@ -438,11 +437,11 @@ void GeneticNetwork::learn(const double * const X,
     //for (i = 0; i < num_threads; i++) {
     //      try {
         //        threads.push_back(std::thread(
-        breedNetworks(std::ref(*this),
-                      std::ref(sortedPopulation),
-                      std::ref(sortedFitness),
+        breedNetworks(*this,
+                      sortedPopulation,
+                      sortedFitness,
                       populationSize, curGen,
-                      X, Y, length, rand.uint());
+                      X, Y, length);
             //                            ));
 
         //      }
