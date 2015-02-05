@@ -41,7 +41,8 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
   decayL2(0),
   decayL1(0),
   weightElimination(0),
-  weightEliminationLambda(0)
+  weightEliminationLambda(0),
+  taroneWareStatistic(TaroneWareType::LOGRANK)
 {
   //printf("\n Gen Net Constructor\n");
 }
@@ -109,7 +110,9 @@ double getClassFitness(const FitnessFunction func,
 
 
   // Evaluate performance, only one class function so far
-  retval = TaroneWareStatistic(Y, groups, groupCounts, length, groupCount);
+  // Each child is responsible for carrying information about fitness function
+  retval = TaroneWareStatistic(Y, groups, groupCounts, length, groupCount,
+                               pNet->getTaroneWareStatistic());
 
   // Clean up
   delete[] groups;
@@ -510,6 +513,9 @@ void GeneticNetwork::learn(const double * const X,
 
 
 void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
+  // Need to have the same statistic set on all
+  this->setTaroneWareStatistic(original.getTaroneWareStatistic());
+  // Now copy all structure
   std::copy(original.weights,
             original.weights + original.LENGTH * original.LENGTH,
             this->weights);
@@ -630,6 +636,14 @@ double GeneticNetwork::getCrossoverChance() const {
 void GeneticNetwork::setCrossoverChance(double val) {
   this->crossoverChance = val;
 }
+
+TaroneWareType GeneticNetwork::getTaroneWareStatistic() const {
+  return taroneWareStatistic;
+}
+void GeneticNetwork::setTaroneWareStatistic(TaroneWareType stat) {
+  this->taroneWareStatistic = stat;
+}
+
 
 /*
 double weightSquaredSum2(FFNetwork &net) {

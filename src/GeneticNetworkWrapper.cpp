@@ -9,7 +9,7 @@
 #include "GeneticSelection.hpp"
 #include "GeneticCrossover.hpp"
 #include "GeneticFitness.hpp"
-
+#include "Statistics.hpp"
 
 extern "C" {
 
@@ -55,6 +55,18 @@ extern "C" {
     PyDict_SetItemString(dict, "FITNESS_LOGRANK_MEAN",
                          Py_BuildValue("i",
                                        FitnessFunction::FITNESS_LOGRANK_MEAN));
+
+    // Statistics
+        // Fitness
+    PyDict_SetItemString(dict, "TARONEWARE_LOGRANK",
+                         Py_BuildValue("i",
+                                       TaroneWareType::LOGRANK));
+    PyDict_SetItemString(dict, "TARONEWARE_GEHAN",
+                         Py_BuildValue("i",
+                                       TaroneWareType::GEHAN));
+    PyDict_SetItemString(dict, "TARONEWARE_TARONEWARE",
+                         Py_BuildValue("i",
+                                       TaroneWareType::TARONEWARE));
 
   }
 
@@ -580,6 +592,35 @@ expected number based on fitness function.");
 
     ((GeneticNetwork*)self->super.net)->
       setFitnessFunction((FitnessFunction) i);
+    return 0;
+  }
+
+  PyObject *GenNetwork_getTaroneWareStatistic(PyGenNetwork *self,
+                                              void *closure) {
+    return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
+                         getTaroneWareStatistic());
+  }
+
+  int GenNetwork_setTaroneWareStatistic(PyGenNetwork *self, PyObject *value,
+                                        void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    if (! PyInt_Check(value)) {
+      PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
+      return 1;
+    }
+
+    long i = PyInt_AsLong(value);
+
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    ((GeneticNetwork*)self->super.net)->
+      setTaroneWareStatistic((TaroneWareType) i);
     return 0;
   }
 }

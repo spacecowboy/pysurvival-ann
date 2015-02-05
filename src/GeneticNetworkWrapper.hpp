@@ -130,6 +130,11 @@ extern "C" {
                                     PyObject *value,
                                     void *closure);
 
+  PyObject *GenNetwork_getTaroneWareStatistic(PyGenNetwork *self,
+                                              void *closure);
+  int GenNetwork_setTaroneWareStatistic(PyGenNetwork *self,
+                                        PyObject *value,
+                                        void *closure);
 
 
   /*

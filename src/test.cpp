@@ -935,13 +935,32 @@ void testLogRank() {
   targets[2*i] = 23.1;
   targets[2*i + 1] = 0;
 
+  printf("\nLogRank:");
   double stat = TaroneWareStatistic(targets, groups, groupCounts,
-                                    length, groupCount);
+                                    length, groupCount,
+                                    TaroneWareType::LOGRANK);
 
   printf("\nStat = %f", stat);
   printf("\nsqrt(Stat) = %f", sqrt(stat));
 
   assert(abs(stat - 1.620508) < 0.000001);
+
+  printf("\nGehan:");
+  stat = TaroneWareStatistic(targets, groups, groupCounts,
+                                    length, groupCount,
+                                    TaroneWareType::GEHAN);
+
+  printf("\nStat = %f", stat);
+  printf("\nsqrt(Stat) = %f", sqrt(stat));
+
+  printf("\nTaroneWare:");
+  stat = TaroneWareStatistic(targets, groups, groupCounts,
+                                    length, groupCount,
+                                    TaroneWareType::TARONEWARE);
+
+  printf("\nStat = %f", stat);
+  printf("\nsqrt(Stat) = %f", sqrt(stat));
+
 
   // Cleanup
   delete[] targets;

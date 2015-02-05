@@ -13,7 +13,8 @@ double TaroneWareStatistic(const double * const targets,
                            const unsigned int * const groups,
                            const unsigned int * const groupCounts,
                            const unsigned int length,
-                           const unsigned int groupCount) {
+                           const unsigned int groupCount,
+                           const TaroneWareType twType) {
   unsigned int i, j, k;
   double lastTime, weight;
   bool hasFails = false, hasCens = false;
@@ -72,8 +73,19 @@ double TaroneWareStatistic(const double * const targets,
           // If total risk = 0, then none of the sums will have more terms added
           // If we reach the end and have only censored, then this means stop
           if (totalRisk > 0 && totalFail > 0) {
-            // Weight depends on choice of statistic. TODO
-            weight = 1.0; // LogRank
+            // Weight depends on choice of statistic.
+            switch (twType) {
+            case TaroneWareType::GEHAN:
+              weight = totalRisk;
+              break;
+            case TaroneWareType::TARONEWARE:
+              weight = sqrt(totalRisk);
+              break;
+            case TaroneWareType::LOGRANK:
+            default:
+              weight = 1.0;
+              break;
+            }
 
             // Sum up all failures observed
             observedSum[j * groupCount + k] += weight * fails[j];

@@ -5,6 +5,7 @@
 #include "GeneticFitness.hpp"
 #include "GeneticSelection.hpp"
 #include "GeneticCrossover.hpp"
+#include "Statistics.hpp"
 #include <vector>
 
 using namespace std;
@@ -51,6 +52,9 @@ class GeneticNetwork: public MatrixNetwork {
   double weightElimination;
   // Factor (l) for soft weight elimination: P = sum( w^2 / (l^2 + w^2) )
   double weightEliminationLambda;
+
+  // Statistic used if fitness function is TaroneWare
+  TaroneWareType taroneWareStatistic;
 
   // Methods
   GeneticNetwork(const unsigned int numOfInputs,
@@ -110,6 +114,9 @@ class GeneticNetwork: public MatrixNetwork {
 
   FitnessFunction getFitnessFunction() const;
   void setFitnessFunction(FitnessFunction val);
+
+  TaroneWareType getTaroneWareStatistic() const;
+  void setTaroneWareStatistic(TaroneWareType stat);
 };
 
 // Calculate the sum of all weights squared (L2 norm)
