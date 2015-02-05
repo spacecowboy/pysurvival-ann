@@ -935,8 +935,8 @@ void testLogRank() {
   targets[2*i] = 23.1;
   targets[2*i + 1] = 0;
 
-  double stat = logRankStatistic(targets, groups, groupCounts,
-                                 length, groupCount);
+  double stat = TaroneWareStatistic(targets, groups, groupCounts,
+                                    length, groupCount);
 
   printf("\nStat = %f", stat);
   printf("\nsqrt(Stat) = %f", sqrt(stat));

@@ -9,23 +9,23 @@
  * groupCount unique integers from 0 to groupCount -1. groupCounts is
  * groupCount long and sums to length.
  */
-double logRankStatistic(const double * const targets,
-                        const unsigned int * const groups,
-                        const unsigned int * const groupCounts,
-                        const unsigned int length,
-                        const unsigned int groupCount) {
+double TaroneWareStatistic(const double * const targets,
+                           const unsigned int * const groups,
+                           const unsigned int * const groupCounts,
+                           const unsigned int length,
+                           const unsigned int groupCount) {
   unsigned int i, j, k;
-  double lastTime;
+  double lastTime, weight;
   bool hasFails = false, hasCens = false;
 
   // Initialize count variables
   double fails[groupCount], cens[groupCount], atRisk[groupCount],
-    expectedSum[groupCount*groupCount], observedSum[groupCount],
+    expectedSum[groupCount*groupCount], observedSum[groupCount*groupCount],
     varianceSum[groupCount*groupCount];
 
   std::fill(fails, fails + groupCount, 0);
   std::fill(cens, cens + groupCount, 0);
-  std::fill(observedSum, observedSum + groupCount, 0);
+  std::fill(observedSum, observedSum + groupCount*groupCount, 0);
   std::fill(expectedSum, expectedSum + groupCount*groupCount, 0);
   std::fill(varianceSum, varianceSum + groupCount*groupCount, 0);
 
@@ -65,9 +65,6 @@ double logRankStatistic(const double * const targets,
       // All statistics for unique time i-1 done
       // Do group stuff, always comparing j to k since k to j is equivalent
       for (j = 0; j < groupCount; j++) {
-        // Sum up all failures observed
-        observedSum[j] += fails[j];
-
         // Will skip this for last group, but rest must be done
         for (k = j + 1; k < groupCount; k++) {
           totalRisk = atRisk[j] + atRisk[k];
@@ -75,22 +72,30 @@ double logRankStatistic(const double * const targets,
           // If total risk = 0, then none of the sums will have more terms added
           // If we reach the end and have only censored, then this means stop
           if (totalRisk > 0 && totalFail > 0) {
+            // Weight depends on choice of statistic. TODO
+            weight = 1.0; // LogRank
+
+            // Sum up all failures observed
+            observedSum[j * groupCount + k] += weight * fails[j];
+
             //printf("\nTotalRisk: %f + %f = %f", atRisk[j], atRisk[k], totalRisk);
             //printf("\nTotalFail: %f + %f = %f", fails[j], fails[k], totalFail);
 
             // Expected failure count: relative group size * total failures
             expected = (atRisk[j] / totalRisk) * (totalFail);
             //printf("\nExpect: %f", expected);
-            expectedSum[j * groupCount + k] += expected;
-            // Variance, includes expected as a term
-            // Not sure how to handle this correctly... TODO
+            expectedSum[j * groupCount + k] += weight * expected;
+            // Variance will also be zero if expected is zero
             if (expected > 0 && totalRisk > 1) {
               // Or we might get a NaN
-              var = (atRisk[k] / (totalRisk - 1)) * (1 - totalFail/totalRisk) * expected;
+              var = totalFail * (totalRisk - totalFail) / (totalRisk - 1)
+                * atRisk[j] / totalRisk
+                * (1 - atRisk[j] / totalRisk);
+
               //printf("Var: (%f / %f) * %f * %f = %f\n", atRisk[k], (totalRisk - 1),
               //       (1 - totalFail/totalRisk), expected, var);
               //printf("\nVariance: %f", var);
-              varianceSum[j * groupCount + k] += var;
+              varianceSum[j * groupCount + k] += var * pow(weight, 2);
             }
           }
         }
@@ -147,7 +152,7 @@ double logRankStatistic(const double * const targets,
       //       observedSum[j] - expectedSum[j * groupCount + k],
       //       pow(observedSum[j] - expectedSum[j * groupCount + k], 2));
 
-      stat = pow(observedSum[j] - expectedSum[j * groupCount + k], 2)
+      stat = pow(observedSum[j * groupCount + k] - expectedSum[j * groupCount + k], 2)
         / varianceSum[j * groupCount + k];
       //printf("Pairwise stat %i-%i: %f (%i vs %i) [%f]\n", j, k, stat,
       //       groupCounts[j], groupCounts[k], varianceSum[j * groupCount + k]);

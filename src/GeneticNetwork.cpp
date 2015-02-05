@@ -109,7 +109,7 @@ double getClassFitness(const FitnessFunction func,
 
 
   // Evaluate performance, only one class function so far
-  retval = logRankStatistic(Y, groups, groupCounts, length, groupCount);
+  retval = TaroneWareStatistic(Y, groups, groupCounts, length, groupCount);
 
   // Clean up
   delete[] groups;
