@@ -509,46 +509,6 @@ void GeneticNetwork::learn(const double * const X,
 }
 
 
-/*
-void
-GeneticNetwork::mutateWeights(boost::variate_generator<boost::mt19937&,
-                                   boost::normal_distribution<double> >
-                                   &gaussian,
-                                   boost::variate_generator<boost::mt19937&,
-                                   boost::uniform_real<double> >
-                                   &uniform,
-                                   const double mutationChance,
-                                   const double factor,
-                                   const int deviationHalfPoint,
-                                   const int epoch,
-                                   const bool independent) {
-
-  double currentFactor = factor;
-  if (deviationHalfPoint > 0 && epoch > 0) {
-    currentFactor = factor * (1.0 - 0.5 * ((double) epoch /
-                                           (double) deviationHalfPoint));
-  }
-  // Neuron should calculate its own variance
-  unsigned int n;
-  for (n = 0; n < numOfHidden; n++) {
-    ((GeneticNeuron*) hiddenNeurons[n])->mutateWeights(gaussian,
-                                                       uniform,
-                                                       mutationChance,
-                                                       currentFactor,
-                                                       independent,
-                                                       false);
-  }
-  for (n = 0; n < numOfOutput; n++) {
-    ((GeneticNeuron*) outputNeurons[n])->mutateWeights(gaussian,
-                                                       uniform,
-                                                       mutationChance,
-                                                       currentFactor,
-                                                       independent,
-                                                       false);
-    }
-    }*/
-
-
 void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
   std::copy(original.weights,
             original.weights + original.LENGTH * original.LENGTH,

@@ -172,11 +172,11 @@ void geneticXOR() {
   double preds[1];
 
 
-  // std::cout << "\nPredictions\n";
+   std::cout << "\nPredictions\n";
   for (int i = 0; i < 4; i++) {
     net.output(X + 2 * i, preds);
-    // std::cout << X[2*i] << " "<< X[2*i + 1]
-      //        << " : " << preds[0] << "\n";
+     std::cout << X[2*i] << " "<< X[2*i + 1]
+              << " : " << preds[0] << "\n";
   }
 
   // Print structure

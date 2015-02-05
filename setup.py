@@ -7,7 +7,7 @@ General instructions:
 To include parts that depend on R's survival module, do:
   python setup.py build --with-R
 
-Info: This package depends on numpy, boost-random and optionally R, RInside
+Info: This package depends on numpy, and optionally R, RInside
 """
 
 from distutils.core import setup, Extension
@@ -41,11 +41,11 @@ sources = ['src/PythonModule.cpp',
 
 # Numpy stuff
 numpy_include = numpy.get_include()
-#linkargs = [] #['-Wl,--no-undefined', '-lboost_random-mt']
+
 compileargs = []
-libs=[]
-libdirs=[]
-linkargs, libs = [], ['boost_random']
+libs = []
+libdirs = []
+linkargs = []
 
 #if ("--help" in sys.argv or
 if ("-h" in sys.argv or
