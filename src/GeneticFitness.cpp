@@ -34,6 +34,7 @@ int getExpectedTargetCount(const FitnessFunction func) {
   case FitnessFunction::FITNESS_MSE_CENS:
   case FitnessFunction::FITNESS_CINDEX:
   case FitnessFunction::FITNESS_TARONEWARE_MEAN:
+  case FitnessFunction::FITNESS_TARONEWARE_HIGHLOW:
     // Expecting time and event
     return 2;
   default:

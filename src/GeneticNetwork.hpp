@@ -55,6 +55,10 @@ class GeneticNetwork: public MatrixNetwork {
 
   // Statistic used if fitness function is TaroneWare
   TaroneWareType taroneWareStatistic;
+  // Used to penalize small groups in TaroneWareHighLow
+  unsigned int taroneWareMinGroup;
+  unsigned int taroneWarePenalExponent;
+
 
   // Methods
   GeneticNetwork(const unsigned int numOfInputs,
@@ -117,6 +121,13 @@ class GeneticNetwork: public MatrixNetwork {
 
   TaroneWareType getTaroneWareStatistic() const;
   void setTaroneWareStatistic(TaroneWareType stat);
+
+  unsigned int getTaroneWareMinGroup() const;
+  void setTaroneWareMinGroup(unsigned int n);
+
+  unsigned int getTaroneWarePenalExponent() const;
+  void setTaroneWarePenalExponent(unsigned int n);
+
 };
 
 // Calculate the sum of all weights squared (L2 norm)

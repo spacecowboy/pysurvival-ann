@@ -42,7 +42,9 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
   decayL1(0),
   weightElimination(0),
   weightEliminationLambda(0),
-  taroneWareStatistic(TaroneWareType::LOGRANK)
+  taroneWareStatistic(TaroneWareType::LOGRANK),
+  taroneWareMinGroup(1),
+  taroneWarePenalExponent(1)
 {
   //printf("\n Gen Net Constructor\n");
 }
@@ -109,10 +111,30 @@ double getClassFitness(const FitnessFunction func,
   }
 
 
-  // Evaluate performance, only one class function so far
+  // Evaluate performance
   // Each child is responsible for carrying information about fitness function
-  retval = TaroneWareStatistic(Y, groups, groupCounts, length, groupCount,
+  switch (func) {
+  case FitnessFunction::FITNESS_TARONEWARE_MEAN:
+    retval = TaroneWareMeanPairwise(Y, groups, groupCounts, length, groupCount,
+                                    pNet->getTaroneWareStatistic());
+    break;
+  case FitnessFunction::FITNESS_TARONEWARE_HIGHLOW:
+    retval = TaroneWareHighLow(Y, groups, groupCounts, length, groupCount,
                                pNet->getTaroneWareStatistic());
+    // Penalize small groups
+    if (groupCounts[0] < pNet->getTaroneWareMinGroup()) {
+      retval *= pow(((double) groupCounts[0]) / ((double) pNet->getTaroneWareMinGroup()),
+                    pNet->getTaroneWarePenalExponent());
+    }
+    if (groupCount > 1 && groupCounts[1] < pNet->getTaroneWareMinGroup()) {
+      retval *= pow(((double) groupCounts[1]) / ((double) pNet->getTaroneWareMinGroup()),
+                    pNet->getTaroneWarePenalExponent());
+    }
+    break;
+  default:
+    retval = 0;
+    break;
+  }
 
   // Clean up
   delete[] groups;
@@ -128,7 +150,8 @@ double evaluateNetwork(const FitnessFunction fitnessFunction,
                        const unsigned int length,
                        double * const outputs)
 {
-  if (FitnessFunction::FITNESS_TARONEWARE_MEAN == fitnessFunction) {
+  if (FitnessFunction::FITNESS_TARONEWARE_MEAN == fitnessFunction ||
+      FitnessFunction::FITNESS_TARONEWARE_HIGHLOW == fitnessFunction) {
     // Need to support a slightly different API for groups
     return getClassFitness(fitnessFunction,
                            pNet,
@@ -514,6 +537,8 @@ void GeneticNetwork::learn(const double * const X,
 void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
   // Need to have the same statistic set on all
   this->setTaroneWareStatistic(original.getTaroneWareStatistic());
+  this->setTaroneWareMinGroup(original.getTaroneWareMinGroup());
+  this->setTaroneWarePenalExponent(original.getTaroneWarePenalExponent());
   // Now copy all structure
   std::copy(original.weights,
             original.weights + original.LENGTH * original.LENGTH,
@@ -641,6 +666,20 @@ TaroneWareType GeneticNetwork::getTaroneWareStatistic() const {
 }
 void GeneticNetwork::setTaroneWareStatistic(TaroneWareType stat) {
   this->taroneWareStatistic = stat;
+}
+
+unsigned int GeneticNetwork::getTaroneWareMinGroup() const {
+  return taroneWareMinGroup;
+}
+void GeneticNetwork::setTaroneWareMinGroup(unsigned int n) {
+  this->taroneWareMinGroup = n;
+}
+
+unsigned int GeneticNetwork::getTaroneWarePenalExponent() const {
+  return taroneWarePenalExponent;
+}
+void GeneticNetwork::setTaroneWarePenalExponent(unsigned int n) {
+  this->taroneWarePenalExponent = n;
 }
 
 

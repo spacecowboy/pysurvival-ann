@@ -9,7 +9,8 @@ enum class FitnessFunction { FITNESS_MSE,
     FITNESS_CINDEX,
     FITNESS_MSE_CENS,
     FITNESS_SURV_LIKELIHOOD,
-    FITNESS_TARONEWARE_MEAN};
+    FITNESS_TARONEWARE_MEAN,
+    FITNESS_TARONEWARE_HIGHLOW};
 
 /*
  * Signature for a fitness function

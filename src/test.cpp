@@ -936,7 +936,7 @@ void testLogRank() {
   targets[2*i + 1] = 0;
 
   printf("\nLogRank:");
-  double stat = TaroneWareStatistic(targets, groups, groupCounts,
+  double stat = TaroneWareMeanPairwise(targets, groups, groupCounts,
                                     length, groupCount,
                                     TaroneWareType::LOGRANK);
 
@@ -945,21 +945,43 @@ void testLogRank() {
 
   assert(abs(stat - 1.620508) < 0.000001);
 
+  // Should be equal to high-low for two groups
+  double stathighlow  = TaroneWareHighLow(targets, groups, groupCounts,
+                                          length, groupCount,
+                                          TaroneWareType::LOGRANK);
+
+  printf("\nStatHighLow = %f", stathighlow);
+  assert(stat == stathighlow);
+
   printf("\nGehan:");
-  stat = TaroneWareStatistic(targets, groups, groupCounts,
-                                    length, groupCount,
-                                    TaroneWareType::GEHAN);
+  stat = TaroneWareMeanPairwise(targets, groups, groupCounts,
+                                length, groupCount,
+                                TaroneWareType::GEHAN);
 
   printf("\nStat = %f", stat);
   printf("\nsqrt(Stat) = %f", sqrt(stat));
+
+  stathighlow  = TaroneWareHighLow(targets, groups, groupCounts,
+                                   length, groupCount,
+                                   TaroneWareType::GEHAN);
+
+  printf("\nStatHighLow = %f", stathighlow);
+  assert(stat == stathighlow);
 
   printf("\nTaroneWare:");
-  stat = TaroneWareStatistic(targets, groups, groupCounts,
-                                    length, groupCount,
-                                    TaroneWareType::TARONEWARE);
+  stat = TaroneWareMeanPairwise(targets, groups, groupCounts,
+                                length, groupCount,
+                                TaroneWareType::TARONEWARE);
 
   printf("\nStat = %f", stat);
   printf("\nsqrt(Stat) = %f", sqrt(stat));
+
+  stathighlow  = TaroneWareHighLow(targets, groups, groupCounts,
+                                   length, groupCount,
+                                   TaroneWareType::TARONEWARE);
+
+  printf("\nStatHighLow = %f", stathighlow);
+  assert(stat == stathighlow);
 
 
   // Cleanup

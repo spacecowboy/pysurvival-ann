@@ -136,6 +136,18 @@ extern "C" {
                                         PyObject *value,
                                         void *closure);
 
+  PyObject *GenNetwork_getTaroneWareMinGroup(PyGenNetwork *self,
+                                             void *closure);
+  int GenNetwork_setTaroneWareMinGroup(PyGenNetwork *self,
+                                       PyObject *value,
+                                       void *closure);
+
+  PyObject *GenNetwork_getTaroneWarePenalExponent(PyGenNetwork *self,
+                                                  void *closure);
+  int GenNetwork_setTaroneWarePenalExponent(PyGenNetwork *self,
+                                            PyObject *value,
+                                            void *closure);
+
 
   /*
    * Pickle methods
