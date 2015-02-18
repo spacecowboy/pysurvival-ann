@@ -68,15 +68,7 @@ unsigned int Random::uniformNumber(const unsigned int min,
     int_dist(min, max - 1);
   return int_dist(*eng);
 }
-/*
-unsigned int Random::uniformNumber(const unsigned int min,
-                                   const unsigned int max) {
-  double weights[max];
-  std::fill(weights, weights + max, 1);
 
-  return weightedNumber(weights, min, max);
-}
-*/
 unsigned int Random::weightedNumber(const double * const weights,
                                     const unsigned int min,
                                     const unsigned int max) {

@@ -861,11 +861,10 @@ void testLogRank() {
   // 2 groups
   const unsigned int groupCount = 2;
   unsigned int *groupCounts = new unsigned int[groupCount];
-  // 5 in g0, 6 in g1
+  // 6 in g0, 6 in g1
   groupCounts[0] = 6;
   groupCounts[1] = 6;
 
-  // 11 times total
   const unsigned int length = 12;
 
   assert(groupCounts[0] + groupCounts[1] == length);
@@ -941,7 +940,6 @@ void testLogRank() {
                                     TaroneWareType::LOGRANK);
 
   printf("\nStat = %f", stat);
-  printf("\nsqrt(Stat) = %f", sqrt(stat));
 
   assert(abs(stat - 1.620508) < 0.000001);
 
@@ -959,7 +957,6 @@ void testLogRank() {
                                 TaroneWareType::GEHAN);
 
   printf("\nStat = %f", stat);
-  printf("\nsqrt(Stat) = %f", sqrt(stat));
 
   stathighlow  = TaroneWareHighLow(targets, groups, groupCounts,
                                    length, groupCount,
@@ -974,7 +971,6 @@ void testLogRank() {
                                 TaroneWareType::TARONEWARE);
 
   printf("\nStat = %f", stat);
-  printf("\nsqrt(Stat) = %f", sqrt(stat));
 
   stathighlow  = TaroneWareHighLow(targets, groups, groupCounts,
                                    length, groupCount,

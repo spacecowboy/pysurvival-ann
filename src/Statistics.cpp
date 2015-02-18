@@ -16,6 +16,7 @@ double TaroneWareMeanPairwise(const double * const targets,
                               const unsigned int groupCount,
                               const TaroneWareType twType) {
   unsigned int i, j, k, pairCount;
+  int pair;
   double lastTime, weight;
   bool hasFails = false, hasCens = false;
 
@@ -24,18 +25,15 @@ double TaroneWareMeanPairwise(const double * const targets,
   if (groupCount > 1) {
     // Division is safe because this will always be an even number
     pairCount = (groupCount * (groupCount - 1)) / 2;
+  } else if (groupCount == 0) {
+    return 0;
   }
 
   // Initialize count variables
-  double fails[groupCount], cens[groupCount], atRisk[groupCount],
-    expectedSum[pairCount], observedSum[pairCount],
-    varianceSum[pairCount];
-
-  std::fill(fails, fails + groupCount, 0);
-  std::fill(cens, cens + groupCount, 0);
-  std::fill(observedSum, observedSum + pairCount, 0);
-  std::fill(expectedSum, expectedSum + pairCount, 0);
-  std::fill(varianceSum, varianceSum + pairCount, 0);
+  double atRisk[groupCount];
+  double fails[groupCount]={0}, cens[groupCount]={0};
+  double expectedSum[pairCount]={0}, observedSum[pairCount]={0},
+          varianceSum[pairCount]={0};
 
   for (i = 0; i < groupCount; i++) {
     atRisk[i] = groupCounts[i];
@@ -59,12 +57,14 @@ double TaroneWareMeanPairwise(const double * const targets,
     }
     // When we encounter a new unique time we sum up statistics for previous
     // or we reach the end
-    if ((hasFails && targets[2*i] != lastTime) || i == length) {
+    if (i == length || (hasFails && targets[2*i] != lastTime)) {
       // All statistics for unique time i-1 done
       // Do group stuff, always comparing j to k since k to j is equivalent
+      pair = -1;
       for (j = 0; j < groupCount; j++) {
         // Will skip this for last group, but rest must be done
         for (k = j + 1; k < groupCount; k++) {
+          pair++;
           totalRisk = atRisk[j] + atRisk[k];
           totalFail = fails[j] + fails[k];
           // If total risk = 0, then none of the sums will have more terms added
@@ -85,12 +85,12 @@ double TaroneWareMeanPairwise(const double * const targets,
             }
 
             // Sum up all failures observed
-            observedSum[j * groupCount + k] += weight * fails[j];
+            observedSum[pair] += weight * fails[j];
 
             // Expected failure count: relative group size * total failures
             expected = (atRisk[j] / totalRisk) * (totalFail);
 
-            expectedSum[j * groupCount + k] += weight * expected;
+            expectedSum[pair] += weight * expected;
             // Variance will also be zero if expected is zero
             if (expected > 0 && totalRisk > 1) {
               // Or we might get a NaN
@@ -98,7 +98,7 @@ double TaroneWareMeanPairwise(const double * const targets,
                 * atRisk[j] / totalRisk
                 * (1 - atRisk[j] / totalRisk);
 
-              varianceSum[j * groupCount + k] += var * pow(weight, 2);
+              varianceSum[pair] += var * pow(weight, 2);
             }
           }
         }
@@ -139,10 +139,13 @@ double TaroneWareMeanPairwise(const double * const targets,
   // Test statistic is now simply the mean
   double sum = 0;
   double stat;
+
+  pair = -1;
   for (j = 0; j < groupCount; j++) {
     for (k = j + 1; k < groupCount; k++) {
-      stat = pow(observedSum[j * groupCount + k] - expectedSum[j * groupCount + k], 2)
-        / varianceSum[j * groupCount + k];
+      pair++;
+      stat = pow(observedSum[pair] - expectedSum[pair], 2);
+      stat /= varianceSum[pair];
 
       sum += stat;
     }
@@ -175,13 +178,11 @@ double TaroneWareHighLow(const double * const targets,
   }
 
   // Initialize count variables
-  double fails[groupCount], cens[groupCount], atRisk[groupCount],
-    expectedSum=0, observedSum=0, varianceSum=0;
+  double fails[groupCountActual]={0}, cens[groupCountActual]={0};
+  double atRisk[groupCountActual];
+  double expectedSum=0, observedSum=0, varianceSum=0;
 
-  std::fill(fails, fails + groupCount, 0);
-  std::fill(cens, cens + groupCount, 0);
-
-  for (i = 0; i < groupCount; i++) {
+  for (i = 0; i < groupCountActual; i++) {
     atRisk[i] = groupCounts[i];
   }
 
@@ -191,6 +192,11 @@ double TaroneWareHighLow(const double * const targets,
   // Initialize lastTime to first time
   lastTime = targets[0];
   for (i = 0; i <= length; i++) {
+    // Ignore other groups
+    if (i < length && groups[i] > 1) {
+      continue;
+    }
+
     // If a new time is encountered, remove intermediate censored from risk
     if ((i == length || lastTime != targets[2*i]) && hasCens) {
       // If a new time is observed, then only censored at previous
@@ -203,7 +209,7 @@ double TaroneWareHighLow(const double * const targets,
     }
     // When we encounter a new unique time we sum up statistics for previous
     // or we reach the end
-    if ((hasFails && targets[2*i] != lastTime) || i == length) {
+    if (i == length || (hasFails && targets[2*i] != lastTime)) {
       // All statistics for unique time i-1 done
       // Do group stuff, always comparing j to k since k to j is equivalent
       totalRisk = atRisk[j] + atRisk[k];

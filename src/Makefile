@@ -40,14 +40,14 @@ RPropNetwork.cpp Statistics.cpp
 OBJ = $(addsuffix .o, $(basename $(SRC)))
 
 ### Main task ###
+test: matrix
+	./matrix
+
 valgrind: matrix
 	valgrind --tool=memcheck --leak-check=yes --track-origins=yes ./matrix
 
 helgrind: matrix
 	OMP_NUM_THREADS=1 valgrind --tool=helgrind --read-var-info=yes --log-file=helgrind.txt ./matrix
-
-test: matrix
-	./matrix
 
 prep:
 	rm -f ./matrix

@@ -61,9 +61,7 @@ double getClassFitness(const FitnessFunction func,
   // Index of each output neuron
   unsigned int activeOutputs[pNet->OUTPUT_COUNT];
   // Store number of members in each group
-  unsigned int groupCounts[pNet->OUTPUT_COUNT];
-  // Need to initialize it to zero
-  std::fill(groupCounts, groupCounts + pNet->OUTPUT_COUNT, 0);
+  unsigned int groupCounts[pNet->OUTPUT_COUNT] = {0};
   // Group membership
   unsigned int *groups = new unsigned int[length];
 

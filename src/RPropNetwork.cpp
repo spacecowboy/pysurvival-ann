@@ -100,10 +100,13 @@ int RPropNetwork::learn(const double * const X,
   double *backPropValues = new double[LENGTH * LENGTH];
   //  double *derivs = new double[LENGTH];
   double *prevBackPropValues = new double[LENGTH * LENGTH]();
-  std::fill(prevBackPropValues, prevBackPropValues + LENGTH * LENGTH, 1.0);
   double *weightUpdates = new double[LENGTH * LENGTH]();
   double *prevUpdates = new double[LENGTH * LENGTH]();
-  std::fill(prevUpdates, prevUpdates + LENGTH * LENGTH, 0.1);
+
+  for (unsigned int i = 0; i < LENGTH*LENGTH; i++) {
+    prevBackPropValues[i] = 1.0;
+    prevUpdates[i] = 0.1;
+  }
 
   unsigned int epoch = 0;
 
@@ -111,7 +114,9 @@ int RPropNetwork::learn(const double * const X,
   // Train
   do {
     // Reset arrays
-    std::fill(backPropValues, backPropValues + LENGTH * LENGTH, 0.0);
+    for (unsigned int i = 0; i < LENGTH*LENGTH; i++) {
+      backPropValues[i] = 0.0;
+    }
 
 # pragma omp parallel default(none) shared(backPropValues, cache)
     {
@@ -121,9 +126,9 @@ int RPropNetwork::learn(const double * const X,
       // Evaluate for each value in input vector
 # pragma omp for
       for (unsigned int i = 0; i < length; i++) {
-        std::fill(derivs, derivs + LENGTH, 0.0);
-        std::fill(preds, preds +  length * OUTPUT_COUNT, 0.0);
-
+        for (unsigned int j = 0; j < LENGTH; j++) {
+          derivs[j] = 0;
+        }
         // The class member "outputs" must be protected from
         // concurrent modifications, hence the critical region.
         // This should not be a fairly short operation
