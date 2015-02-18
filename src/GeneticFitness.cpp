@@ -33,6 +33,8 @@ int getExpectedTargetCount(const FitnessFunction func) {
   case FitnessFunction::FITNESS_SURV_LIKELIHOOD:
   case FitnessFunction::FITNESS_MSE_CENS:
   case FitnessFunction::FITNESS_CINDEX:
+  case FitnessFunction::FITNESS_SURV_KAPLAN_MAX:
+  case FitnessFunction::FITNESS_SURV_KAPLAN_MIN:
   case FitnessFunction::FITNESS_TARONEWARE_MEAN:
   case FitnessFunction::FITNESS_TARONEWARE_HIGHLOW:
     // Expecting time and event

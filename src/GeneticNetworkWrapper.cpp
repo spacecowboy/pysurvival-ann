@@ -58,6 +58,12 @@ extern "C" {
     PyDict_SetItemString(dict, "FITNESS_TARONEWARE_HIGHLOW",
                          Py_BuildValue("i",
                                        FitnessFunction::FITNESS_TARONEWARE_HIGHLOW));
+    PyDict_SetItemString(dict, "FITNESS_SURV_KAPLAN_MAX",
+                         Py_BuildValue("i",
+                                       FitnessFunction::FITNESS_SURV_KAPLAN_MAX));
+    PyDict_SetItemString(dict, "FITNESS_SURV_KAPLAN_MIN",
+                         Py_BuildValue("i",
+                                       FitnessFunction::FITNESS_SURV_KAPLAN_MIN));
 
     // Statistics
         // Fitness
@@ -627,14 +633,14 @@ expected number based on fitness function.");
     return 0;
   }
 
-  PyObject *GenNetwork_getTaroneWareMinGroup(PyGenNetwork *self,
-                                              void *closure) {
+  PyObject *GenNetwork_getMinGroup(PyGenNetwork *self,
+                                   void *closure) {
     return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
-                         getTaroneWareMinGroup());
+                         getMinGroup());
   }
 
-  int GenNetwork_setTaroneWareMinGroup(PyGenNetwork *self, PyObject *value,
-                                        void *closure) {
+  int GenNetwork_setMinGroup(PyGenNetwork *self, PyObject *value,
+                             void *closure) {
     if (value == NULL) {
       PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
       return -1;
@@ -657,42 +663,8 @@ expected number based on fitness function.");
     }
 
     ((GeneticNetwork*)self->super.net)->
-      setTaroneWareMinGroup(i);
+      setMinGroup(i);
     return 0;
   }
 
-  PyObject *GenNetwork_getTaroneWarePenalExponent(PyGenNetwork *self,
-                                                  void *closure) {
-    return Py_BuildValue("i", ((GeneticNetwork*)self->super.net)->
-                         getTaroneWarePenalExponent());
-  }
-
-  int GenNetwork_setTaroneWarePenalExponent(PyGenNetwork *self, PyObject *value,
-                                            void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    if (! PyInt_Check(value)) {
-      PyErr_SetString(PyExc_TypeError, "Must be an integer value!");
-      return 1;
-    }
-
-    long i = PyInt_AsLong(value);
-
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    if (i < 0) {
-      PyErr_SetString(PyExc_TypeError, "Can't be less than zero!'");
-      return -1;
-    }
-
-
-    ((GeneticNetwork*)self->super.net)->
-      setTaroneWarePenalExponent(i);
-    return 0;
-  }
 }

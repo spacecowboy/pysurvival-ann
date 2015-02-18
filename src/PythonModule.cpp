@@ -301,16 +301,10 @@ P = sum( w^2 / [l^2 + w^2] ). Zero by default.", NULL},
    (setter)GenNetwork_setTaroneWareStatistic,                      \
    (char*)"What weighting to use with TaroneWare fitness function. \
 LogRank (weights=1) used by default.", NULL},
-  {(char*)"taroneware_mingroup",                  \
-   (getter)GenNetwork_getTaroneWareMinGroup, \
-   (setter)GenNetwork_setTaroneWareMinGroup,                      \
-   (char*)"Minimum group which will not be penalized with TaroneWareHighLow.\
- Default is 1.", NULL},
-  {(char*)"taroneware_penalexponent",                  \
-   (getter)GenNetwork_getTaroneWarePenalExponent, \
-   (setter)GenNetwork_setTaroneWarePenalExponent,                      \
-   (char*)"How harshly small groups should be penalized. 0 means not at all.\
- Default is 1.", NULL},
+  {(char*)"mingroup",                  \
+   (getter)GenNetwork_getMinGroup, \
+   (setter)GenNetwork_setMinGroup,                      \
+   (char*)"Minimum group size. Default is 1.", NULL},
 
   /*
   {(char*)"resume",              \

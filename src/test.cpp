@@ -988,8 +988,348 @@ void testLogRank() {
   std::cout << "\nTestLogRank done.";
 }
 
+void testSurvAreaNoCens() {
+  std::cout << "\nTestSurvAreaNoCens...";
+
+  // 2 groups
+  const unsigned int groupCount = 2;
+  unsigned int *groupCounts = new unsigned int[groupCount];
+
+  groupCounts[0] = 6;
+  groupCounts[1] = 6;
+
+  const unsigned int length = 12;
+
+  assert(groupCounts[0] + groupCounts[1] == length);
+
+  double *targets = new double[2*length];
+  unsigned int *groups = new unsigned int[length];
+
+  // Define time, event and group status
+  // Make sure it is time ordered
+
+  // First 6 are of group two, and have NEGATIVE TIMES
+  // Should be ignored...
+  int i = 0;
+  groups[i] = 1;
+  targets[2*i] = -6;
+  targets[2*i + 1] = 1;
+
+  i = 1;
+  groups[i] = 1;
+  targets[2*i] = -5;
+  targets[2*i + 1] = 0;
+
+  i = 2;
+  groups[i] = 1;
+  targets[2*i] = -4;
+  targets[2*i + 1] = 1;
+
+  i = 3;
+  groups[i] = 1;
+  targets[2*i] = -3;
+  targets[2*i + 1] = 1;
+
+  i = 4;
+  groups[i] = 1;
+  targets[2*i] = -2;
+  targets[2*i + 1] = 1;
+
+  i = 5;
+  groups[i] = 1;
+  targets[2*i] = -1;
+  targets[2*i + 1] = 1;
+
+  // Group 1 has normal times, one space apart
+  i = 6;
+  groups[i] = 0;
+  targets[2*i] = 1;
+  targets[2*i + 1] = 1;
+
+  i = 7;
+  groups[i] = 0;
+  targets[2*i] = 2;
+  targets[2*i + 1] = 1;
+
+  i = 8;
+  groups[i] = 0;
+  targets[2*i] = 3;
+  targets[2*i + 1] = 1;
+
+  i = 9;
+  groups[i] = 0;
+  targets[2*i] = 4;
+  targets[2*i + 1] = 1;
+
+  i = 10;
+  groups[i] = 0;
+  targets[2*i] = 5;
+  targets[2*i + 1] = 1;
+
+  i = 11;
+  groups[i] = 0;
+  targets[2*i] = 6;
+  targets[2*i + 1] = 1;
+
+  assert(3.5 == SurvArea(targets, groups, groupCounts, length));
+
+    // Cleanup
+  delete[] targets;
+  delete[] groupCounts;
+  delete[] groups;
+}
+
+
+void testSurvAreaSameCens() {
+  std::cout << "\nTestSurvAreaSameCens...";
+
+  // 2 groups
+  const unsigned int groupCount = 1;
+  unsigned int *groupCounts = new unsigned int[groupCount];
+
+  groupCounts[0] = 6;
+
+  const unsigned int length = 6;
+
+  assert(groupCounts[0] == length);
+
+  double *targets = new double[2*length];
+  unsigned int *groups = new unsigned int[length];
+
+  // Define time, event and group status
+  // Make sure it is time ordered
+
+  // Group 1 has normal times, one space apart
+  int i = 0;
+  groups[i] = 0;
+  targets[2*i] = 1;
+  targets[2*i + 1] = 1;
+
+  i = 1;
+  groups[i] = 0;
+  targets[2*i] = 2;
+  targets[2*i + 1] = 1;
+
+  // This is censored at the same time as previous
+  i = 2;
+  groups[i] = 0;
+  targets[2*i] = 2;
+  targets[2*i + 1] = 0;
+
+  i = 3;
+  groups[i] = 0;
+  targets[2*i] = 4;
+  targets[2*i + 1] = 1;
+
+  i = 4;
+  groups[i] = 0;
+  targets[2*i] = 5;
+  targets[2*i + 1] = 1;
+
+  i = 5;
+  groups[i] = 0;
+  targets[2*i] = 6;
+  targets[2*i + 1] = 1;
+
+  assert(abs(1.0 + 5.0/6.0 + 5.0/6.0*3.0/4.0*2.0 + 5.0/6.0*2.0/4.0 + 5.0/6.0/4.0 -
+             SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
+
+    // Cleanup
+  delete[] targets;
+  delete[] groupCounts;
+  delete[] groups;
+}
+
+void testSurvAreaMidCens() {
+  std::cout << "\nTestSurvAreaMidCens...";
+
+  // 2 groups
+  const unsigned int groupCount = 1;
+  unsigned int *groupCounts = new unsigned int[groupCount];
+
+  groupCounts[0] = 6;
+
+  const unsigned int length = 6;
+
+  assert(groupCounts[0] == length);
+
+  double *targets = new double[2*length];
+  unsigned int *groups = new unsigned int[length];
+
+  // Define time, event and group status
+  // Make sure it is time ordered
+
+  // Group 1 has normal times, one space apart
+  int i = 0;
+  groups[i] = 0;
+  targets[2*i] = 1;
+  targets[2*i + 1] = 1;
+
+  i = 1;
+  groups[i] = 0;
+  targets[2*i] = 2;
+  targets[2*i + 1] = 1;
+
+  // This is censored between two event times
+  i = 2;
+  groups[i] = 0;
+  targets[2*i] = 3;
+  targets[2*i + 1] = 0;
+
+  i = 3;
+  groups[i] = 0;
+  targets[2*i] = 4;
+  targets[2*i + 1] = 1;
+
+  i = 4;
+  groups[i] = 0;
+  targets[2*i] = 5;
+  targets[2*i + 1] = 1;
+
+  i = 5;
+  groups[i] = 0;
+  targets[2*i] = 6;
+  targets[2*i + 1] = 1;
+
+  assert(abs(1.0 + 5.0/6.0 + 4.0/6.0*2.0 + 4.0/9.0 + 2.0/9.0 -
+             SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
+
+    // Cleanup
+  delete[] targets;
+  delete[] groupCounts;
+  delete[] groups;
+}
+
+
+void testSurvAreaEndCens1() {
+  std::cout << "\nTestSurvAreaEndCens1...";
+
+  // 2 groups
+  const unsigned int groupCount = 1;
+  unsigned int *groupCounts = new unsigned int[groupCount];
+
+  groupCounts[0] = 6;
+
+  const unsigned int length = 6;
+
+  assert(groupCounts[0] == length);
+
+  double *targets = new double[2*length];
+  unsigned int *groups = new unsigned int[length];
+
+  // Define time, event and group status
+  // Make sure it is time ordered
+
+  // Group 1 has normal times, one space apart
+  int i = 0;
+  groups[i] = 0;
+  targets[2*i] = 1;
+  targets[2*i + 1] = 1;
+
+  i = 1;
+  groups[i] = 0;
+  targets[2*i] = 2;
+  targets[2*i + 1] = 1;
+
+  i = 2;
+  groups[i] = 0;
+  targets[2*i] = 3;
+  targets[2*i + 1] = 1;
+
+  i = 3;
+  groups[i] = 0;
+  targets[2*i] = 4;
+  targets[2*i + 1] = 1;
+
+  i = 4;
+  groups[i] = 0;
+  targets[2*i] = 5;
+  targets[2*i + 1] = 1;
+
+  // Censored at the end, same time as last event
+  i = 5;
+  groups[i] = 0;
+  targets[2*i] = 5;
+  targets[2*i + 1] = 0;
+
+  assert(abs(1.0 + 5.0/6.0 + 4.0/6.0 + 3.0/6.0 + 2.0/6.0 -
+             SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
+
+    // Cleanup
+  delete[] targets;
+  delete[] groupCounts;
+  delete[] groups;
+}
+
+
+void testSurvAreaEndCens2() {
+  std::cout << "\nTestSurvAreaEndCens2...";
+
+  // 2 groups
+  const unsigned int groupCount = 1;
+  unsigned int *groupCounts = new unsigned int[groupCount];
+
+  groupCounts[0] = 6;
+
+  const unsigned int length = 6;
+
+  assert(groupCounts[0] == length);
+
+  double *targets = new double[2*length];
+  unsigned int *groups = new unsigned int[length];
+
+  // Define time, event and group status
+  // Make sure it is time ordered
+
+  // Group 1 has normal times, one space apart
+  int i = 0;
+  groups[i] = 0;
+  targets[2*i] = 1;
+  targets[2*i + 1] = 1;
+
+  i = 1;
+  groups[i] = 0;
+  targets[2*i] = 2;
+  targets[2*i + 1] = 1;
+
+  i = 2;
+  groups[i] = 0;
+  targets[2*i] = 3;
+  targets[2*i + 1] = 1;
+
+  i = 3;
+  groups[i] = 0;
+  targets[2*i] = 4;
+  targets[2*i + 1] = 1;
+
+  i = 4;
+  groups[i] = 0;
+  targets[2*i] = 5;
+  targets[2*i + 1] = 1;
+
+  // Censored at the end, after last event
+  i = 5;
+  groups[i] = 0;
+  targets[2*i] = 6;
+  targets[2*i + 1] = 0;
+
+  assert(abs(1.0 + 5.0/6.0 + 4.0/6.0 + 3.0/6.0 + 2.0/6.0 + 1.0/6.0 -
+             SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
+
+    // Cleanup
+  delete[] targets;
+  delete[] groupCounts;
+  delete[] groups;
+}
+
 int main( int argc, const char* argv[] )
 {
+  testSurvAreaNoCens();
+  testSurvAreaSameCens();
+  testSurvAreaMidCens();
+  testSurvAreaEndCens1();
+  testSurvAreaEndCens2();
+
   testLogRank();
   testSoftmax();
   survLikTests();

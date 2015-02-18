@@ -33,4 +33,14 @@ double TaroneWareHighLow(const double * const targets,
                          const unsigned int groupCount,
                          const TaroneWareType twType);
 
+
+/**
+ * Return the area under the KaplanMeier graph. This is an
+ * (under-)estimate of the mean survival time.
+ */
+double SurvArea(const double * const targets,
+                const unsigned int * const groups,
+                const unsigned int * const groupCounts,
+                const unsigned int length);
+
 #endif /* _STATISTICS_H_ */

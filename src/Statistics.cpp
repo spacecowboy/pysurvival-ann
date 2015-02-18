@@ -288,3 +288,72 @@ double TaroneWareHighLow(const double * const targets,
   double stat = pow(observedSum - expectedSum, 2) / varianceSum;
   return stat;
 }
+
+
+double SurvArea(const double * const targets,
+                const unsigned int * const groups,
+                const unsigned int * const groupCounts,
+                const unsigned int length) {
+  unsigned int i;
+  double lastTime;
+
+  // Initialize count variables
+  double fails, cens, atRisk, surv;
+
+  double prevTime = 0;
+
+  double area = 0;
+
+  // Times are already ordered (at least we assume so)
+  // At the start, everyone is at risk
+  atRisk = groupCounts[0];
+  // Nothing has been seen yet
+  surv = 1.0;
+  fails = cens = 0;
+  lastTime = targets[0];
+
+
+  for (i = 0; i <= length; i++) {
+    if (surv == 0 || atRisk == 0) {
+      // Nothing more can contribute
+      break;
+    }
+
+    // Ignore other groups
+    if (i < length && groups[i] != 0) {
+      continue;
+    }
+
+    // If a new time is encountered, remove intermediate censored from risk
+    if ((i < length && lastTime != targets[2*i]) && cens > 0) {
+      atRisk -= cens;
+      cens = 0;
+    }
+
+    // When we encounter a new unique time we sum up statistics for previous
+    if (i == length || (fails > 0 && targets[2*i] != lastTime)) {
+      area += surv * (lastTime - prevTime);
+
+      surv *= ((atRisk - fails)/atRisk);
+      // Last thing to do is to reset counts again
+      atRisk -= (fails + cens);
+      fails = cens = 0;
+      prevTime = lastTime;
+    }
+
+    // Always update statistics, but only before end
+    if (i < length){
+      if (targets[2*i + 1]) {
+        // Event
+        fails += 1;
+      } else {
+        // Censored
+        cens += 1;
+      }
+
+      lastTime = targets[2*i];
+    }
+  } // End loop
+
+  return area;
+}
