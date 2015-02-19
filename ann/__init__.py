@@ -19,6 +19,23 @@ from random import uniform
 import numpy as np
 
 
+### Useful for multiple output neurons with softmax
+def _softmax_predict(net, indata):
+    '''
+    Returns an integer, corresponding to the winning output neuron.
+    Only valid if there are more than two output neurons and they use
+    softmax activation functions.
+    '''
+    if net.output_count < 2:
+        raise ValueError("Pointless to do class prediction with less than 2 outputs")
+    if not np.all(net.activation_functions[-net.output_count:] == net.SOFTMAX):
+        raise ValueError("Can only do softmax prediction if output is softmax.")
+
+    return net.output(indata).argmax()
+
+
+### Used in pickling
+
 def _getmatrixstate(net):
     '''Returns the state of the network as a list of attributes:
     (neuron_numbers, attrs...)
@@ -60,6 +77,7 @@ def UtilMatrix(cls):
     cls.__repr__ = _repr_matrix
     cls.__getstate__ = _getmatrixstate
     cls.__setstate__ = _setmatrixstate
+    cls.predict_class = _softmax_predict
     return cls
 
 
