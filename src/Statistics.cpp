@@ -31,12 +31,19 @@ double TaroneWareMeanPairwise(const double * const targets,
 
   // Initialize count variables
   double atRisk[groupCount];
-  double fails[groupCount]={0}, cens[groupCount]={0};
-  double expectedSum[pairCount]={0}, observedSum[pairCount]={0},
-          varianceSum[pairCount]={0};
+  double fails[groupCount], cens[groupCount];
+  double expectedSum[pairCount], observedSum[pairCount],
+    varianceSum[pairCount];
 
   for (i = 0; i < groupCount; i++) {
     atRisk[i] = groupCounts[i];
+    fails[i] = 0;
+    cens[i] = 0;
+  }
+  for (i = 0; i < pairCount; i++) {
+    expectedSum[i] = 0;
+    observedSum[i] = 0;
+    varianceSum[i] = 0;
   }
 
   double expected, var, totalRisk, totalFail;
@@ -178,12 +185,14 @@ double TaroneWareHighLow(const double * const targets,
   }
 
   // Initialize count variables
-  double fails[groupCountActual]={0}, cens[groupCountActual]={0};
+  double fails[groupCountActual], cens[groupCountActual];
   double atRisk[groupCountActual];
   double expectedSum=0, observedSum=0, varianceSum=0;
 
   for (i = 0; i < groupCountActual; i++) {
     atRisk[i] = groupCounts[i];
+    fails[i] = 0;
+    cens[i] = 0;
   }
 
   double expected, var, totalRisk, totalFail;

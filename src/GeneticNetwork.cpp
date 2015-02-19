@@ -60,12 +60,14 @@ double getClassFitness(const FitnessFunction func,
   // Index of each output neuron
   unsigned int activeOutputs[pNet->OUTPUT_COUNT];
   // Store number of members in each group
-  unsigned int groupCounts[pNet->OUTPUT_COUNT] = {0};
+  unsigned int groupCounts[pNet->OUTPUT_COUNT];
   // Group membership
   unsigned int *groups = new unsigned int[length];
 
   // Count active output neurons
   for (i = pNet->OUTPUT_START; i < pNet->OUTPUT_END; i++) {
+    // Initialize groupCounts as we go along
+    groupCounts[i - pNet->OUTPUT_START] = 0;
     // Check diagonal connections
     if (pNet->conns[i * pNet->LENGTH + i] == 1) {
       // Active, remember index
