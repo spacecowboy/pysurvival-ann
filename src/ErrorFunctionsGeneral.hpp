@@ -1,18 +1,20 @@
 #ifndef _ERRORFUNCTIONSGENERAL_HPP_
 #define _ERRORFUNCTIONSGENERAL_HPP_
 
-void errorMSE(const double * const Y,
+#include <vector>
+
+void errorMSE(const std::vector<double> &Y,
               const unsigned int length,
               const unsigned int numOfOutput,
-              const double * const outputs,
+              const std::vector<double> &outputs,
               const unsigned int index,
-              double * const errors);
+              std::vector<double> &errors);
 
-void derivativeMSE(const double * const Y,
+void derivativeMSE(const std::vector<double> &Y,
                    const unsigned int length,
                    const unsigned int numOfOutput,
-                   const double * const outputs,
+                   const std::vector<double> &outputs,
                    const unsigned int index,
-                   double * const result);
+                   std::vector<double>::iterator result);
 
 #endif /* _ERRORFUNCTIONSGENERAL_HPP_ */

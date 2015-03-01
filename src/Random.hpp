@@ -2,8 +2,6 @@
 #define RANDOM_HPP_
 
 #include <random>
-#include <time.h>
-//#include <ctime>
 
 class Random {
 
@@ -15,6 +13,8 @@ protected:
   std::normal_distribution<double> *distNormal;
   // Uniform distribution 0 to 1 (inclusive)
   std::uniform_real_distribution<double> *distUniform;
+  // Uniform int
+  std::uniform_int_distribution<unsigned int> *distUniformInt;
   // Geometric
   std::geometric_distribution<int> *distGeometric;
 
@@ -35,6 +35,8 @@ protected:
 
   // 0 to UINT_MAX
   unsigned int uint();
+  // 0 or 1
+  unsigned int randBit();
 
   // min - max (exclusive)
   unsigned int uniformNumber(const unsigned int min,

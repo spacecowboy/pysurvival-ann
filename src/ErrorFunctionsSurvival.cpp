@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <stdio.h>
 
-void getIndicesSortedByTime(const double * const targets,
+void getIndicesSortedByTime(const std::vector<double> &targets,
                             const unsigned int length,
                             std::vector<unsigned int>& sortedIndices)
 {
@@ -21,12 +21,12 @@ void getIndicesSortedByTime(const double * const targets,
   sortedIndices.push_back(0);
   for (unsigned int i = 1; i < length; i++)
   {
-    time_i = targets[2 * i];
+    time_i = targets.at(2 * i);
     needInsert = true;
     for (it=sortedIndices.begin(); it != sortedIndices.end(); it++)
     {
       index = *it;
-      time_j = targets[2 * index];
+      time_j = targets.at(2 * index);
 
       if (time_i < time_j)
       {
@@ -44,7 +44,7 @@ void getIndicesSortedByTime(const double * const targets,
 }
 
 
-void getProbsAndSurvival(const double * const targets,
+void getProbsAndSurvival(const std::vector<double> &targets,
                          const unsigned int length,
                          const std::vector<unsigned int> &sortedIndices,
                          std::vector<double> &probs,
@@ -71,8 +71,8 @@ void getProbsAndSurvival(const double * const targets,
   {
     index = *it;
 
-    //time = targets[2 * index];
-    event = targets[2 * index + 1];
+    //time = targets.at(2 * index);
+    event = targets.at(2 * index + 1);
 
     // Calculate survival for index. Will start at 1.
     surv -= survDiff;
@@ -109,8 +109,8 @@ void getProbsAndSurvival(const double * const targets,
 
 double getScaledProbFor(const std::vector<double> &probs,
                         const std::vector<double> &survival,
-                        const std::vector<unsigned int>::const_iterator &sortedIt,
-                        const std::vector<unsigned int>::const_iterator &laterIt)
+                        const std::vector<unsigned int>::const_iterator sortedIt,
+                        const std::vector<unsigned int>::const_iterator laterIt)
 {
   unsigned int laterIndex, index;
   laterIndex = *laterIt;
@@ -124,11 +124,11 @@ double getScaledProbFor(const std::vector<double> &probs,
   return probs.at(laterIndex) / survival.at(index);
 }
 
-double getScaledProbAfter(const double * const targets,
+double getScaledProbAfter(const std::vector<double> &targets,
                           const std::vector<double> &probs,
                           const std::vector<double> &survival,
                           const std::vector<unsigned int> &sortedIndices,
-                          const std::vector<unsigned int>::const_iterator &sortedIt)
+                          const std::vector<unsigned int>::const_iterator sortedIt)
 {
   double probSum = 0;
   std::vector<unsigned int>::const_iterator laterIt;
@@ -136,7 +136,7 @@ double getScaledProbAfter(const double * const targets,
 
   // An event has zero probability of living beyond the last event.
   index = *sortedIt;
-  if (targets[2*index + 1]) {
+  if (targets.at(2*index + 1)) {
     return 0;
   }
 
@@ -149,11 +149,11 @@ double getScaledProbAfter(const double * const targets,
   return 1.0 - probSum;
 }
 
-double getPartA(const double * const targets,
+double getPartA(const std::vector<double> &targets,
                 const std::vector<double> &probs,
                 const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
-                const std::vector<unsigned int>::const_iterator &sortedIt)
+                const std::vector<unsigned int>::const_iterator sortedIt)
 {
   unsigned int index, laterIndex;
   std::vector<unsigned int>::const_iterator laterIt;
@@ -162,7 +162,7 @@ double getPartA(const double * const targets,
 
   index = *sortedIt;
 
-  event = targets[2* index + 1];
+  event = targets.at(2* index + 1);
 
   // Events will never have this included in their error.
   if (event) {
@@ -172,7 +172,7 @@ double getPartA(const double * const targets,
   for (laterIt = sortedIt + 1; laterIt != sortedIndices.end(); laterIt++)
   {
     laterIndex = *laterIt;
-    laterTime = targets[2 * laterIndex];
+    laterTime = targets.at(2 * laterIndex);
     // Probs is zero at censored points
     Ai += getScaledProbFor(probs, survival, sortedIt, laterIt) *
         std::pow(laterTime, 2.0);
@@ -181,11 +181,11 @@ double getPartA(const double * const targets,
   return Ai;
 }
 
-double getPartB(const double * const targets,
+double getPartB(const std::vector<double> &targets,
                 const std::vector<double> &probs,
                 const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
-                const std::vector<unsigned int>::const_iterator &sortedIt)
+                const std::vector<unsigned int>::const_iterator sortedIt)
 {
   unsigned int index;
   std::vector<unsigned int>::const_iterator laterIt;
@@ -194,7 +194,7 @@ double getPartB(const double * const targets,
 
   index = *sortedIt;
 
-  event = targets[2* index + 1];
+  event = targets.at(2* index + 1);
 
   // Events will never have this included in their error.
   if (event) {
@@ -210,11 +210,11 @@ double getPartB(const double * const targets,
   return Bi;
 }
 
-double getPartC(const double * const targets,
+double getPartC(const std::vector<double> &targets,
                 const std::vector<double> &probs,
                 const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
-                const std::vector<unsigned int>::const_iterator &sortedIt)
+                const std::vector<unsigned int>::const_iterator sortedIt)
 {
   unsigned int index, laterIndex;
   std::vector<unsigned int>::const_iterator laterIt;
@@ -223,7 +223,7 @@ double getPartC(const double * const targets,
 
   index = *sortedIt;
 
-  event = targets[2* index + 1];
+  event = targets.at(2* index + 1);
 
   // Events will never have this included in their error.
   if (event) {
@@ -233,7 +233,7 @@ double getPartC(const double * const targets,
   for (laterIt = sortedIt + 1; laterIt != sortedIndices.end(); laterIt++)
   {
     laterIndex = *laterIt;
-    laterTime = targets[2 * laterIndex];
+    laterTime = targets.at(2 * laterIndex);
     // Probs is zero at censored points
     Ci -= 2 * getScaledProbFor(probs, survival, sortedIt, laterIt) * laterTime;
   }
@@ -340,7 +340,7 @@ double SurvErrorCache::getDouble(const int key, const unsigned int index)
   return retval;
 }
 
-void SurvErrorCache::init(const double * const targets,
+void SurvErrorCache::init(const std::vector<double> &targets,
                           const unsigned int length)
 {
   // Targets is a 2 dimensional array with [time, event] pairs time is
@@ -398,73 +398,73 @@ void SurvErrorCache::init(const double * const targets,
   it = sortedIndices->end();
   it--;
   index = *it;
-  this->lastTime = targets[2 * index];
-  this->lastEvent = targets[2 * index + 1];
+  this->lastTime = targets.at(2 * index);
+  this->lastEvent = targets.at(2 * index + 1);
 
   delete sortedIndices;
   delete probs;
   delete survival;
 }
 
-void errorSurvMSE(const double * const Y,
+void errorSurvMSE(const std::vector<double> &Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
-                  const double * const outputs,
+                  const std::vector<double> &outputs,
                   const unsigned int index,
-                  double * const errors)
+                  std::vector<double> &errors)
 {
   unsigned int i;
   double time, event, output;
 
   // Only first neuron has none-zero error
   for (i = 0; i < numOfOutput; i++) {
-    errors[index + i] = 0;
+    errors.at(index + i) = 0;
   }
 
   // Rest is just square-error if we are underestimating
-  time = Y[index];
-  event = Y[index + 1];
-  output = outputs[index];
+  time = Y.at(index);
+  event = Y.at(index + 1);
+  output = outputs.at(index);
 
   if ((event == 0 && output < time) || event != 0)
   {
     // Censored event which we are underestimating
     // Or real event
-    errors[index] = std::pow(output - time, 2.0) / 2.0;
+    errors.at(index) = std::pow(output - time, 2.0) / 2.0;
   }
 }
 
-void derivativeSurvMSE(const double * const Y,
+void derivativeSurvMSE(const std::vector<double> &Y,
                        const unsigned int length,
                        const unsigned int numOfOutput,
-                       const double * const outputs,
+                       const std::vector<double> &outputs,
                        const unsigned int index,
-                       double * const result)
+                       std::vector<double>::iterator result)
 {
   unsigned int i;
-  double time = Y[index];
-  double event = Y[index + 1];
-  double pred = outputs[index];
+  double time = Y.at(index);
+  double event = Y.at(index + 1);
+  double pred = outputs.at(index);
 
   for (i = 0; i < numOfOutput; i++) {
-    result[i] = 0;
+    *(result + i) = 0;
   }
 
   // Only for events or underestimated censored
   if ((event == 0 && pred < time) || event != 0)
   {
     // Sign is important. dE = -(time - pred) = pred - time
-    result[0] = pred - time;
+    *(result) = pred - time;
   }
 }
 
-void errorSurvLikelihood(const double * const Y,
+void errorSurvLikelihood(const std::vector<double> &Y,
                          const unsigned int length,
                          const unsigned int numOfOutput,
-                         const double * const outputs,
+                         const std::vector<double> &outputs,
                          const unsigned int index,
                          ErrorCache * const cache,
-                         double * const errors)
+                         std::vector<double> &errors)
 {
   double time, event, pred;
   unsigned int n, i;
@@ -478,20 +478,20 @@ void errorSurvLikelihood(const double * const Y,
 
   // Init to zero. Only concerned with first index later.
   for (n = 0; n < numOfOutput; n++) {
-    errors[index + n] = 0;
+    errors.at(index + n) = 0;
   }
 
-  time = Y[index];
-  event = Y[index + 1];
-  pred = outputs[index];
+  time = Y.at(index);
+  event = Y.at(index + 1);
+  pred = outputs.at(index);
 
   if (event == 1) {
-    errors[index] = std::pow(time - pred, 2.0);
+    errors.at(index) = std::pow(time - pred, 2.0);
   }
   else
   {
     i = index / numOfOutput;
-    errors[index] = getLikelihoodError(time, pred,
+    errors.at(index) = getLikelihoodError(time, pred,
                                        cache->getDouble(KEY_LAST_TIME, i),
                                        cache->getDouble(KEY_A, i),
                                        cache->getDouble(KEY_B, i),
@@ -500,13 +500,13 @@ void errorSurvLikelihood(const double * const Y,
   }
 }
 
-void derivativeSurvLikelihood(const double * const Y,
+void derivativeSurvLikelihood(const std::vector<double> &Y,
                               const unsigned int length,
                               const unsigned int numOfOutput,
-                              const double * const outputs,
+                              const std::vector<double> &outputs,
                               const unsigned int idx,
                               ErrorCache * const cache,
-                              double * const result)
+                              std::vector<double>::iterator result)
 {
   double time, event, pred;
   unsigned int index, i;
@@ -518,11 +518,11 @@ void derivativeSurvLikelihood(const double * const Y,
   cache->verifyInit(Y, length);
 
   // Set all to zero. Only first neuron's error is of concern.
-  for(i = 0; i < numOfOutput; i++) result[i] = 0;
+  for(i = 0; i < numOfOutput; i++) *(result + i) = 0;
 
-  time = Y[idx];
-  event = Y[idx + 1];
-  pred = outputs[idx];
+  time = Y.at(idx);
+  event = Y.at(idx + 1);
+  pred = outputs.at(idx);
 
   // Survival function only cares about first output neuron, so get
   // the correct index to use for the cache.
@@ -531,11 +531,11 @@ void derivativeSurvLikelihood(const double * const Y,
   if (event == 1)
   {
     // Sign is important. dE = d(T - Y)^2 = -2 (T - Y) = 2 (Y - T)
-    result[0] = 2 * (pred - time);
+    *(result) = 2 * (pred - time);
   }
   else
   {
-    result[0] = getLikelihoodDeriv(time, pred,
+    *(result) = getLikelihoodDeriv(time, pred,
                                    cache->getDouble(KEY_LAST_TIME, index),
                                    cache->getDouble(KEY_B, index),
                                    cache->getDouble(KEY_C, index),

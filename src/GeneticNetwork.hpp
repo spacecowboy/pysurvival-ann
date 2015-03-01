@@ -67,8 +67,8 @@ class GeneticNetwork: public MatrixNetwork {
 /*
  * Expects the X and Y to be of equal number of rows.
  */
-  virtual void learn(const double * const X,
-                     const double * const Y,
+  virtual void learn(const std::vector<double> &X,
+                     const std::vector<double> &Y,
                      const unsigned int length);
 
 // Makes this network into a clone of the original. Assumes equal iteration.

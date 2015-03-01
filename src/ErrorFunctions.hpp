@@ -1,6 +1,8 @@
 #ifndef _ERRORFUNCTIONS_HPP_
 #define _ERRORFUNCTIONS_HPP_
 
+#include <vector>
+
 /*
  * An error function returns a number where lower is better
  */
@@ -18,7 +20,7 @@ protected:
   /**
    * Sets up the cache
    */
-  virtual void init(const double * const targets,
+  virtual void init(const std::vector<double> &targets,
                     const unsigned int length);
 
 public:
@@ -40,7 +42,7 @@ public:
    * This is the only method that is not required to implement,
    * as long as derived class handles "needInit" variable in clear.
    */
-  virtual void verifyInit(const double * const targets,
+  virtual void verifyInit(const std::vector<double> &targets,
                           const unsigned int length);
 };
 
@@ -52,10 +54,10 @@ ErrorCache *getErrorCache(ErrorFunction func);
 /*
  * Signature for an error function
  */
-typedef double (*ErrorFunctionPtr)(const double * const Y,
+typedef double (*ErrorFunctionPtr)(const std::vector<double> &Y,
                                    const unsigned int length,
                                    const unsigned int numOfOutput,
-                                   const double * const outputs,
+                                   const std::vector<double> &outputs,
                                    const ErrorCache * const cache);
 
 /*
@@ -63,46 +65,46 @@ typedef double (*ErrorFunctionPtr)(const double * const Y,
  * output from this procedure will be a [3] array, where 3 is
  * numOfOutput.
  */
-void averagePatternError(const double * const errors,
+void averagePatternError(const std::vector<double> &errors,
                          const unsigned int length,
                          const unsigned int numOfOutput,
-                         double * const avgErrors);
+                         std::vector<double> &avgErrors);
 
 /*
  * Calculate errors for each pattern in Y. Y, outputs and errors are
  * all expected to be arrays of length [length * numOfOutput].
  */
 void getAllErrors(ErrorFunction func,
-              const double * const Y,
-              const unsigned int length,
-              const unsigned int numOfOutput,
-              const double * const outputs,
-              ErrorCache * const cache,
-              double * const errors);
+                  const std::vector<double> &Y,
+                  const unsigned int length,
+                  const unsigned int numOfOutput,
+                  const std::vector<double> &outputs,
+                  ErrorCache * const cache,
+                  std::vector<double> &errors);
 void getAllErrors(ErrorFunction func,
-              const double * const Y,
-              const unsigned int length,
-              const unsigned int numOfOutput,
-              const double * const outputs,
-              double * const errors);
+                  const std::vector<double> &Y,
+                  const unsigned int length,
+                  const unsigned int numOfOutput,
+                  const std::vector<double> &outputs,
+                  std::vector<double> &errors);
 
 
 // Evaluate the specified function
 void getError(ErrorFunction func,
-              const double * const Y,
+              const std::vector<double> &Y,
               const unsigned int length,
               const unsigned int numOfOutput,
-              const double * const outputs,
+              const std::vector<double> &outputs,
               const unsigned int index,
               ErrorCache * const cache,
-              double * const errors);
+              std::vector<double> &errors);
 void getError(ErrorFunction func,
-              const double * const Y,
+              const std::vector<double> &Y,
               const unsigned int length,
               const unsigned int numOfOutput,
-              const double * const outputs,
+              const std::vector<double> &outputs,
               const unsigned int index,
-              double * const errors);
+              std::vector<double> &errors);
 
 /**
  * Y.size = length * numOfOutput
@@ -110,19 +112,19 @@ void getError(ErrorFunction func,
  * result.size = numOfOutput
  */
 void getDerivative(ErrorFunction func,
-                   const double * const Y,
+                   const std::vector<double> &Y,
                    const unsigned int length,
                    const unsigned int numOfOutput,
-                   const double * const outputs,
+                   const std::vector<double> &outputs,
                    const unsigned int index,
                    ErrorCache * const cache,
-                   double * const result);
+                   std::vector<double>::iterator result);
 void getDerivative(ErrorFunction func,
-                   const double * const Y,
+                   const std::vector<double> &Y,
                    const unsigned int length,
                    const unsigned int numOfOutput,
-                   const double * const outputs,
+                   const std::vector<double> &outputs,
                    const unsigned int index,
-                   double * const result);
+                   std::vector<double>::iterator result);
 
 #endif /* _ERRORFUNCTIONS_HPP_ */

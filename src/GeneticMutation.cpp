@@ -1,6 +1,7 @@
 #include "GeneticMutation.hpp"
 #include "MatrixNetwork.hpp"
 #include "activationfunctions.hpp"
+#include <stdio.h>
 
 GeneticMutator::GeneticMutator(Random &rand) :
   rand(rand)
@@ -28,7 +29,7 @@ void GeneticMutator::mutateWeights(MatrixNetwork &net,
     roll = this->rand.uniform();
     if (roll < chance) {
       // Mutate the weight
-      net.weights[i] += this->rand.normal() * stddev;
+      net.weights.at(i) += this->rand.normal() * stddev;
     }
   }
 }
@@ -42,15 +43,8 @@ void GeneticMutator::mutateConns(MatrixNetwork &net,
   for (i = 0; i < net.LENGTH * net.LENGTH; i++) {
     roll = this->rand.uniform();
     if (roll < chance) {
-      bit = this->rand.uniformNumber(0, 2);
-      net.conns[i] = bit;
-      // Shift the bit
-      //if (net.conns[i] == 0) {
-      //  net.conns[i] = 1;
-      //}
-      //else {
-      //  net.conns[i] = 0;
-      //}
+      bit = this->rand.randBit();
+      net.conns.at(i) = bit;
     }
   }
 }
@@ -69,28 +63,28 @@ void GeneticMutator::mutateActFuncs(MatrixNetwork &net,
       // Select a function OTHER than the current
       switch(choice) {
       case 0:
-        if (LINEAR == net.actFuncs[i]) {
-          net.actFuncs[i] = LOGSIG;
+        if (LINEAR == net.actFuncs.at(i)) {
+          net.actFuncs.at(i) = LOGSIG;
         }
         else {
-          net.actFuncs[i] = LINEAR;
+          net.actFuncs.at(i) = LINEAR;
         }
         break;
       case 1:
-        if (LOGSIG == net.actFuncs[i]) {
-          net.actFuncs[i] = TANH;
+        if (LOGSIG == net.actFuncs.at(i)) {
+          net.actFuncs.at(i) = TANH;
         }
         else {
-          net.actFuncs[i] = LOGSIG;
+          net.actFuncs.at(i) = LOGSIG;
         }
         break;
       case 2:
       default:
-        if (TANH == net.actFuncs[i]) {
-          net.actFuncs[i] = LINEAR;
+        if (TANH == net.actFuncs.at(i)) {
+          net.actFuncs.at(i) = LINEAR;
         }
         else {
-          net.actFuncs[i] = TANH;
+          net.actFuncs.at(i) = TANH;
         }
         break;
       }

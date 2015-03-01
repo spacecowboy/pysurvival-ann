@@ -13,6 +13,8 @@
 #include <iostream>
 #include <cmath>
 #include <assert.h>
+#include <omp.h>
+
 
 void matrixtest() {
   std::cout << "\nMatrixTest...";
@@ -32,21 +34,21 @@ void matrixtest() {
     //printf("\n\nLENGTH = %d", m.LENGTH);
 
     for (unsigned int i = 0; i < m.LENGTH; i++) {
-      //printf("\n\nNeuron %d, default func = %d", i, m.actFuncs[i]);
-      m.actFuncs[i] =
+      //printf("\n\nNeuron %d, default func = %d", i, m.actFuncs.at(i));
+      m.actFuncs.at(i) =
         (ActivationFuncEnum) (i % 3);
 
       for (unsigned int j = 0; j < m.LENGTH; j++) {
         // printf("\nConnection %d = %d (%f) (default)",
         //       j,
-        //       m.conns[m.LENGTH * i + j],
-        //       m.weights[m.LENGTH * i + j]);
-        m.conns[m.LENGTH * i + j] = 1;
-        m.weights[m.LENGTH * i + j] = j + 1;
+        //       m.conns.at(m.LENGTH * i + j),
+        //       m.weights.at(m.LENGTH * i + j));
+        m.conns.at(m.LENGTH * i + j) = 1;
+        m.weights.at(m.LENGTH * i + j) = j + 1;
         //printf("\nConnection %d = %d (%f) (now)",
         //      j,
-        //      m.conns[m.LENGTH * i + j],
-        //      m.weights[m.LENGTH * i + j]);
+        //      m.conns.at(m.LENGTH * i + j),
+        //      m.weights.at(m.LENGTH * i + j));
       }
     }
 
@@ -55,28 +57,26 @@ void matrixtest() {
 
     // printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
     for (unsigned int i = m.HIDDEN_START; i < m.HIDDEN_END; i++) {
-      // printf("\nHIDDEN(%d).actFunc = %d", i, m.actFuncs[i]);
+      // printf("\nHIDDEN(%d).actFunc = %d", i, m.actFuncs.at(i));
     }
     // printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
     for (unsigned int i = m.OUTPUT_START; i < m.OUTPUT_END; i++) {
-      // printf("\nOUTPUT(%d).actFunc = %d", i, m.actFuncs[i]);
+      // printf("\nOUTPUT(%d).actFunc = %d", i, m.actFuncs.at(i));
     }
 
-    double *outputs = new double[m.OUTPUT_COUNT]();
-    double *inputs = new double[m.INPUT_COUNT]();
+    std::vector<double> outputs(m.OUTPUT_COUNT, 0.0);
+    std::vector<double> inputs(m.INPUT_COUNT, 0.0);
 
     for (unsigned int i = m.INPUT_START; i < m.INPUT_END; i++) {
-      inputs[i] = 2;
+      inputs.at(i) = 2;
     }
 
-    m.output(inputs, outputs);
+    m.output(inputs.begin(), outputs.begin());
 
     for (unsigned int i = 0; i < m.OUTPUT_COUNT; i++) {
-      // printf("\nNetwork output[%d]: %f", i, outputs[i]);
+      printf("\nNetwork output.at(%d): %f", i, outputs.at(i));
     }
 
-    delete[] outputs;
-    delete[] inputs;
     std::cout << "\nMatrixTest Done.";
 }
 
@@ -102,22 +102,69 @@ void randomtest() {
 void geneticTest1() {
   printf("\nGeneticTest1...");
 
-  GeneticNetwork net1(5, 3, 1);
-  GeneticNetwork net2(net1.INPUT_COUNT,
-                      net1.HIDDEN_COUNT,
-                      net1.OUTPUT_COUNT);
+  vector<GeneticNetwork*> population;
 
-  // printf("\n5 = %d\n3 = %d\n1 = %d",
-//         net2.INPUT_COUNT,
-//         net2.HIDDEN_COUNT,
- //        net2.OUTPUT_COUNT);
+  unsigned int extras, populationSize = 50;
+#pragma omp parallel
+  {
+#pragma omp master
+    {
+      extras = 4 * omp_get_num_threads();
+    }
+    // End master
+  }
+  // End parallel
+
+  // Pre-allocate space
+  population.reserve(populationSize + extras);
 
   Random rand;
   GeneticMutator mutator(rand);
 
-  mutator.randomizeNetwork(net1, 1.0);
+  GeneticNetwork base(20, 3, 2);
+  mutator.randomizeNetwork(base, 1.0);
 
-  mutator.randomizeNetwork(net2, 1.0);
+
+  for (unsigned int i = 0; i < populationSize + extras; i++) {
+    GeneticNetwork *pNet = new GeneticNetwork(base.INPUT_COUNT,
+                                              base.HIDDEN_COUNT,
+                                              base.OUTPUT_COUNT);
+    // Base it on the all-mother
+    pNet->cloneNetwork(base);
+
+    population.insert(population.begin() + i, pNet);
+  }
+
+  for (unsigned int gen = 0; gen < 100; gen++) {
+#pragma omp parallel default(none) shared(base, population)
+    {
+      GeneticNetwork *pChild;
+      Random rand;
+      GeneticMutator mutator(rand);
+#pragma omp for
+      for (unsigned int threadChild = 0; threadChild < 50; threadChild++) {
+#pragma omp critical
+        {
+          // Pop a network
+          pChild = population.at(0);
+          population.erase(population.begin());
+        } // End critical
+
+        mutator.mutateWeights(*pChild, 1.0, 1.0);
+        mutator.mutateConns(*pChild, 1.0);
+
+#pragma omp critical
+        {
+          population.insert(population.begin(), pChild);
+        } // End critical
+      } // End for
+    }// End parallel
+  }
+
+
+  //mutator.randomizeNetwork(net1, 1.0);
+
+  //mutator.randomizeNetwork(net2, 1.0);
 
   // printf("\nWeight diff: %f vs %f
 //\nConn diff: %d vs %d
@@ -130,7 +177,7 @@ void geneticTest1() {
 //         net2.actFuncs[3]);
 
   // printf("\nCloning...");
-  net2.cloneNetwork(net1);
+  //net2.cloneNetwork(net1);
 
   // printf("\nWeight diff: %f vs %f
 //\nConn diff: %d vs %d
@@ -142,6 +189,13 @@ void geneticTest1() {
      //    net1.actFuncs[3],
       //   net2.actFuncs[3]);
 
+  vector<GeneticNetwork*>::iterator netIt;
+  for (netIt = population.begin(); netIt < population.end();
+       netIt++) {
+    delete *netIt;
+  }
+
+
 
   printf("\nGeneticTest1 Done.");
 }
@@ -149,7 +203,7 @@ void geneticTest1() {
 void geneticXOR() {
   std::cout << "\nGeneticXOR...";
   GeneticNetwork net(2, 5, 1);
-  net.setGenerations(10);
+  net.setGenerations(100);
   net.setWeightMutationChance(0.5);
   net.setWeightMutationFactor(0.3);
   net.connsMutationChance = 0.5;
@@ -157,48 +211,47 @@ void geneticXOR() {
   net.setCrossoverChance(0.6);
 
   // define inputs
-  double X[2*4]{0,0,
-      0,1,
-      1,0,
-      1,1};
+  std::vector<double> X = {0,0,
+                           0,1,
+                           1,0,
+                           1,1};
   // printf("\nbah %f", X[7]);
 
   // define targets
-  double Y[4]{0, 1, 1, 0};
+  std::vector<double> Y = {0, 1, 1, 0};
   // printf("\nbah %f", Y[2]);
 
   net.learn(X, Y, 4);
 
-  double preds[1];
-
+  std::vector<double> preds(1, 0.0);
 
    std::cout << "\nPredictions\n";
   for (int i = 0; i < 4; i++) {
-    net.output(X + 2 * i, preds);
+    net.output(X.begin() + 2 * i, preds.begin());
      std::cout << X[2*i] << " "<< X[2*i + 1]
               << " : " << preds[0] << "\n";
   }
 
   // Print structure
-  // std::cout << "\n\nWeights";
+   std::cout << "\n\nWeights";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    // std::cout << "\nN" << i << ":";
+     std::cout << "\nN" << i << ":";
     for (unsigned int j = 0; j < i; j++) {
-      // std::cout << " " << net.weights[j + i*net.LENGTH];
+      std::cout << " " << net.weights.at(j + i*net.LENGTH);
     }
   }
 
-  // std::cout << "\n\nConss";
+   std::cout << "\n\nConss";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    // std::cout << "\nN" << i << ":";
+     std::cout << "\nN" << i << ":";
     for (unsigned int j = 0; j < i; j++) {
-      // std::cout << " " << net.conns[j + i*net.LENGTH];
+      std::cout << " " << net.conns.at(j + i*net.LENGTH);
     }
   }
 
-  // std::cout << "\n\nActFuncs";
+   std::cout << "\n\nActFuncs";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-    // std::cout << "\nN" << i << ": " << net.actFuncs[i];
+    std::cout << "\nN" << i << ": " << net.actFuncs.at(i);
   }
 
   std::cout << "\nGeneticXOR Done.";
@@ -213,42 +266,42 @@ void rpropsurvlik() {
   // Set up a feedforward structure
   for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
     for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {
-      net.conns[net.LENGTH * i + j] = 1;
-      net.weights[net.LENGTH * i + j] = r.normal();
+      net.conns.at(net.LENGTH * i + j) = 1;
+      net.weights.at(net.LENGTH * i + j) = r.normal();
     }
     // Also activate self
-    net.conns[net.LENGTH * i + i] = 1;
+    net.conns.at(net.LENGTH * i + i) = 1;
   }
   for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
     for (unsigned int j = 0; j < net.BIAS_END; j++) {
-      net.conns[net.LENGTH * i + j] = 1;
-      net.weights[net.LENGTH * i + j] = r.normal();
+      net.conns.at(net.LENGTH * i + j) = 1;
+      net.weights.at(net.LENGTH * i + j) = r.normal();
     }
     // Also activate self
-    net.conns[net.LENGTH * i + i] = 1;
+    net.conns.at(net.LENGTH * i + i) = 1;
   }
   net.setHiddenActivationFunction(TANH);
   net.setOutputActivationFunction(LINEAR);
 
-  double X[2*8]{0,0,
-      0,1,
-      1,0,
-      1,1,
-      0,0,
-      0,1,
-      1,0,
-      1,1};
+  std::vector<double> X = {0,0,
+                           0,1,
+                           1,0,
+                           1,1,
+                           0,0,
+                           0,1,
+                           1,0,
+                           1,1};
 
   // define targets
   // initial censored point which segfaulted at some time
-  double Y[2*8]{0, 0,
-      1, 1,
-      1, 1,
-      0, 1,
-      0, 1,
-      0.5, 0,
-      0.5, 0,
-      0, 0};
+  std::vector<double> Y = {0, 0,
+                           1, 1,
+                           1, 1,
+                           0, 1,
+                           0, 1,
+                           0.5, 0,
+                           0.5, 0,
+                           0, 0};
 
   // Print structure
   // std::cout << "\n\nWeights before";
@@ -275,10 +328,10 @@ void rpropsurvlik() {
     }
   }
 
-  double preds[2];
+  std::vector<double> preds(2, 0);
   // std::cout << "\n\nPredictions\n";
   for (int i = 0; i < 4; i++) {
-    net.output(X + 2 * i, preds);
+    net.output(X.begin() + 2 * i, preds.begin());
     // std::cout << X[2*i] << " "<< X[2*i + 1]
        //       << " : " << std::round(preds[0])
         //      << " (" << Y[i] << ")"<< "\n";
@@ -296,39 +349,40 @@ void rproptest() {
   // Set up a feedforward structure
   for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
     for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {
-      net.conns[net.LENGTH * i + j] = 1;
-      net.weights[net.LENGTH * i + j] = r.normal();
+      net.conns.at(net.LENGTH * i + j) = 1;
+      net.weights.at(net.LENGTH * i + j) = r.normal();
     }
     // Also activate self
-    net.conns[net.LENGTH * i + i] = 1;
+    net.conns.at(net.LENGTH * i + i) = 1;
   }
   for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
     for (unsigned int j = 0; j < net.BIAS_END; j++) {
-      net.conns[net.LENGTH * i + j] = 1;
-      net.weights[net.LENGTH * i + j] = r.normal();
+      net.conns.at(net.LENGTH * i + j) = 1;
+      net.weights.at(net.LENGTH * i + j) = r.normal();
     }
     // Also activate self
-    net.conns[net.LENGTH * i + i] = 1;
+    net.conns.at(net.LENGTH * i + i) = 1;
   }
   net.setHiddenActivationFunction(TANH);
   net.setOutputActivationFunction(LOGSIG);
 
   // xor
-  // define inputs
-  double X[2*4]{0,0,
-      0,1,
-      1,0,
-      1,1};
+    // define inputs
+  std::vector<double> X = {0,0,
+                           0,1,
+                           1,0,
+                           1,1};
+  // printf("\nbah %f", X[7]);
 
   // define targets
-  double Y[4]{0, 1, 1, 0};
+  std::vector<double> Y = {0, 1, 1, 0};
 
   // Print structure
   std::cout << "\n\nConns before";
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
     std::cout << "\nN" << i << ":";
     for (unsigned int j = 0; j <= i; j++) {
-      std::cout << " " << net.conns[j + i*net.LENGTH];
+      std::cout << " " << net.conns.at(j + i*net.LENGTH);
     }
   }
 
@@ -344,14 +398,14 @@ void rproptest() {
   for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
     // std::cout << "\nN" << i << ":";
     for (unsigned int j = 0; j < i; j++) {
-      // std::cout << " " << net.weights[j + i*net.LENGTH];
+      // std::cout << " " << net.weights.at(j + i*net.LENGTH);
     }
   }
 
-  double preds[1];
+  std::vector<double> preds(1, 0);
   // std::cout << "\n\nPredictions\n";
   for (int i = 0; i < 4; i++) {
-    net.output(X + 2 * i, preds);
+    net.output(X.begin() + 2 * i, preds.begin());
 
     std::cout << "\n  " << X[2*i] << " "<< X[2*i + 1]
               << " : " << preds[0]
@@ -375,14 +429,14 @@ void rpropalloctest() {
   // Set up a feedforward structure
   for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
     for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {
-      net.conns[net.LENGTH * i + j] = 1;
-      net.weights[net.LENGTH * i + j] = r.normal();
+      net.conns.at(net.LENGTH * i + j) = 1;
+      net.weights.at(net.LENGTH * i + j) = r.normal();
     }
   }
   for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
     for (unsigned int j = 0; j < net.BIAS_END; j++) {
-      net.conns[net.LENGTH * i + j] = 1;
-      net.weights[net.LENGTH * i + j] = r.normal();
+      net.conns.at(net.LENGTH * i + j) = 1;
+      net.weights.at(net.LENGTH * i + j) = r.normal();
     }
   }
   net.setHiddenActivationFunction(TANH);
@@ -392,9 +446,9 @@ void rpropalloctest() {
   // define inputs
   unsigned int limit = 100000;
 
-  double *X = new double[2*limit]();
+  std::vector<double> X(2*limit, 0);
   // define targets
-  double *Y = new double[2*limit]();
+  std::vector<double> Y(2*limit, 0);
 
   // Not interested in training result
 
@@ -406,9 +460,6 @@ void rpropalloctest() {
     throw "Shit hit the fan";
   }
 
-  delete[] X;
-  delete[] Y;
-
   std::cout << "\nRPropAllocTest Done.";
 }
 
@@ -417,13 +468,12 @@ void survcachealloctest() {
   std::cout << "\nSurvCacheAllocTest...";
 
   unsigned int limit = 100000;
-  double *Y = new double[2*limit]();
+  std::vector<double> Y(2*limit, 0);
 
   SurvErrorCache *cache = new SurvErrorCache();
 
   cache->verifyInit(Y, limit);
 
-  delete[] Y;
   delete cache;
 
   std::cout << "\nSurvCacheAllocTest Done";
@@ -446,7 +496,7 @@ void testSurvCache() {
   const unsigned int length = 35, sortedIndex = 17;
   unsigned int index;
   // These are disordered
-  double targets[] = {
+  std::vector<double> targets = {
     0.20648482, 1.,
     0.20824676, 1.,
     0.21543471, 0.,
@@ -600,9 +650,9 @@ void errorTests()
     {
       // MSE is 0.5 * (x - y)^2
 
-      double outputs[rows*cols];
-      double targets[rows*cols];
-      double errors[rows*cols];
+      std::vector<double> outputs(rows*cols, 0);
+      std::vector<double> targets(rows*cols, 0);
+      std::vector<double> errors(rows*cols, 0);
 
       // init
       for (unsigned int i = 0; i < rows; i++) {
@@ -637,16 +687,15 @@ void derivTests()
     for (unsigned int cols = 1; cols < 4; cols++)
     {
       // MSE is 0.5 * (x - y)^2
-
-      double outputs[rows*cols];
-      double targets[rows*cols];
-      double derivs[rows*cols];
+      std::vector<double> outputs(rows*cols, 0);
+      std::vector<double> targets(rows*cols, 0);
+      std::vector<double> derivs(rows*cols, 0);
 
       // init
       for (unsigned int i = 0; i < rows; i++) {
         for (unsigned int j = 0; j < cols; j++) {
-          outputs[i * cols + j] = x;
-          targets[i * cols + j] = y;
+          outputs.at(i * cols + j) = x;
+          targets.at(i * cols + j) = y;
         }
       }
 
@@ -654,10 +703,10 @@ void derivTests()
         unsigned int index = i * cols;
         getDerivative(ErrorFunction::ERROR_MSE,
                       targets, rows, cols,
-                      outputs, index, derivs + index);
+                      outputs, index, derivs.begin() + index);
         for (unsigned int j = 0; j < cols; j++) {
-          //std::cout << i << "," << j << " d: " << derivs[index + j] << "\n";;
-          assertSame(derivs[index + j], (x-y));
+          //std::cout << i << "," << j << " d: " << derivs.at(index + j) << "\n";;
+          assertSame(derivs.at(index + j), (x-y));
         }
       }
     }
@@ -675,9 +724,9 @@ void survMSETests()
 
   unsigned int i;
 
-  double outputs[rows*cols];
-  double targets[rows*cols];
-  double errors[rows*cols];
+  std::vector<double> outputs(rows*cols, 0);
+  std::vector<double> targets(rows*cols, 0);
+  std::vector<double> errors(rows*cols, 0);
 
   for (i = 0; i < rows; i++)
   {
@@ -724,9 +773,9 @@ void survLikTests()
 
   unsigned int i;
 
-  double outputs[rows*cols];
-  double targets[rows*cols];
-  double errors[rows*cols];
+  std::vector<double> outputs(rows*cols, 0);
+  std::vector<double> targets(rows*cols, 0);
+  std::vector<double> errors(rows*cols, 0);
 
   //////////////
   // First I want to test uncensored points
@@ -738,38 +787,38 @@ void survLikTests()
   for (i = 0; i < rows; i++)
   {
       // Targets
-      targets[i * cols] = i;
-      targets[i * cols + 1] = 1.0;
+      targets.at(i * cols) = i;
+      targets.at(i * cols + 1) = 1.0;
       // Even indices underestimate
       if (i % 2 == 0)
       {
-        outputs[i * cols] = i - 2.0;
+        outputs.at(i * cols) = i - 2.0;
       }
       else // Odd overestimate
       {
-        outputs[i * cols] = i + 2.0;
+        outputs.at(i * cols) = i + 2.0;
       }
   }
 
   // Censor first point
-  targets[0 + 1] = 0;
+  targets.at(0 + 1) = 0;
 
   // Censor two in the middle
-  targets[10 * cols + 1] = 0;
-  targets[11 * cols + 1] = 0;
+  targets.at(10 * cols + 1) = 0;
+  targets.at(11 * cols + 1) = 0;
 
   // Censor last two
-  targets[(rows - 2) * cols + 1] = 0;
-  targets[(rows - 1) * cols + 1] = 0;
+  targets.at((rows - 2) * cols + 1) = 0;
+  targets.at((rows - 1) * cols + 1) = 0;
 
   getAllErrors(ErrorFunction::ERROR_SURV_LIKELIHOOD,
                targets, rows, cols,
                outputs, errors);
 
   for (i = 0; i < rows; i++) {
-    printf("\n  E: %f", errors[i * cols]);
-      //std::cout << "\ne: " << errors[i * cols] << "\n";
-    //assertSame(errors[i * cols], 4.0);
+    printf("\n  E: %f", errors.at(i * cols));
+      //std::cout << "\ne: " << errors.at(i * cols) << "\n";
+    //assertSame(errors.at(i * cols), 4.0);
   }
 
   std::cout << "\nTestSurvLik done.";
@@ -795,56 +844,48 @@ void testSoftmax() {
     //printf("\n\nLENGTH = %d", m.LENGTH);
 
     for (unsigned int i = 0; i < m.LENGTH; i++) {
-      //printf("\n\nNeuron %d, default func = %d", i, m.actFuncs[i]);
-      m.actFuncs[i] =
+      //printf("\n\nNeuron %d, default func = %d", i, m.actFuncs.at(i));
+      m.actFuncs.at(i) =
         (ActivationFuncEnum) (i % 3);
 
       for (unsigned int j = 0; j <= i; j++) {
         // printf("\nConnection %d = %d (%f) (default)",
         //       j,
-        //       m.conns[m.LENGTH * i + j],
-        //       m.weights[m.LENGTH * i + j]);
-        m.conns[m.LENGTH * i + j] = 1;
-        m.weights[m.LENGTH * i + j] = ((float) j + 1) / ((float) m.LENGTH);
+        //       m.conns.at(m.LENGTH * i + j),
+        //       m.weights.at(m.LENGTH * i + j));
+        m.conns.at(m.LENGTH * i + j) = 1;
+        m.weights.at(m.LENGTH * i + j) = ((float) j + 1) / ((float) m.LENGTH);
         //printf("\nConnection %d = %d (%f) (now)",
         //      j,
-        //      m.conns[m.LENGTH * i + j],
-        //      m.weights[m.LENGTH * i + j]);
+        //      m.conns.at(m.LENGTH * i + j),
+        //      m.weights.at(m.LENGTH * i + j));
       }
     }
 
     m.setHiddenActivationFunction(TANH);
     m.setOutputActivationFunction(SOFTMAX);
 
-    // printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
-    for (unsigned int i = m.HIDDEN_START; i < m.HIDDEN_END; i++) {
-      // printf("\nHIDDEN(%d).actFunc = %d", i, m.actFuncs[i]);
-    }
-    // printf("\n\nTANH = %d, LOGSIG = %d\n", TANH, LOGSIG);
     for (unsigned int i = m.OUTPUT_START + 1; i < m.OUTPUT_END; i += 2) {
       // Disable every second output neuron
-      m.conns[m.LENGTH * i + i] = 0;
+      m.conns.at(m.LENGTH * i + i) = 0;
     }
 
-    double *outputs = new double[m.OUTPUT_COUNT]();
-    double *inputs = new double[m.INPUT_COUNT]();
+    std::vector<double> outputs(m.OUTPUT_COUNT, 0);
+    std::vector<double> inputs(m.INPUT_COUNT, 0);
 
     for (unsigned int i = m.INPUT_START; i < m.INPUT_END; i++) {
-      inputs[i] = -99;
+      inputs.at(i) = -i;
     }
 
-    m.output(inputs, outputs);
+    m.output(inputs.begin(), outputs.begin());
 
     double out_sum = 0;
     for (unsigned int i = 0; i < m.OUTPUT_COUNT; i++) {
-      out_sum += outputs[i];
-      printf("\nNetwork output[%d]: %f", i, outputs[i]);
+      out_sum += outputs.at(i);
+      printf("\nNetwork output.at(%d): %f", i, outputs.at(i));
     }
     printf("\nOutputsum = %f", out_sum);
     assert(abs(out_sum - 1.0) < 0.000001);
-
-    delete[] outputs;
-    delete[] inputs;
   }
 
   std::cout << "\nTestSoftmax done.";
@@ -860,84 +901,83 @@ void testLogRank() {
 
   // 2 groups
   const unsigned int groupCount = 2;
-  unsigned int *groupCounts = new unsigned int[groupCount];
+  std::vector<unsigned int> groupCounts(groupCount, 0);
   // 6 in g0, 6 in g1
-  groupCounts[0] = 6;
-  groupCounts[1] = 6;
+  groupCounts.at(0) = 6;
+  groupCounts.at(1) = 6;
 
   const unsigned int length = 12;
 
-  assert(groupCounts[0] + groupCounts[1] == length);
+  assert(groupCounts.at(0) + groupCounts.at(1) == length);
 
-  double *targets = new double[2*length];
-  unsigned int *groups = new unsigned int[length];
+  std::vector<double> targets(2*length, 0);
+  std::vector<unsigned int> groups(length, 0);
 
   // Define time, event and group status
   // Make sure it is time ordered
   int i = 0;
-  groups[i] = 1;
-  targets[2*i] = 3.1;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = 3.1;
+  targets.at(2*i + 1) = 1;
 
   i = 1;
-  groups[i] = 1;
-  targets[2*i] = 6.8;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 1;
+  targets.at(2*i) = 6.8;
+  targets.at(2*i + 1) = 0;
 
   i = 2;
-  groups[i] = 0;
-  targets[2*i] = 8.7;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 8.7;
+  targets.at(2*i + 1) = 1;
 
   i = 3;
-  groups[i] = 0;
-  targets[2*i] = 9.0;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 9.0;
+  targets.at(2*i + 1) = 1;
 
   i = 4;
-  groups[i] = 1;
-  targets[2*i] = 9.0;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = 9.0;
+  targets.at(2*i + 1) = 1;
 
   i = 5;
-  groups[i] = 1;
-  targets[2*i] = 9.0;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = 9.0;
+  targets.at(2*i + 1) = 1;
 
   i = 6;
-  groups[i] = 0;
-  targets[2*i] = 10.1;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 0;
+  targets.at(2*i) = 10.1;
+  targets.at(2*i + 1) = 0;
 
   i = 7;
-  groups[i] = 1;
-  targets[2*i] = 11.3;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 1;
+  targets.at(2*i) = 11.3;
+  targets.at(2*i + 1) = 0;
 
   i = 8;
-  groups[i] = 0;
-  targets[2*i] = 12.1;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 0;
+  targets.at(2*i) = 12.1;
+  targets.at(2*i + 1) = 0;
 
   i = 9;
-  groups[i] = 1;
-  targets[2*i] = 16.2;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = 16.2;
+  targets.at(2*i + 1) = 1;
 
   i = 10;
-  groups[i] = 0;
-  targets[2*i] = 18.7;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 18.7;
+  targets.at(2*i + 1) = 1;
 
   i = 11;
-  groups[i] = 0;
-  targets[2*i] = 23.1;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 0;
+  targets.at(2*i) = 23.1;
+  targets.at(2*i + 1) = 0;
 
   printf("\nLogRank:");
   double stat = TaroneWareMeanPairwise(targets, groups, groupCounts,
-                                    length, groupCount,
-                                    TaroneWareType::LOGRANK);
+                                       length, TaroneWareType::LOGRANK);
 
   printf("\nStat = %f", stat);
 
@@ -953,7 +993,7 @@ void testLogRank() {
 
   printf("\nGehan:");
   stat = TaroneWareMeanPairwise(targets, groups, groupCounts,
-                                length, groupCount,
+                                length,
                                 TaroneWareType::GEHAN);
 
   printf("\nStat = %f", stat);
@@ -967,7 +1007,7 @@ void testLogRank() {
 
   printf("\nTaroneWare:");
   stat = TaroneWareMeanPairwise(targets, groups, groupCounts,
-                                length, groupCount,
+                                length,
                                 TaroneWareType::TARONEWARE);
 
   printf("\nStat = %f", stat);
@@ -980,11 +1020,6 @@ void testLogRank() {
   assert(stat == stathighlow);
 
 
-  // Cleanup
-  delete[] targets;
-  delete[] groupCounts;
-  delete[] groups;
-
   std::cout << "\nTestLogRank done.";
 }
 
@@ -993,17 +1028,17 @@ void testSurvAreaNoCens() {
 
   // 2 groups
   const unsigned int groupCount = 2;
-  unsigned int *groupCounts = new unsigned int[groupCount];
+  std::vector<unsigned int> groupCounts(groupCount, 0);
 
-  groupCounts[0] = 6;
-  groupCounts[1] = 6;
+  groupCounts.at(0) = 6;
+  groupCounts.at(1) = 6;
 
   const unsigned int length = 12;
 
-  assert(groupCounts[0] + groupCounts[1] == length);
+  assert(groupCounts.at(0) + groupCounts.at(1) == length);
 
-  double *targets = new double[2*length];
-  unsigned int *groups = new unsigned int[length];
+  std::vector<double> targets(2*length, 0);
+  std::vector<unsigned int> groups(length, 0);
 
   // Define time, event and group status
   // Make sure it is time ordered
@@ -1011,72 +1046,68 @@ void testSurvAreaNoCens() {
   // First 6 are of group two, and have NEGATIVE TIMES
   // Should be ignored...
   int i = 0;
-  groups[i] = 1;
-  targets[2*i] = -6;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = -6;
+  targets.at(2*i + 1) = 1;
 
   i = 1;
-  groups[i] = 1;
-  targets[2*i] = -5;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 1;
+  targets.at(2*i) = -5;
+  targets.at(2*i + 1) = 0;
 
   i = 2;
-  groups[i] = 1;
-  targets[2*i] = -4;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = -4;
+  targets.at(2*i + 1) = 1;
 
   i = 3;
-  groups[i] = 1;
-  targets[2*i] = -3;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = -3;
+  targets.at(2*i + 1) = 1;
 
   i = 4;
-  groups[i] = 1;
-  targets[2*i] = -2;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = -2;
+  targets.at(2*i + 1) = 1;
 
   i = 5;
-  groups[i] = 1;
-  targets[2*i] = -1;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 1;
+  targets.at(2*i) = -1;
+  targets.at(2*i + 1) = 1;
 
   // Group 1 has normal times, one space apart
   i = 6;
-  groups[i] = 0;
-  targets[2*i] = 1;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 1;
+  targets.at(2*i + 1) = 1;
 
   i = 7;
-  groups[i] = 0;
-  targets[2*i] = 2;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 2;
+  targets.at(2*i + 1) = 1;
 
   i = 8;
-  groups[i] = 0;
-  targets[2*i] = 3;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 3;
+  targets.at(2*i + 1) = 1;
 
   i = 9;
-  groups[i] = 0;
-  targets[2*i] = 4;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 4;
+  targets.at(2*i + 1) = 1;
 
   i = 10;
-  groups[i] = 0;
-  targets[2*i] = 5;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 5;
+  targets.at(2*i + 1) = 1;
 
   i = 11;
-  groups[i] = 0;
-  targets[2*i] = 6;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 6;
+  targets.at(2*i + 1) = 1;
 
   assert(3.5 == SurvArea(targets, groups, groupCounts, length));
 
-    // Cleanup
-  delete[] targets;
-  delete[] groupCounts;
-  delete[] groups;
 }
 
 
@@ -1085,59 +1116,55 @@ void testSurvAreaSameCens() {
 
   // 2 groups
   const unsigned int groupCount = 1;
-  unsigned int *groupCounts = new unsigned int[groupCount];
+  std::vector<unsigned int> groupCounts(groupCount, 0);
 
-  groupCounts[0] = 6;
+  groupCounts.at(0) = 6;
 
   const unsigned int length = 6;
 
-  assert(groupCounts[0] == length);
+  assert(groupCounts.at(0) == length);
 
-  double *targets = new double[2*length];
-  unsigned int *groups = new unsigned int[length];
+  std::vector<double> targets(2*length, 0);
+  std::vector<unsigned int> groups(length, 0);
 
   // Define time, event and group status
   // Make sure it is time ordered
 
   // Group 1 has normal times, one space apart
   int i = 0;
-  groups[i] = 0;
-  targets[2*i] = 1;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 1;
+  targets.at(2*i + 1) = 1;
 
   i = 1;
-  groups[i] = 0;
-  targets[2*i] = 2;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 2;
+  targets.at(2*i + 1) = 1;
 
   // This is censored at the same time as previous
   i = 2;
-  groups[i] = 0;
-  targets[2*i] = 2;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 0;
+  targets.at(2*i) = 2;
+  targets.at(2*i + 1) = 0;
 
   i = 3;
-  groups[i] = 0;
-  targets[2*i] = 4;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 4;
+  targets.at(2*i + 1) = 1;
 
   i = 4;
-  groups[i] = 0;
-  targets[2*i] = 5;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 5;
+  targets.at(2*i + 1) = 1;
 
   i = 5;
-  groups[i] = 0;
-  targets[2*i] = 6;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 6;
+  targets.at(2*i + 1) = 1;
 
   assert(abs(1.0 + 5.0/6.0 + 5.0/6.0*3.0/4.0*2.0 + 5.0/6.0*2.0/4.0 + 5.0/6.0/4.0 -
              SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
 
-    // Cleanup
-  delete[] targets;
-  delete[] groupCounts;
-  delete[] groups;
 }
 
 void testSurvAreaMidCens() {
@@ -1145,59 +1172,54 @@ void testSurvAreaMidCens() {
 
   // 2 groups
   const unsigned int groupCount = 1;
-  unsigned int *groupCounts = new unsigned int[groupCount];
+  std::vector<unsigned int> groupCounts(groupCount, 0);
 
-  groupCounts[0] = 6;
+  groupCounts.at(0) = 6;
 
   const unsigned int length = 6;
 
-  assert(groupCounts[0] == length);
+  assert(groupCounts.at(0) == length);
 
-  double *targets = new double[2*length];
-  unsigned int *groups = new unsigned int[length];
+  std::vector<double> targets(2*length, 0);
+  std::vector<unsigned int> groups(length, 0);
 
   // Define time, event and group status
   // Make sure it is time ordered
 
   // Group 1 has normal times, one space apart
   int i = 0;
-  groups[i] = 0;
-  targets[2*i] = 1;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 1;
+  targets.at(2*i + 1) = 1;
 
   i = 1;
-  groups[i] = 0;
-  targets[2*i] = 2;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 2;
+  targets.at(2*i + 1) = 1;
 
   // This is censored between two event times
   i = 2;
-  groups[i] = 0;
-  targets[2*i] = 3;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 0;
+  targets.at(2*i) = 3;
+  targets.at(2*i + 1) = 0;
 
   i = 3;
-  groups[i] = 0;
-  targets[2*i] = 4;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 4;
+  targets.at(2*i + 1) = 1;
 
   i = 4;
-  groups[i] = 0;
-  targets[2*i] = 5;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 5;
+  targets.at(2*i + 1) = 1;
 
   i = 5;
-  groups[i] = 0;
-  targets[2*i] = 6;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 6;
+  targets.at(2*i + 1) = 1;
 
   assert(abs(1.0 + 5.0/6.0 + 4.0/6.0*2.0 + 4.0/9.0 + 2.0/9.0 -
              SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
-
-    // Cleanup
-  delete[] targets;
-  delete[] groupCounts;
-  delete[] groups;
 }
 
 
@@ -1206,59 +1228,54 @@ void testSurvAreaEndCens1() {
 
   // 2 groups
   const unsigned int groupCount = 1;
-  unsigned int *groupCounts = new unsigned int[groupCount];
+  std::vector<unsigned int> groupCounts(groupCount, 0);
 
-  groupCounts[0] = 6;
+  groupCounts.at(0) = 6;
 
   const unsigned int length = 6;
 
-  assert(groupCounts[0] == length);
+  assert(groupCounts.at(0) == length);
 
-  double *targets = new double[2*length];
-  unsigned int *groups = new unsigned int[length];
+  std::vector<double> targets(2*length, 0);
+  std::vector<unsigned int> groups(length, 0);
 
   // Define time, event and group status
   // Make sure it is time ordered
 
   // Group 1 has normal times, one space apart
   int i = 0;
-  groups[i] = 0;
-  targets[2*i] = 1;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 1;
+  targets.at(2*i + 1) = 1;
 
   i = 1;
-  groups[i] = 0;
-  targets[2*i] = 2;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 2;
+  targets.at(2*i + 1) = 1;
 
   i = 2;
-  groups[i] = 0;
-  targets[2*i] = 3;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 3;
+  targets.at(2*i + 1) = 1;
 
   i = 3;
-  groups[i] = 0;
-  targets[2*i] = 4;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 4;
+  targets.at(2*i + 1) = 1;
 
   i = 4;
-  groups[i] = 0;
-  targets[2*i] = 5;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 5;
+  targets.at(2*i + 1) = 1;
 
   // Censored at the end, same time as last event
   i = 5;
-  groups[i] = 0;
-  targets[2*i] = 5;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 0;
+  targets.at(2*i) = 5;
+  targets.at(2*i + 1) = 0;
 
   assert(abs(1.0 + 5.0/6.0 + 4.0/6.0 + 3.0/6.0 + 2.0/6.0 -
              SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
-
-    // Cleanup
-  delete[] targets;
-  delete[] groupCounts;
-  delete[] groups;
 }
 
 
@@ -1267,59 +1284,54 @@ void testSurvAreaEndCens2() {
 
   // 2 groups
   const unsigned int groupCount = 1;
-  unsigned int *groupCounts = new unsigned int[groupCount];
+  std::vector<unsigned int> groupCounts(groupCount, 0);
 
-  groupCounts[0] = 6;
+  groupCounts.at(0) = 6;
 
   const unsigned int length = 6;
 
-  assert(groupCounts[0] == length);
+  assert(groupCounts.at(0) == length);
 
-  double *targets = new double[2*length];
-  unsigned int *groups = new unsigned int[length];
+  std::vector<double> targets(2*length, 0);
+  std::vector<unsigned int> groups(length, 0);
 
   // Define time, event and group status
   // Make sure it is time ordered
 
   // Group 1 has normal times, one space apart
   int i = 0;
-  groups[i] = 0;
-  targets[2*i] = 1;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 1;
+  targets.at(2*i + 1) = 1;
 
   i = 1;
-  groups[i] = 0;
-  targets[2*i] = 2;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 2;
+  targets.at(2*i + 1) = 1;
 
   i = 2;
-  groups[i] = 0;
-  targets[2*i] = 3;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 3;
+  targets.at(2*i + 1) = 1;
 
   i = 3;
-  groups[i] = 0;
-  targets[2*i] = 4;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 4;
+  targets.at(2*i + 1) = 1;
 
   i = 4;
-  groups[i] = 0;
-  targets[2*i] = 5;
-  targets[2*i + 1] = 1;
+  groups.at(i) = 0;
+  targets.at(2*i) = 5;
+  targets.at(2*i + 1) = 1;
 
   // Censored at the end, after last event
   i = 5;
-  groups[i] = 0;
-  targets[2*i] = 6;
-  targets[2*i + 1] = 0;
+  groups.at(i) = 0;
+  targets.at(2*i) = 6;
+  targets.at(2*i + 1) = 0;
 
   assert(abs(1.0 + 5.0/6.0 + 4.0/6.0 + 3.0/6.0 + 2.0/6.0 + 1.0/6.0 -
              SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
-
-    // Cleanup
-  delete[] targets;
-  delete[] groupCounts;
-  delete[] groups;
 }
 
 int main( int argc, const char* argv[] )
@@ -1338,9 +1350,9 @@ int main( int argc, const char* argv[] )
   derivTests();
   matrixtest();
   randomtest();
-  //rpropalloctest();
+  rpropalloctest();
   //survcachealloctest();
-  //geneticTest1();
+  geneticTest1();
   geneticXOR();
   rproptest();
   testSurvCache();

@@ -23,8 +23,8 @@ class RPropNetwork: public MatrixNetwork {
   /*
  * Expects the X and Y to be of equal number of rows.
  */
-  virtual int learn(const double * const X,
-                    const double * const Y,
+  virtual int learn(const std::vector<double> &X,
+                    const std::vector<double> &Y,
                     const unsigned int length);
 
 

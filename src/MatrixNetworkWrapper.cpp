@@ -4,6 +4,7 @@
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include <algorithm>
 #include "activationfunctions.hpp"
+#include <stdio.h>
 
 extern "C" {
 
@@ -290,22 +291,22 @@ extern "C" {
                                      void *closure) {
     unsigned int *conns = self->net->conns;
     unsigned int length = self->net->LENGTH * self->net->LENGTH;
-
+    printf("OK, WTF...\n");
     if (nullptr == conns || NULL == conns) {
       PyErr_Format(PyExc_ValueError,
                    "Conns were NULL!");
       return NULL;
     }
 
-	// Now convert to numpy array
-	npy_intp dims[1] = { (int) length };
-	PyObject *result = PyArray_SimpleNew(1, dims, NPY_UINT);
+    // Now convert to numpy array
+    npy_intp dims[1] = { (npy_int) length };
+    PyObject *result = PyArray_SimpleNew(1, dims, NPY_UINT);
     unsigned int *ptr =
       (unsigned int *) PyArray_GETPTR1((PyArrayObject*) result,
                                        0);
-
-    std::copy(conns, conns + length,
-              ptr);
+    printf("OK, Shit %d...\n", length);
+    //std::copy(conns, conns + length,
+    //          ptr);
 
 	return result;
   }
@@ -334,6 +335,7 @@ extern "C" {
 	unsigned int *ptr = NULL;
 
     if (pylist) {
+      printf("PyLIst...\n");
       for (int i = 0; (unsigned int)i < length; i++) {
         // Actual python list
         pyval = PyList_GetItem(inputs, i);
@@ -346,7 +348,20 @@ extern "C" {
         self->net->conns[i] = PyLong_AsLong(pyval);
       }
     } else {
+      printf("Numpyarray...\n");
+      npy_intp arrayLength = PyArray_DIM((PyArrayObject*) inputs, 0);
+      for (int i = 0; (unsigned int)i < length && i < arrayLength; i++) {
+        ptr = (unsigned int*) PyArray_GETPTR1((PyArrayObject*) inputs, i);
+        if (ptr == NULL) {
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input values.");
+          return -1;
+        } else {
+          self->net->conns[i] = *ptr;
+        }
+      }
       // Numpy array, first try with end
+      /*
       ptr = (unsigned int *) PyArray_GETPTR1((PyArrayObject*) inputs,
                                        length - 1);
       if (ptr == NULL) {
@@ -358,7 +373,7 @@ extern "C" {
       // OK, correct length
       ptr = (unsigned int *) PyArray_GETPTR1((PyArrayObject*) inputs, 0);
       std::copy(ptr, ptr + length,
-                self->net->conns);
+      self->net->conns);*/
     }
 
     return 0;

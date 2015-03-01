@@ -41,10 +41,10 @@ OBJ = $(addsuffix .o, $(basename $(SRC)))
 
 ### Main task ###
 test: matrix
-	./matrix
+	OMP_NUM_THREADS=8 ./matrix
 
 valgrind: matrix
-	valgrind --tool=memcheck --leak-check=yes --track-origins=yes ./matrix
+	OMP_NUM_THREADS=1 valgrind --tool=memcheck --track-origins=yes --leak-check=full --show-leak-kinds=all ./matrix
 
 helgrind: matrix
 	OMP_NUM_THREADS=1 valgrind --tool=helgrind --read-var-info=yes --log-file=helgrind.txt ./matrix

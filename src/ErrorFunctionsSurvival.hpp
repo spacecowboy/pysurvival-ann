@@ -27,7 +27,7 @@ protected:
   double lastEvent;
   double lastTime;
 
-  virtual void init(const double * const targets,
+  virtual void init(const std::vector<double> &targets,
                     const unsigned int length);
 public:
   SurvErrorCache();
@@ -52,7 +52,7 @@ public:
  * order of time. You will have to do targets[2*i] however. sortedIndices
  * will be < length.
  */
-void getIndicesSortedByTime(const double * const targets,
+void getIndicesSortedByTime(const std::vector<double> &targets,
                             const unsigned int length,
                             std::vector<unsigned int>& sortedIndices);
 
@@ -64,7 +64,7 @@ void getIndicesSortedByTime(const double * const targets,
  *
  * The vectors are cleared and resized to length.
  */
-void getProbsAndSurvival(const double * const targets,
+void getProbsAndSurvival(const std::vector<double> &targets,
                          const unsigned int length,
                          const std::vector<unsigned int> &sortedIndices,
                          std::vector<double> &probs,
@@ -77,8 +77,8 @@ void getProbsAndSurvival(const double * const targets,
  */
 double getScaledProbFor(const std::vector<double> &probs,
                         const std::vector<double> &survival,
-                        const std::vector<unsigned int>::const_iterator &sortedIt,
-                        const std::vector<unsigned int>::const_iterator &laterIt);
+                        const std::vector<unsigned int>::const_iterator sortedIt,
+                        const std::vector<unsigned int>::const_iterator laterIt);
 
 /*
  * Calculate the probability to survive longer than the last
@@ -88,42 +88,42 @@ double getScaledProbFor(const std::vector<double> &probs,
  * sum(probs). However, because the patient in question will have
  * lived to some time t_i (the censoring time), we have to adjust the
  * probability to take that into account. Thus making the result:
- *
+*
  * sortedIt is an iterator of sortedIndices. Only probabilities
  * occuring afterwards are considered.
  */
-double getScaledProbAfter(const double * const targets,
+double getScaledProbAfter(const std::vector<double> &targets,
                           const std::vector<double> &probs,
                           const std::vector<double> &survival,
                           const std::vector<unsigned int> &sortedIndices,
-                          const std::vector<unsigned int>::const_iterator &sortedIt);
+                          const std::vector<unsigned int>::const_iterator sortedIt);
 
 /*
  * Calculate A of the equations for the index pointed to by sortedIt.
  */
-double getPartA(const double * const targets,
+double getPartA(const std::vector<double> &targets,
                 const std::vector<double> &probs,
                 const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
-                const std::vector<unsigned int>::const_iterator &sortedIt);
+                const std::vector<unsigned int>::const_iterator sortedIt);
 
 /*
  * Calculate B of the equations for the index pointed to by sortedIt.
  */
-double getPartB(const double * const targets,
+double getPartB(const std::vector<double> &targets,
                 const std::vector<double> &probs,
                 const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
-                const std::vector<unsigned int>::const_iterator &sortedIt);
+                const std::vector<unsigned int>::const_iterator sortedIt);
 
 /*
  * Calculate C of the equations for the index pointed to by sortedIt.
  */
-double getPartC(const double * const targets,
+double getPartC(const std::vector<double> &targets,
                 const std::vector<double> &probs,
                 const std::vector<double> &survival,
                 const std::vector<unsigned int> &sortedIndices,
-                const std::vector<unsigned int>::const_iterator &sortedIt);
+                const std::vector<unsigned int>::const_iterator sortedIt);
 
 /*
  * Calculate the error of the prediction
@@ -149,34 +149,34 @@ double getLikelihoodDeriv(const double targetTime,
 
 // Errors and their derivatives
 
-void errorSurvMSE(const double * const Y,
+void errorSurvMSE(const std::vector<double> &Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
-                  const double * const outputs,
+                  const std::vector<double> &outputs,
                   const unsigned int index,
-                  double * const errors);
+                  std::vector<double> &errors);
 
-void derivativeSurvMSE(const double * const Y,
+void derivativeSurvMSE(const std::vector<double> &Y,
                        const unsigned int length,
                        const unsigned int numOfOutput,
-                       const double * const outputs,
+                       const std::vector<double> &outputs,
                        const unsigned int index,
-                       double * const result);
+                       std::vector<double>::iterator result);
 
-void errorSurvLikelihood(const double * const Y,
+void errorSurvLikelihood(const std::vector<double> &Y,
                          const unsigned int length,
                          const unsigned int numOfOutput,
-                         const double * const outputs,
+                         const std::vector<double> &outputs,
                          const unsigned int index,
                          ErrorCache * const cache,
-                         double * const errors);
+                         std::vector<double> &errors);
 
-void derivativeSurvLikelihood(const double * const Y,
+void derivativeSurvLikelihood(const std::vector<double> &Y,
                               const unsigned int length,
                               const unsigned int numOfOutput,
-                              const double * const outputs,
+                              const std::vector<double> &outputs,
                               const unsigned int index,
                               ErrorCache * const cache,
-                              double * const result);
+                              std::vector<double>::iterator result);
 
 #endif /* _ERRORFUNCTIONSSURVIVAL_HPP_ */

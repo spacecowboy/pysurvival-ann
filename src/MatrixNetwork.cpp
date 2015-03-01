@@ -3,16 +3,16 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <algorithm>
+#include <math.h>
 //#include <iostream>
 //#include <fstream>
-//#include <vector>
+#include <vector>
 using namespace std;
 
 MatrixNetwork::MatrixNetwork(unsigned int numOfInput,
                              unsigned int numOfHidden,
                              unsigned int numOfOutput) :
-  aLogPerf(nullptr),
-  logPerfLength(0),
+  //aLogPerf(std::vector<double>),
   // network structure
   INPUT_START(0),
   INPUT_END(INPUT_START + numOfInput),
@@ -30,39 +30,27 @@ MatrixNetwork::MatrixNetwork(unsigned int numOfInput,
   HIDDEN_COUNT(numOfHidden),
   OUTPUT_COUNT(numOfOutput),
 // matrices
-  actFuncs(new ActivationFuncEnum[LENGTH]()),
-  conns(new unsigned int[LENGTH*LENGTH]()),
-  weights(new double[LENGTH*LENGTH]()),
-  outputs(new double[LENGTH]())
+  actFuncs(LENGTH, LOGSIG),
+  conns(LENGTH*LENGTH, 0),
+  weights(LENGTH*LENGTH, 0.0),
+  outputs(LENGTH, 0)
 {
 }
 
 MatrixNetwork::~MatrixNetwork() {
-  delete[] actFuncs;
-  delete[] conns;
-  delete[] weights;
-  delete[] outputs;
-  delete[] aLogPerf;
 }
 
-double *MatrixNetwork::getLogPerf() {
-  return aLogPerf;
-}
+//double *MatrixNetwork::getLogPerf() {
+//  return aLogPerf;
+//}
 
-unsigned int MatrixNetwork::getLogPerfLength() {
-  return logPerfLength;
-}
+//unsigned int MatrixNetwork::getLogPerfLength() {
+//  return logPerfLength;
+//}
 
 void MatrixNetwork::initLog(const unsigned int length) {
-  // Reset LOG
-  if (this->aLogPerf != NULL) {
-    delete[] this->aLogPerf;
-    this->aLogPerf = NULL;
-  }
-  // Allocate new LOG
-  this->logPerfLength = length;
-  // //Parenthesis initializes to zero
-  this->aLogPerf = new double[this->logPerfLength]();
+  aLogPerf.clear();
+  aLogPerf.resize(length);
 }
 
 /**
@@ -70,12 +58,12 @@ void MatrixNetwork::initLog(const unsigned int length) {
  */
 void MatrixNetwork::setOutputActivationFunction(ActivationFuncEnum func) {
   for (unsigned int i = OUTPUT_START; i < OUTPUT_END; i++) {
-    actFuncs[i] = func;
+    actFuncs.at(i) = func;
   }
 }
 
 ActivationFuncEnum MatrixNetwork::getOutputActivationFunction() {
-  return actFuncs[OUTPUT_START];
+  return actFuncs.at(OUTPUT_START);
 }
 
 /**
@@ -83,83 +71,80 @@ ActivationFuncEnum MatrixNetwork::getOutputActivationFunction() {
  */
 void MatrixNetwork::setHiddenActivationFunction(ActivationFuncEnum func) {
   for (unsigned int i = HIDDEN_START; i < HIDDEN_END; i++) {
-    actFuncs[i] = func;
+    actFuncs.at(i) = func;
   }
 }
 
 ActivationFuncEnum MatrixNetwork::getHiddenActivationFunction() {
-  return actFuncs[HIDDEN_START];
+  return actFuncs.at(HIDDEN_START);
 }
 
 
-double *MatrixNetwork::output(const double * const inputs,
-               double * const ret_outputs) {
+void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
+                           std::vector<double>::iterator outputStart) {
   unsigned int i, j, target;
   double sum, outputSum, outputMax=0;
   bool first = true;
 
   // First set input values
-  for (i = INPUT_START; i < INPUT_END; i++) {
-    outputs[i] = inputs[i];
-  }
+  std::copy(inputStart, inputStart + INPUT_COUNT, outputs.begin());
+  //for (i = 0; i < INPUT_COUNT; i++) {
+  //  outputs.at(i) = *(inputStart + i);
+  // }
   // Make sure bias is 1
-  outputs[BIAS_INDEX] = 1;
+  outputs.at(BIAS_INDEX) = 1;
 
   // Calculate neurons
   for (i = HIDDEN_START; i < OUTPUT_END; i++) {
     // A connection to self means neuron is active
-    if (1 == conns[LENGTH * i + i]) {
+    if (1 == conns.at(LENGTH * i + i)) {
       sum = 0;
       // No recursive connections allowed
       for (j = INPUT_START; j < i; j++) {
         target = LENGTH * i + j;
-        if (1 == conns[target])
-          sum += weights[target] * outputs[j];
+        if (1 == conns.at(target))
+          sum += weights.at(target) * outputs.at(j);
       }
 
-      outputs[i] = evaluateActFunction(actFuncs[i], sum);
+      outputs.at(i) = evaluateActFunction(actFuncs.at(i), sum);
 
       // Keep track of largest output neuron value for normalization
-      if (i >= OUTPUT_START && SOFTMAX == actFuncs[i]
-          && (first || outputs[i] > outputMax)) {
-        outputMax = outputs[i];
+      if (i >= OUTPUT_START && SOFTMAX == actFuncs.at(i)
+          && (first || outputs.at(i) > outputMax)) {
+        outputMax = outputs.at(i);
         first = false;
       }
     } else {
       // Neuron is not active
-      outputs[i] = 0;
+      outputs.at(i) = 0;
     }
   }
 
   // Need to do Softmax calculation
-  if (SOFTMAX == actFuncs[OUTPUT_START]) {
+  if (SOFTMAX == actFuncs.at(OUTPUT_START)) {
     // Set outputSum to zero
     outputSum = 0;
 
     // First calculate exponential outputs of normalized values
     for (i = OUTPUT_START; i < OUTPUT_END; i++) {
-      if (1 == conns[LENGTH * i + i]) {
+      if (1 == conns.at(LENGTH * i + i)) {
         // Only active neurons are included, other should have been set to 0
         // Use outputmax to protect against overflow
-        outputs[i] = exp(outputs[i] - outputMax);
+        outputs.at(i) = exp(outputs.at(i) - outputMax);
         // Remember sum of all outputs
-        outputSum += outputs[i];
+        outputSum += outputs.at(i);
       }
     }
     // Then divide by the sum
     for (i = OUTPUT_START; i < OUTPUT_END; i++) {
-      if (1 == conns[LENGTH * i + i]) {
-        outputs[i] /= outputSum;
+      if (1 == conns.at(LENGTH * i + i)) {
+        outputs.at(i) /= outputSum;
       }
     }
   }
 
   // Copy values to output array
-  if (ret_outputs != NULL) {
-    std::copy(outputs + OUTPUT_START,
-              outputs + OUTPUT_END,
-              ret_outputs);
-  }
-
-  return ret_outputs;
+  std::copy(outputs.begin() + OUTPUT_START,
+            outputs.end(),
+            outputStart);
 }

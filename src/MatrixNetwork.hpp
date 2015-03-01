@@ -1,6 +1,7 @@
 #ifndef MATRIXNETWORK_H_
 #define MATRIXNETWORK_H_
 
+#include <vector>
 #include "activationfunctions.hpp"
 
 /*
@@ -27,9 +28,7 @@ class MatrixNetwork {
  protected:
   // Log to keep over training performance
   // up to training algorithm to make use of it
-  double *aLogPerf;
-  unsigned int logPerfLength;
-
+  std::vector<double> aLogPerf;
   void initLog(const unsigned int length);
 
  public:
@@ -49,20 +48,18 @@ class MatrixNetwork {
   const unsigned int OUTPUT_COUNT;
 
   // Network structure
-  ActivationFuncEnum * const actFuncs;
-  unsigned int * const conns;
-  double * const weights;
-
-  // Outputs are stored here
-  double * const outputs;
+  std::vector<ActivationFuncEnum> actFuncs;
+  std::vector<unsigned int> conns;
+  std::vector<double> weights;
+  std::vector<double> outputs;
 
   MatrixNetwork(unsigned int numOfInput, unsigned int numOfHidden,
                 unsigned int numOfOutput);
   virtual ~MatrixNetwork();
 
   // Null if not trained
-  double *getLogPerf();
-  unsigned int getLogPerfLength();
+  //double *getLogPerf();
+  //unsigned int getLogPerfLength();
 
   //  double *getWeights();
   //  unsigned int *getConns();
@@ -72,8 +69,8 @@ class MatrixNetwork {
    * Returns the pointer given as output, so pay no attention to return object
    * if not wanted.
    */
-  virtual double *output(const double * const inputs,
-                         double * const output);
+  virtual void output(const std::vector<double>::const_iterator inputIt,
+                      std::vector<double>::iterator outputIt);
 
 
   // Please note that these are convenience methods and

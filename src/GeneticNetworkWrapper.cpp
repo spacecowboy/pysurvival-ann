@@ -64,6 +64,12 @@ extern "C" {
     PyDict_SetItemString(dict, "FITNESS_SURV_KAPLAN_MIN",
                          Py_BuildValue("i",
                                        FitnessFunction::FITNESS_SURV_KAPLAN_MIN));
+    PyDict_SetItemString(dict, "FITNESS_SURV_RISKGROUP_HIGH",
+                         Py_BuildValue("i",
+                                       FitnessFunction::FITNESS_SURV_RISKGROUP_HIGH));
+    PyDict_SetItemString(dict, "FITNESS_SURV_RISKGROUP_LOW",
+                         Py_BuildValue("i",
+                                       FitnessFunction::FITNESS_SURV_RISKGROUP_LOW));
 
     // Statistics
         // Fitness

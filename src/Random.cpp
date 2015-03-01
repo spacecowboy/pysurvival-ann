@@ -28,6 +28,8 @@ void Random::init(const unsigned int seed) {
 
   // Uniform distribution 0 to 1 (inclusive)
   distUniform = new std::uniform_real_distribution<double>(0.0, 1.0);
+
+  distUniformInt = new std::uniform_int_distribution<unsigned int>(0, 1);
 }
 
 Random::~Random() {
@@ -35,6 +37,7 @@ Random::~Random() {
   delete distNormal;
   delete distGeometric;
   delete distUniform;
+  delete distUniformInt;
 }
 
 
@@ -56,6 +59,10 @@ double Random::uniform() {
 
 double Random::normal() {
   return (*distNormal)(*eng);
+}
+
+unsigned int Random::randBit() {
+  return (*distUniformInt)(*eng);
 }
 
 unsigned int Random::uint() {

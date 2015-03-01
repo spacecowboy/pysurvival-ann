@@ -8,14 +8,14 @@
  * Convert an error into a fitness. Just minus the sum of the errors.
  */
 double errorToFitness(ErrorFunction errorfunc,
-                      const double * const Y,
+                      const std::vector<double> &Y,
                       const unsigned int length,
                       const unsigned int numOfOutput,
-                      const double * const outputs)
+                      const std::vector<double> &outputs)
 {
   double fitness = 0;
-  double errors[numOfOutput * length];
-  double avgErrors[numOfOutput];
+  std::vector<double> errors(numOfOutput * length, 0.0);
+  std::vector<double> avgErrors(numOfOutput, 0.0);
 
   getAllErrors(errorfunc, Y, length, numOfOutput, outputs, errors);
   averagePatternError(errors, length, numOfOutput, avgErrors);
@@ -37,6 +37,8 @@ int getExpectedTargetCount(const FitnessFunction func) {
   case FitnessFunction::FITNESS_SURV_KAPLAN_MIN:
   case FitnessFunction::FITNESS_TARONEWARE_MEAN:
   case FitnessFunction::FITNESS_TARONEWARE_HIGHLOW:
+  case FitnessFunction::FITNESS_SURV_RISKGROUP_HIGH:
+  case FitnessFunction::FITNESS_SURV_RISKGROUP_LOW:
     // Expecting time and event
     return 2;
   default:
@@ -47,10 +49,10 @@ int getExpectedTargetCount(const FitnessFunction func) {
 
 
 double getFitness(const FitnessFunction func,
-                  const double * const Y,
+                  const std::vector<double> &Y,
                   const unsigned int length,
                   const unsigned int numOfOutput,
-                  const double * const outputs)
+                  const std::vector<double> &outputs)
 {
   double retval;
   switch(func) {
@@ -84,10 +86,10 @@ double getFitness(const FitnessFunction func,
 
 
 // Returns the C-index of the network output
-double fitnessCIndex(const double * const Y,
+double fitnessCIndex(const std::vector<double> &Y,
                      const unsigned int length,
                      const unsigned int numOfOutput,
-                     const double * const outputs)
+                     const std::vector<double> &outputs)
 {
   return get_C_index(outputs, Y, length);
 }

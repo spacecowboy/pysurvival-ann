@@ -77,31 +77,31 @@ void GeneticCrosser::crossoverUniform(MatrixNetwork &mother,
     // activation functions are only length long
     if (i < mother.LENGTH) {
       if (this->rand.uniform() < 0.5) {
-        brother.actFuncs[i] = mother.actFuncs[i];
-        sister.actFuncs[i] = father.actFuncs[i];
+        brother.actFuncs.at(i) = mother.actFuncs.at(i);
+        sister.actFuncs.at(i) = father.actFuncs.at(i);
       }
       else {
-        sister.actFuncs[i] = mother.actFuncs[i];
-        brother.actFuncs[i] = father.actFuncs[i];
+        sister.actFuncs.at(i) = mother.actFuncs.at(i);
+        brother.actFuncs.at(i) = father.actFuncs.at(i);
       }
     }
     // Now connections
     if (this->rand.uniform() < 0.5) {
-      brother.conns[i] = mother.conns[i];
-      sister.conns[i] = father.conns[i];
+      brother.conns.at(i) = mother.conns.at(i);
+      sister.conns.at(i) = father.conns.at(i);
     }
     else {
-      sister.conns[i] = mother.conns[i];
-      brother.conns[i] = father.conns[i];
+      sister.conns.at(i) = mother.conns.at(i);
+      brother.conns.at(i) = father.conns.at(i);
     }
     // And weights
     if (this->rand.uniform() < 0.5) {
-      brother.weights[i] = mother.weights[i];
-      sister.weights[i] = father.weights[i];
+      brother.weights.at(i) = mother.weights.at(i);
+      sister.weights.at(i) = father.weights.at(i);
     }
     else {
-      sister.weights[i] = mother.weights[i];
-      brother.weights[i] = father.weights[i];
+      sister.weights.at(i) = mother.weights.at(i);
+      brother.weights.at(i) = father.weights.at(i);
     }
   }
 }
@@ -116,45 +116,45 @@ void GeneticCrosser::crossoverOnepoint(MatrixNetwork &mother,
   limit = mother.LENGTH;
   point = this->rand.uniformNumber(0, limit);
   // First brother
-  std::copy(mother.actFuncs, mother.actFuncs + point,
-            brother.actFuncs);
-  std::copy(father.actFuncs + point, father.actFuncs + limit,
-            brother.actFuncs + point);
+  std::copy(mother.actFuncs.begin(), mother.actFuncs.begin() + point,
+            brother.actFuncs.begin());
+  std::copy(father.actFuncs.begin() + point, father.actFuncs.end(),
+            brother.actFuncs.begin() + point);
   // Then sister
-  std::copy(father.actFuncs, father.actFuncs + point,
-            sister.actFuncs);
-  std::copy(mother.actFuncs + point, mother.actFuncs + limit,
-            sister.actFuncs + point);
+  std::copy(father.actFuncs.begin(), father.actFuncs.begin() + point,
+            sister.actFuncs.begin());
+  std::copy(mother.actFuncs.begin() + point, mother.actFuncs.end(),
+            sister.actFuncs.begin() + point);
 
 
   // #### Connections ####
   limit = mother.LENGTH * mother.LENGTH;
   point = this->rand.uniformNumber(0, limit);
   // First brother
-  std::copy(mother.conns, mother.conns + point,
-            brother.conns);
-  std::copy(father.conns + point, father.conns + limit,
-            brother.conns + point);
+  std::copy(mother.conns.begin(), mother.conns.begin() + point,
+            brother.conns.begin());
+  std::copy(father.conns.begin() + point, father.conns.end(),
+            brother.conns.begin() + point);
   // Then sister
-  std::copy(father.conns, father.conns + point,
-            sister.conns);
-  std::copy(mother.conns + point, mother.conns + limit,
-            sister.conns + point);
+  std::copy(father.conns.begin(), father.conns.begin() + point,
+            sister.conns.begin());
+  std::copy(mother.conns.begin() + point, mother.conns.end(),
+            sister.conns.begin() + point);
 
 
   // #### Weights ####
   limit = mother.LENGTH * mother.LENGTH;
   point = this->rand.uniformNumber(0, limit);
   // First brother
-  std::copy(mother.weights, mother.weights + point,
-            brother.weights);
-  std::copy(father.weights + point, father.weights + limit,
-            brother.weights + point);
+  std::copy(mother.weights.begin(), mother.weights.begin() + point,
+            brother.weights.begin());
+  std::copy(father.weights.begin() + point, father.weights.end(),
+            brother.weights.begin() + point);
   // Then sister
-  std::copy(father.weights, father.weights + point,
-            sister.weights);
-  std::copy(mother.weights + point, mother.weights + limit,
-            sister.weights + point);
+  std::copy(father.weights.begin(), father.weights.begin() + point,
+            sister.weights.begin());
+  std::copy(mother.weights.begin() + point, mother.weights.end(),
+            sister.weights.begin() + point);
 
 }
 
@@ -173,20 +173,20 @@ void GeneticCrosser::crossoverTwopoint(MatrixNetwork &mother,
                 &pointHigh);
 
   // First brother
-  std::copy(mother.actFuncs, mother.actFuncs + pointLow,
-            brother.actFuncs);
-  std::copy(father.actFuncs + pointLow, father.actFuncs + pointHigh,
-            brother.actFuncs + pointLow);
-  std::copy(mother.actFuncs + pointHigh, mother.actFuncs + limit,
-            brother.actFuncs + pointHigh);
+  std::copy(mother.actFuncs.begin(), mother.actFuncs.begin() + pointLow,
+            brother.actFuncs.begin());
+  std::copy(father.actFuncs.begin() + pointLow, father.actFuncs.begin() + pointHigh,
+            brother.actFuncs.begin() + pointLow);
+  std::copy(mother.actFuncs.begin() + pointHigh, mother.actFuncs.end(),
+            brother.actFuncs.begin() + pointHigh);
 
   // Then sister
-  std::copy(father.actFuncs, father.actFuncs + pointLow,
-            sister.actFuncs);
-  std::copy(mother.actFuncs + pointLow, mother.actFuncs + pointHigh,
-            sister.actFuncs + pointLow);
-  std::copy(father.actFuncs + pointHigh, father.actFuncs + limit,
-            sister.actFuncs + pointHigh);
+  std::copy(father.actFuncs.begin(), father.actFuncs.begin() + pointLow,
+            sister.actFuncs.begin());
+  std::copy(mother.actFuncs.begin() + pointLow, mother.actFuncs.begin() + pointHigh,
+            sister.actFuncs.begin() + pointLow);
+  std::copy(father.actFuncs.begin() + pointHigh, father.actFuncs.end(),
+            sister.actFuncs.begin() + pointHigh);
 
 
   // #### Connections ####
@@ -198,20 +198,20 @@ void GeneticCrosser::crossoverTwopoint(MatrixNetwork &mother,
                 &pointHigh);
 
   // First brother
-  std::copy(mother.conns, mother.conns + pointLow,
-            brother.conns);
-  std::copy(father.conns + pointLow, father.conns + pointHigh,
-            brother.conns + pointLow);
-  std::copy(mother.conns + pointHigh, mother.conns + limit,
-            brother.conns + pointHigh);
+  std::copy(mother.conns.begin(), mother.conns.begin() + pointLow,
+            brother.conns.begin());
+  std::copy(father.conns.begin() + pointLow, father.conns.begin() + pointHigh,
+            brother.conns.begin() + pointLow);
+  std::copy(mother.conns.begin() + pointHigh, mother.conns.end(),
+            brother.conns.begin() + pointHigh);
 
   // Then sister
-  std::copy(father.conns, father.conns + pointLow,
-            sister.conns);
-  std::copy(mother.conns + pointLow, mother.conns + pointHigh,
-            sister.conns + pointLow);
-  std::copy(father.conns + pointHigh, father.conns + limit,
-            sister.conns + pointHigh);
+  std::copy(father.conns.begin(), father.conns.begin() + pointLow,
+            sister.conns.begin());
+  std::copy(mother.conns.begin() + pointLow, mother.conns.begin() + pointHigh,
+            sister.conns.begin() + pointLow);
+  std::copy(father.conns.begin() + pointHigh, father.conns.end(),
+            sister.conns.begin() + pointHigh);
 
 
   // #### Weights ####
@@ -223,19 +223,19 @@ void GeneticCrosser::crossoverTwopoint(MatrixNetwork &mother,
                 &pointHigh);
 
   // First brother
-  std::copy(mother.weights, mother.weights + pointLow,
-            brother.weights);
-  std::copy(father.weights + pointLow, father.weights + pointHigh,
-            brother.weights + pointLow);
-  std::copy(mother.weights + pointHigh, mother.weights + limit,
-            brother.weights + pointHigh);
+  std::copy(mother.weights.begin(), mother.weights.begin() + pointLow,
+            brother.weights.begin());
+  std::copy(father.weights.begin() + pointLow, father.weights.begin() + pointHigh,
+            brother.weights.begin() + pointLow);
+  std::copy(mother.weights.begin() + pointHigh, mother.weights.end(),
+            brother.weights.begin() + pointHigh);
 
   // Then sister
-  std::copy(father.weights, father.weights + pointLow,
-            sister.weights);
-  std::copy(mother.weights + pointLow, mother.weights + pointHigh,
-            sister.weights + pointLow);
-  std::copy(father.weights + pointHigh, father.weights + limit,
-            sister.weights + pointHigh);
+  std::copy(father.weights.begin(), father.weights.begin() + pointLow,
+            sister.weights.begin());
+  std::copy(mother.weights.begin() + pointLow, mother.weights.begin() + pointHigh,
+            sister.weights.begin() + pointLow);
+  std::copy(father.weights.begin() + pointHigh, father.weights.end(),
+            sister.weights.begin() + pointHigh);
 
 }

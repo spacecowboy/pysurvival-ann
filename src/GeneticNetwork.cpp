@@ -15,9 +15,7 @@
 #include <algorithm>
 #include <vector>
 #include <stdio.h>
-#include <time.h>
 #include <math.h>
-#include <ctime>
 
 #include <omp.h>
 
@@ -50,28 +48,29 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
 
 double getClassFitness(const FitnessFunction func,
                        GeneticNetwork * const pNet,
-                       const double * const X,
-                       const double * const Y,
+                       const std::vector<double> &X,
+                       const std::vector<double> &Y,
                        const unsigned int length,
-                       double * const outputs)
+                       std::vector<double> &outputs)
 {
   double retval, winningOutput, outVal;
   unsigned int i, j, nextGroup, groupCount = 0, winningGroup;
   // Index of each output neuron
-  unsigned int activeOutputs[pNet->OUTPUT_COUNT];
+  std::vector<unsigned int> activeOutputs;
+  activeOutputs.reserve(pNet->OUTPUT_COUNT);
   // Store number of members in each group
-  unsigned int groupCounts[pNet->OUTPUT_COUNT];
+  std::vector<unsigned int> groupCounts(pNet->OUTPUT_COUNT, 0);
+
   // Group membership
-  unsigned int *groups = new unsigned int[length];
+  std::vector<unsigned int> groups;
+  groups.reserve(length);
 
   // Count active output neurons
   for (i = pNet->OUTPUT_START; i < pNet->OUTPUT_END; i++) {
-    // Initialize groupCounts as we go along
-    groupCounts[i - pNet->OUTPUT_START] = 0;
     // Check diagonal connections
-    if (pNet->conns[i * pNet->LENGTH + i] == 1) {
+    if (pNet->conns.at(i * pNet->LENGTH + i) == 1) {
       // Active, remember index
-      activeOutputs[groupCount] = i - pNet->OUTPUT_START;
+      activeOutputs.at(groupCount) = i - pNet->OUTPUT_START;
       groupCount++;
     }
   }
@@ -80,17 +79,17 @@ double getClassFitness(const FitnessFunction func,
 
   // Classify each pattern, increasing group counts etc as we go along
   for (i = 0; i < length; i++) {
-    pNet->output(X + i * pNet->INPUT_COUNT,
-                 outputs + i * pNet->OUTPUT_COUNT);
+    pNet->output(X.begin() + i * pNet->INPUT_COUNT,
+                 outputs.begin() + i * pNet->OUTPUT_COUNT);
     // Start with first group
     nextGroup = 0;
     // Default value is first active neuron
     winningGroup = nextGroup;
-    winningOutput = outputs[i * pNet->OUTPUT_COUNT + activeOutputs[nextGroup]];
+    winningOutput = outputs.at(i * pNet->OUTPUT_COUNT + activeOutputs.at(nextGroup));
     for (j = 0; j < pNet->OUTPUT_COUNT; j++) {
       // Ignore inactive outputs
-      if (j == activeOutputs[nextGroup]) {
-        outVal = outputs[i * pNet->OUTPUT_COUNT + activeOutputs[nextGroup]];
+      if (j == activeOutputs.at(nextGroup)) {
+        outVal = outputs.at(i * pNet->OUTPUT_COUNT + activeOutputs.at(nextGroup));
         // greater output, possible winner
         if (outVal > winningOutput) {
           winningGroup = nextGroup;
@@ -104,9 +103,9 @@ double getClassFitness(const FitnessFunction func,
     }
 
     // Increment count of group members
-    groupCounts[winningGroup]++;
+    groupCounts.at(winningGroup) += 1;
     // And note winner
-    groups[i] = winningGroup;
+    groups.at(i) = winningGroup;
   }
 
 
@@ -114,17 +113,17 @@ double getClassFitness(const FitnessFunction func,
   // Each child is responsible for carrying information about fitness function
   switch (func) {
   case FitnessFunction::FITNESS_TARONEWARE_MEAN:
-    retval = TaroneWareMeanPairwise(Y, groups, groupCounts, length, groupCount,
+    retval = TaroneWareMeanPairwise(Y, groups, groupCounts, length,
                                     pNet->getTaroneWareStatistic());
     break;
   case FitnessFunction::FITNESS_TARONEWARE_HIGHLOW:
     retval = TaroneWareHighLow(Y, groups, groupCounts, length, groupCount,
                                pNet->getTaroneWareStatistic());
     // Penalize small groups
-    if (groupCounts[0] < pNet->getMinGroup()) {
+    if (groupCounts.at(0) < pNet->getMinGroup()) {
       retval = 0;
     }
-    if (groupCount > 1 && groupCounts[1] < pNet->getMinGroup()) {
+    if (groupCount > 1 && groupCounts.at(1) < pNet->getMinGroup()) {
       retval = 0;
     }
     break;
@@ -134,24 +133,27 @@ double getClassFitness(const FitnessFunction func,
 
     if (FitnessFunction::FITNESS_SURV_KAPLAN_MIN == func && retval > 0) {
       // In this case, we want to minimize area
-      retval = 1 / retval;
+      retval = 1.0 / retval;
     }
     // Penalize small groups
-    if (groupCounts[0] < pNet->getMinGroup()) {
-      retval = 0;
-    }
-    // Rest of them
-    if (groupCount > 1 && (length - groupCounts[0]) < pNet->getMinGroup()) {
+    if (groupCounts.at(0) < pNet->getMinGroup()) {
       retval = 0;
     }
     break;
+  case FitnessFunction::FITNESS_SURV_RISKGROUP_HIGH:
+  case FitnessFunction::FITNESS_SURV_RISKGROUP_LOW:
+    retval = RiskGroup(Y, groups, groupCounts, length,
+                       FitnessFunction::FITNESS_SURV_RISKGROUP_HIGH == func);
+    // Penalize small groups
+    if (groupCounts.at(0) < pNet->getMinGroup()) {
+      retval = 0;
+    }
+    break;
+
   default:
     retval = 0;
     break;
   }
-
-  // Clean up
-  delete[] groups;
 
   return retval;
 }
@@ -159,15 +161,17 @@ double getClassFitness(const FitnessFunction func,
 
 double evaluateNetwork(const FitnessFunction fitnessFunction,
                        GeneticNetwork * const pNet,
-                       const double * const X,
-                       const double * const Y,
+                       const std::vector<double> &X,
+                       const std::vector<double> &Y,
                        const unsigned int length,
-                       double * const outputs)
+                       std::vector<double> &outputs)
 {
   if (FitnessFunction::FITNESS_TARONEWARE_MEAN == fitnessFunction ||
       FitnessFunction::FITNESS_TARONEWARE_HIGHLOW == fitnessFunction ||
       FitnessFunction::FITNESS_SURV_KAPLAN_MAX == fitnessFunction ||
-      FitnessFunction::FITNESS_SURV_KAPLAN_MIN == fitnessFunction){
+      FitnessFunction::FITNESS_SURV_KAPLAN_MIN == fitnessFunction ||
+      FitnessFunction::FITNESS_SURV_RISKGROUP_HIGH == fitnessFunction ||
+      FitnessFunction::FITNESS_SURV_RISKGROUP_LOW == fitnessFunction){
     // Need to support a slightly different API for groups
     return getClassFitness(fitnessFunction,
                            pNet,
@@ -177,8 +181,8 @@ double evaluateNetwork(const FitnessFunction fitnessFunction,
     unsigned int i;
 
     for (i = 0; i < length; i++) {
-      pNet->output(X + i * pNet->INPUT_COUNT,
-                   outputs + i * pNet->OUTPUT_COUNT);
+      pNet->output(X.begin() + i * pNet->INPUT_COUNT,
+                   outputs.begin() + i * pNet->OUTPUT_COUNT);
     }
 
     return getFitness(fitnessFunction,
@@ -256,27 +260,24 @@ GeneticNetwork *popNetwork(unsigned int i,
 /**
  * Does the actual work in an epoch. Designed to be launched in parallell
  * in many threads.
- * Because each thread creates its own random generator, it needs
- * a unique thread each time, for which time() is not suitable as it
- * will be the same for all threads many times.
  */
 void breedNetworks(GeneticNetwork &self,
                    vector<GeneticNetwork*> &sortedPopulation,
                    vector<double> &sortedFitness,
                    const unsigned int childCount,
                    const unsigned int curGen,
-                   const double * const X,
-                   const double * const Y,
+                   const std::vector<double> &X,
+                   const std::vector<double> &Y,
                    const unsigned int length)
 {
-#pragma omp parallel default(none) shared(self, sortedPopulation, sortedFitness)
+#pragma omp parallel default(none) shared(self, X, Y, sortedPopulation, sortedFitness)
   {
     unsigned int motherIndex, fatherIndex;
 
     GeneticNetwork *pBrother, *pSister, *pMother, *pFather;
 
     double bFitness, sFitness, mFitness, fFitness;
-    double *outputs = new double[self.OUTPUT_COUNT * length];
+    std::vector<double> outputs(self.OUTPUT_COUNT * length, 0.0);
 
     Random rand;
 
@@ -288,8 +289,6 @@ void breedNetworks(GeneticNetwork &self,
 #pragma omp for
     for (threadChild = 0; threadChild < childCount; threadChild++) {
       // We recycle the worst networks
-
-      //JGN_lockPopulation();
 #pragma omp critical
       {
         // Select two networks
@@ -305,7 +304,6 @@ void breedNetworks(GeneticNetwork &self,
         pSister = popLastNetwork(sortedPopulation, sortedFitness);
       }
       // End critical
-      //JGN_unlockPopulation();
 
       // Crossover
       if (rand.uniform() < self.crossoverChance) {
@@ -318,7 +316,6 @@ void breedNetworks(GeneticNetwork &self,
         pSister->cloneNetwork(*pMother);
         pBrother->cloneNetwork(*pFather);
       }
-
 
       // Mutation brother
       mutator.mutateWeights(*pBrother,
@@ -337,9 +334,7 @@ void breedNetworks(GeneticNetwork &self,
       mutator.mutateActFuncs(*pSister,
                              self.actFuncMutationChance);
 
-
-      // evaluate fitness and insert back
-      // TODO multiple outputs
+      // Evaluate fitness
       bFitness = evaluateNetwork(self.fitnessFunction,
                                  pBrother, X, Y, length,
                                  outputs);
@@ -373,8 +368,8 @@ void breedNetworks(GeneticNetwork &self,
         weightEliminationSum2(*pChild, self->weightEliminationLambda);
         }
       */
+
       // Insert into the sorted list
-      //JGN_lockPopulation();
 #pragma omp critical
       {
         // Place parents back
@@ -386,16 +381,14 @@ void breedNetworks(GeneticNetwork &self,
         insertSorted(sortedPopulation, sortedFitness, sFitness, pSister);
       }
       // End critical
-      //JGN_unlockPopulation();
     }
     // End for
-    delete[] outputs;
   }
   // End parallel
 }
 
-void GeneticNetwork::learn(const double * const X,
-                           const double * const Y,
+void GeneticNetwork::learn(const std::vector<double> &X,
+                           const std::vector<double> &Y,
                            const unsigned int length) {
   // Reset LOG
   initLog(generations * this->OUTPUT_COUNT);
@@ -403,17 +396,6 @@ void GeneticNetwork::learn(const double * const X,
   // Create a population of networks
   vector<GeneticNetwork*> sortedPopulation;
   vector<double> sortedFitness;
-
-  // Number of threads to use, TODO, dont hardcode this
-  //unsigned int num_threads = 8;
-  //unsigned int extras = num_threads * 4;
-  //std::thread threads[num_threads];
-  //  vector<thread> threads;
-  // Each thread will breed these many networks each generation
-  //unsigned int breedCount = round((double) populationSize / num_threads);
-  //if (breedCount < 1) {
-  //  breedCount = 1;
-  //}
 
   unsigned int extras;
 #pragma omp parallel
@@ -437,7 +419,7 @@ void GeneticNetwork::learn(const double * const X,
 
   double fitness = 0;
   // predictions
-  double *preds = new double[OUTPUT_COUNT * length]();
+  std::vector<double> preds(OUTPUT_COUNT * LENGTH, 0.0);
 
   Random rand;
   GeneticMutator mutator(rand);
@@ -470,54 +452,17 @@ void GeneticNetwork::learn(const double * const X,
   // For each generation
   unsigned int curGen;
   for (curGen = 0; curGen < generations; curGen++) {
-    time_t start, end;
-    time(&start);
-
-    //for (i = 0; i < num_threads; i++) {
-    //      try {
-        //        threads.push_back(std::thread(
-        breedNetworks(*this,
-                      sortedPopulation,
-                      sortedFitness,
-                      populationSize, curGen,
-                      X, Y, length);
-            //                            ));
-
-        //      }
-        //catch (const std::system_error& e) {
-        //std::cout << "Caught system_error with code " << e.code()
-        //          << " meaning " << e.what() << '\n';
-        //throw(e);
-        //}
-      //}
-
-    // Wait for the threads to finish their work
-    // for (auto t = threads.begin(); t != threads.end(); t++) {
-    //   try {
-    //     t->join();
-    //   }
-    //   catch (const std::system_error& e) {
-    //     std::cout << "Caught system_error with code " << e.code()
-    //               << " meaning " << e.what() << '\n';
-    //     throw(e);
-    //   }
-    // }
-    //cout << "\nJoined threads\n";
-        //threads.clear();
-    time(&end);
-    //    std::cout << "gen time: " << difftime(end, start) << "s" << std::endl;
-
-    //JGN_lockPopulation();
-
-    // Print some stats about the current best
+    breedNetworks(*this,
+                  sortedPopulation,
+                  sortedFitness,
+                  populationSize, curGen,
+                  X, Y, length);
     best = sortedPopulation.front();
 
-    // Save in log
-    //cout << "\nLogging...\n";
-    this->aLogPerf[curGen] = sortedFitness.front();
-    //cout << "\nLogged\n";
-
-    //JGN_unlockPopulation();
+    // Save in log for all neurons
+    for (unsigned int node = 0; node < OUTPUT_COUNT; node++) {
+      this->aLogPerf.at(OUTPUT_COUNT * curGen + node) = sortedFitness.front();
+    }
 
     /*
     if (decayL2 != 0) {
@@ -541,12 +486,11 @@ void GeneticNetwork::learn(const double * const X,
 
   // And destroy population
   // do this last of all!
-  best = NULL;
+  best = nullptr;
   for (netIt = sortedPopulation.begin(); netIt < sortedPopulation.end();
        netIt++) {
     delete *netIt;
   }
-  delete[] preds;
 }
 
 
@@ -555,17 +499,17 @@ void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
   this->setTaroneWareStatistic(original.getTaroneWareStatistic());
   this->setMinGroup(original.getMinGroup());
   // Now copy all structure
-  std::copy(original.weights,
-            original.weights + original.LENGTH * original.LENGTH,
-            this->weights);
+  std::copy(original.weights.begin(),
+            original.weights.end(),
+            this->weights.begin());
 
-  std::copy(original.conns,
-            original.conns + original.LENGTH * original.LENGTH,
-            this->conns);
+  std::copy(original.conns.begin(),
+            original.conns.end(),
+            this->conns.begin());
 
-  std::copy(original.actFuncs,
-            original.actFuncs + original.LENGTH,
-            this->actFuncs);
+  std::copy(original.actFuncs.begin(),
+            original.actFuncs.end(),
+            this->actFuncs.begin());
 }
 
 

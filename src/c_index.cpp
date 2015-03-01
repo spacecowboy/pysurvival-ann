@@ -1,33 +1,35 @@
 #include "c_index.h"
 #include <stdio.h>
 
+#include <vector>
+
 /*
  * C index always operates on A[N][2] targets. So total length is actually
 length*2. Length is the number of rows. The 2 is implicit.
 The Y vector on the other hand is an A[N] array! Be wary of this.
  */
-double get_C_index(const double * const Y,
-                   const double * const T,
+double get_C_index(const std::vector<double> &Y,
+                   const std::vector<double> &T,
                    const unsigned int length) {
   double total = 0, sum = 0;
-#pragma omp parallel default(none) shared(total, sum)
+#pragma omp parallel default(none) shared(total, sum, Y, T)
   {
     double Tx1, Ty1, Tx0, Ty0, outputsx0, outputsy0;
     unsigned int countx, county;
 
 #pragma omp for schedule(dynamic)
     for (countx = 0; countx < length; countx++) {
-      Tx0 = T[countx*2];
-      Tx1 = T[countx*2 + 1];
-      outputsx0 = Y[countx];
+      Tx0 = T.at(countx*2);
+      Tx1 = T.at(countx*2 + 1);
+      outputsx0 = Y.at(countx);
 
       for (county = 0; county < length; county++) {
         if (countx == county)
           continue;
 
-        Ty0 = T[county*2];
-        Ty1 = T[county*2 + 1];
-        outputsy0 = Y[county];
+        Ty0 = T.at(county*2);
+        Ty1 = T.at(county*2 + 1);
+        outputsy0 = Y.at(county);
 
         if (Tx1 == 1 && Ty1 == 1) {
           // Non-censored, compare with all other non-censored
