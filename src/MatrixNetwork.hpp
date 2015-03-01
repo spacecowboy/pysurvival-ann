@@ -28,7 +28,6 @@ class MatrixNetwork {
  protected:
   // Log to keep over training performance
   // up to training algorithm to make use of it
-  std::vector<double> aLogPerf;
   void initLog(const unsigned int length);
 
  public:
@@ -47,6 +46,7 @@ class MatrixNetwork {
   const unsigned int HIDDEN_COUNT;
   const unsigned int OUTPUT_COUNT;
 
+  std::vector<double> aLogPerf;
   // Network structure
   std::vector<ActivationFuncEnum> actFuncs;
   std::vector<unsigned int> conns;

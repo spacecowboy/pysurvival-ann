@@ -1106,7 +1106,7 @@ void testSurvAreaNoCens() {
   targets.at(2*i) = 6;
   targets.at(2*i + 1) = 1;
 
-  assert(3.5 == SurvArea(targets, groups, groupCounts, length));
+  assert(3.5 == SurvArea(targets, groups, groupCounts, length, false));
 
 }
 
@@ -1163,7 +1163,7 @@ void testSurvAreaSameCens() {
   targets.at(2*i + 1) = 1;
 
   assert(abs(1.0 + 5.0/6.0 + 5.0/6.0*3.0/4.0*2.0 + 5.0/6.0*2.0/4.0 + 5.0/6.0/4.0 -
-             SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
+             SurvArea(targets, groups, groupCounts, length, false)) < 0.00000001);
 
 }
 
@@ -1219,7 +1219,7 @@ void testSurvAreaMidCens() {
   targets.at(2*i + 1) = 1;
 
   assert(abs(1.0 + 5.0/6.0 + 4.0/6.0*2.0 + 4.0/9.0 + 2.0/9.0 -
-             SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
+             SurvArea(targets, groups, groupCounts, length, false)) < 0.00000001);
 }
 
 
@@ -1275,7 +1275,7 @@ void testSurvAreaEndCens1() {
   targets.at(2*i + 1) = 0;
 
   assert(abs(1.0 + 5.0/6.0 + 4.0/6.0 + 3.0/6.0 + 2.0/6.0 -
-             SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
+             SurvArea(targets, groups, groupCounts, length, false)) < 0.00000001);
 }
 
 
@@ -1331,7 +1331,7 @@ void testSurvAreaEndCens2() {
   targets.at(2*i + 1) = 0;
 
   assert(abs(1.0 + 5.0/6.0 + 4.0/6.0 + 3.0/6.0 + 2.0/6.0 + 1.0/6.0 -
-             SurvArea(targets, groups, groupCounts, length)) < 0.00000001);
+             SurvArea(targets, groups, groupCounts, length, false)) < 0.00000001);
 }
 
 int main( int argc, const char* argv[] )

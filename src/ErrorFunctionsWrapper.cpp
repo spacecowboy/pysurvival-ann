@@ -92,15 +92,49 @@ extern "C" {
       cols = PyArray_DIM(outputArray, 1);
     }
     unsigned int total = rows*cols;
-    double errors[total];
+
+    std::vector<double> vTargets(total, 0.0);
+    std::vector<double> vOutputs(total, 0.0);
+    std::vector<double> vErrors(total, 0.0);
+
+    int index;
+    double *val = NULL;
+    for (unsigned int i = 0; i < rows; i++) {
+      for (unsigned int j = 0; j < cols; j++) {
+        index = j + i * cols;
+
+        val = (double *) PyArray_GETPTR2(targetArray, i, j);
+        if (val == NULL) {
+          Py_DECREF(targetArray);
+          Py_DECREF(outputArray);
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input \
+ values. Possibly wrong length?");
+          return NULL;
+        }
+        vTargets.at(index) = *val;
+
+        val = (double *) PyArray_GETPTR2(outputArray, i, j);
+        if (val == NULL) {
+          Py_DECREF(targetArray);
+          Py_DECREF(outputArray);
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input \
+ values. Possibly wrong length?");
+          return NULL;
+        }
+        vOutputs.at(index) = *val;
+      }
+    }
+
 
     try {
       getAllErrors((ErrorFunction) errorfunc,
-                   (double *)PyArray_DATA(targetArray),
+                   vTargets,
                    rows,
                    cols,
-                   (double *)PyArray_DATA(outputArray),
-                   errors);
+                   vOutputs,
+                   vErrors);
     } catch (const std::exception& ex) {
       PyErr_Format(PyExc_RuntimeError, "%s", ex.what());
       Py_DECREF(outputArray);
@@ -110,7 +144,7 @@ extern "C" {
 
     // Now convert to numpy array
     npy_intp dims[ndim];
-        dims[0] = rows;
+    dims[0] = rows;
     if (ndim > 1)
     {
       dims[1] = cols;
@@ -118,7 +152,7 @@ extern "C" {
     PyObject *result = PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
     double *ptr = getArrayDataPtr((PyArrayObject*) result);
 
-    std::copy(errors, errors + total,
+    std::copy(vErrors.begin(), vErrors.end(),
               ptr);
 
     // Decrement counters for inputArray and targetArray
@@ -217,10 +251,11 @@ extern "C" {
       cols = PyArray_DIM(outputArray, 1);
     }
     unsigned int total = rows*cols;
-    double derivs[total];
 
-    double *Ydata = (double *)PyArray_DATA(targetArray);
-    double *outputdata = (double *)PyArray_DATA(outputArray);
+    std::vector<double> vDerivs(total, 0.0);
+    std::vector<double> vOutputs(total, 0.0);
+    std::vector<double> vTargets(total, 0.0);
+
     unsigned int index;
 
     try {
@@ -228,12 +263,12 @@ extern "C" {
       {
         index = i * cols;
         getDerivative((ErrorFunction) errorfunc,
-                      Ydata,
+                      vTargets,
                       rows,
                       cols,
-                      outputdata,
+                      vOutputs,
                       index,
-                      derivs + index);
+                      vDerivs.begin() + index);
       }
     } catch (const std::exception& ex) {
       PyErr_Format(PyExc_RuntimeError, "%s", ex.what());
@@ -252,7 +287,7 @@ extern "C" {
     PyObject *result = PyArray_SimpleNew(ndim, dims, NPY_DOUBLE);
     double *ptr = getArrayDataPtr((PyArrayObject*) result);
 
-    std::copy(derivs, derivs + total,
+    std::copy(vDerivs.begin(), vDerivs.end(),
               ptr);
 
     // Decrement counters for inputArray and targetArray

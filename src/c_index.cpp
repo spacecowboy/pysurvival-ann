@@ -9,8 +9,7 @@ length*2. Length is the number of rows. The 2 is implicit.
 The Y vector on the other hand is an A[N] array! Be wary of this.
  */
 double get_C_index(const std::vector<double> &Y,
-                   const std::vector<double> &T,
-                   const unsigned int length) {
+                   const std::vector<double> &T) {
   double total = 0, sum = 0;
 #pragma omp parallel default(none) shared(total, sum, Y, T)
   {
@@ -18,12 +17,12 @@ double get_C_index(const std::vector<double> &Y,
     unsigned int countx, county;
 
 #pragma omp for schedule(dynamic)
-    for (countx = 0; countx < length; countx++) {
+    for (countx = 0; countx < Y.size(); countx++) {
       Tx0 = T.at(countx*2);
       Tx1 = T.at(countx*2 + 1);
       outputsx0 = Y.at(countx);
 
-      for (county = 0; county < length; county++) {
+      for (county = 0; county < Y.size(); county++) {
         if (countx == county)
           continue;
 

@@ -361,8 +361,8 @@ def test_matrixnetwork():
     #print("Length: ", len(net.activation_functions))
     #print(net.activation_functions)
     assert len(net.activation_functions) == length, \
-           "Wrong length of conns vector"
-    assert np.all(net.activation_functions == net.LINEAR) == True, \
+           "Wrong length of funcs vector"
+    assert np.all(net.activation_functions == net.LOGSIG) == True, \
            "Expected funcs to be LINEAR"
 
     actfuncs = net.activation_functions

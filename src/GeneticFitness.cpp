@@ -91,5 +91,5 @@ double fitnessCIndex(const std::vector<double> &Y,
                      const unsigned int numOfOutput,
                      const std::vector<double> &outputs)
 {
-  return get_C_index(outputs, Y, length);
+  return get_C_index(outputs, Y);
 }

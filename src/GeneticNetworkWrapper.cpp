@@ -184,43 +184,66 @@ expected number based on fitness function.");
     }
 
     // Arguments are valid!
-/*
-    // Make local versions so we don't fuck up Python thread shit
-    double *inputsCopy = new double[inputArray->dimensions[0] *
-                                    inputArray->dimensions[1]];
-    double *targetsCopy = new double[targetArray->dimensions[0] *
-                                    targetArray->dimensions[1]];
-    unsigned int length = inputArray->dimensions[0];
-    // Same length
+    std::vector<double> vInputs(PyArray_DIM(inputArray, 0) * PyArray_DIM(inputArray, 1),
+                                0.0);
+    std::vector<double> vTargets(PyArray_DIM(targetArray, 0) * PyArray_DIM(targetArray, 1),
+                                0.0);
+
     int index;
-    for (int i = 0; i < inputArray->dimensions[0]; i++) {
-        for (int j = 0; j < inputArray->dimensions[1]; j++) {
-            index = j + i * inputArray->dimensions[1];
-            inputsCopy[index] = inputArray->data[index];
+    double *val = NULL;
+    for (int i = 0; i < PyArray_DIM(inputArray, 0); i++) {
+        for (int j = 0; j < PyArray_DIM(inputArray, 1); j++) {
+            index = j + i * PyArray_DIM(inputArray, 1);
+            val = (double *) PyArray_GETPTR2(inputArray, i, j);
+            if (val == NULL) {
+              Py_DECREF(inputArray);
+              Py_DECREF(targetArray);
+              PyErr_Format(PyExc_ValueError,
+                           "Something went wrong when iterating of input \
+ values. Possibly wrong length?");
+              return NULL;
+            }
+            vInputs.at(index) = *val;
         }
-        for (int j = 0; j < targetArray->dimensions[1]; j++) {
-            index = j + i * targetArray->dimensions[1];
-            targetsCopy[index] = targetArray->data[index];
+        for (int j = 0; j < PyArray_DIM(targetArray, 1); j++) {
+            index = j + i * PyArray_DIM(targetArray, 1);
+            val = (double *) PyArray_GETPTR2(targetArray, i, j);
+            if (val == NULL) {
+              Py_DECREF(inputArray);
+              Py_DECREF(targetArray);
+              PyErr_Format(PyExc_ValueError,
+                           "Something went wrong when iterating of input \
+ values. Possibly wrong length?");
+              return NULL;
+            }
+            vTargets.at(index) = *val;
         }
     }
-*/
+
     // Release the GIL
-    Py_BEGIN_ALLOW_THREADS;
-    ((GeneticNetwork*)self->super.net)->learn((double *)PyArray_DATA(inputArray),
-                                              (double *)PyArray_DATA(targetArray),
-                                              PyArray_DIM(inputArray, 0));
+    //Py_BEGIN_ALLOW_THREADS;
+    try {
+      ((GeneticNetwork*)self->super.net)->learn(vInputs,
+                                                vTargets,
+                                                PyArray_DIM(inputArray, 0));
+    } catch (const std::exception& ex) {
+      printf("\nException thrown: %s\n", ex.what());
+      PyErr_Format(PyExc_RuntimeError, "%s", ex.what());
+      error = 1;
+    }
     // Acquire the GIL again
-    Py_END_ALLOW_THREADS;
-/*
-    delete[] inputsCopy;
-    delete[] targetsCopy;
-*/
+    //Py_END_ALLOW_THREADS;
+
     // Decrement counters for inputArray and targetArray
     Py_DECREF(inputArray);
     Py_DECREF(targetArray);
 
-    // Return none
-    return Py_BuildValue("");
+    if (error > 0) {
+      return NULL;
+    } else {
+      // Return none
+      return Py_BuildValue("");
+    }
   }
 
 

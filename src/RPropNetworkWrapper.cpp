@@ -13,6 +13,7 @@
 #include <numpy/arrayobject.h> // NumPy as seen from C
 #include "RPropNetwork.hpp"
 #include "ErrorFunctions.hpp"
+#include <vector>
 
 extern "C" {
 
@@ -116,17 +117,31 @@ respectively.");
     int result;
 
     // Release the GIL
-    Py_BEGIN_ALLOW_THREADS;
-
+    //Py_BEGIN_ALLOW_THREADS;
+    try {
     // Arguments are valid!
+    std::vector<double> X;
+    X.resize(self->super.net->INPUT_COUNT * PyArray_DIM(inputArray, 0));
+    std::copy((double *)PyArray_DATA(inputArray),
+              (double *)PyArray_DATA(inputArray) + X.size(),
+              X.begin());
+
+    std::vector<double> Y;
+    Y.resize(self->super.net->OUTPUT_COUNT * PyArray_DIM(targetArray, 0));
+    std::copy((double *)PyArray_DATA(targetArray),
+              (double *)PyArray_DATA(targetArray) + Y.size(),
+              Y.begin());
+
     result =
       ((RPropNetwork*)self->super.net)
-      ->learn((double *)PyArray_DATA(inputArray),
-              (double *)PyArray_DATA(targetArray),
-              PyArray_DIM(inputArray, 0));
-
+      ->learn(X, Y, PyArray_DIM(inputArray, 0));
+    }  catch (const std::exception& ex) {
+      printf("\nException thrown: %s\n", ex.what());
+      //PyErr_Format(PyExc_RuntimeError, "%s", ex.what());
+      result = 1;
+    }
     // Acquire the GIL again
-    Py_END_ALLOW_THREADS;
+    //Py_END_ALLOW_THREADS;
 
     // Decrement counters for inputArray and targetArray
     Py_DECREF(inputArray);

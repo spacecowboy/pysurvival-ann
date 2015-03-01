@@ -8,7 +8,6 @@
 #include "Statistics.hpp"
 #include <vector>
 
-using namespace std;
 
 class GeneticNetwork: public MatrixNetwork {
  public:

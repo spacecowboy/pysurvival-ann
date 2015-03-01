@@ -63,15 +63,16 @@ extern "C" {
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of doubles.");
       return NULL;
-	}
+    }
 
-	// First convert to normal double array
+    // First convert to normal double array
 
-	bool pylist = PyList_CheckExact(inputs);
-	PyObject *pyval = NULL;
-	double *ptr = NULL;
+    bool pylist = PyList_CheckExact(inputs);
+    PyObject *pyval = NULL;
+    double *ptr = NULL;
 
-	double *dInputs = new double[self->net->INPUT_COUNT];
+    std::vector<double> vInputs(self->net->INPUT_COUNT, 0.0);
+    std::vector<double> vResult(self->net->OUTPUT_COUNT, 0.0);
 
     if (pylist) {
       for (int i = 0; (unsigned int)i < self->net->INPUT_COUNT; i++) {
@@ -81,10 +82,9 @@ extern "C" {
           PyErr_Format(PyExc_ValueError,
                        "Something went wrong when iterating of input\
  values. Possibly wrong length?");
-          delete[] dInputs;
           return NULL;
         }
-        dInputs[i] = PyFloat_AsDouble(pyval);
+        vInputs.at(i) = PyFloat_AsDouble(pyval);
       }
     } else {
       // Numpy array
@@ -94,26 +94,22 @@ extern "C" {
           PyErr_Format(PyExc_ValueError,
                        "Something went wrong when iterating of input \
  values. Possibly wrong length?");
-          delete[] dInputs;
           return NULL;
         }
-        dInputs[i] = *ptr;
+        vInputs.at(i) = *ptr;
       }
     }
 
     // compute output
-    double dResult[self->net->OUTPUT_COUNT];
-    self->net->output(dInputs, dResult);
+    self->net->output(vInputs.begin(), vResult.begin());
 
     // Now convert to numpy array
     npy_intp dims[1] = { (int) self->net->OUTPUT_COUNT };
     PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result, 0);
 
-    std::copy(dResult, dResult + self->net->OUTPUT_COUNT,
+    std::copy(vResult.begin(), vResult.end(),
               ptr);
-
-    delete[] dInputs;
 
     return result;
   }
@@ -186,50 +182,48 @@ extern "C" {
   }
   PyObject *MatrixNetwork_getLogPerf(PyMatrixNetwork *self,
                                      void *closure) {
-    double *aLogPerf = self->net->getLogPerf();
+    std::vector<double> aLogPerf = self->net->aLogPerf;
 
-    if (nullptr == aLogPerf || NULL == aLogPerf ||
-        1 > self->net->getLogPerfLength()) {
+    if (1 > aLogPerf.size()) {
       PyErr_Format(PyExc_ValueError,
                    "You need to train first!");
       return NULL;
     }
 
-	// Now convert to numpy array
+    // Now convert to numpy array
     int outNeurons = (int) self->net->OUTPUT_COUNT;
-    int epochs = (int) self->net->getLogPerfLength() / outNeurons;
-	npy_intp dims[2] = { epochs , outNeurons };
-	PyObject *result = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+    int epochs = (int) aLogPerf.size() / outNeurons;
+    npy_intp dims[2] = { epochs , outNeurons };
+    PyObject *result = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
     double *ptr = (double *) PyArray_GETPTR2((PyArrayObject*) result,
                                              0, 0);
 
-    std::copy(aLogPerf, aLogPerf + self->net->getLogPerfLength(),
-              ptr);
+    std::copy(aLogPerf.begin(), aLogPerf.end(), ptr);
 
-	return result;
+    return result;
   }
 
   PyObject *MatrixNetwork_getWeights(PyMatrixNetwork *self,
                                      void *closure) {
-    double *weights = self->net->weights;
-    unsigned int length = self->net->LENGTH * self->net->LENGTH;
+    std::vector<double> weights = self->net->weights;
+    unsigned int length = weights.size();
 
-    if (nullptr == weights || NULL == weights) {
+    if (length == 0) {
       PyErr_Format(PyExc_ValueError,
-                   "Weights were NULL!");
+                   "No weights");
       return NULL;
     }
 
-	// Now convert to numpy array
-	npy_intp dims[1] = { (int) length };
-	PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    // Now convert to numpy array
+    npy_intp dims[1] = { (int) length };
+    PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
     double *ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result,
                                              0);
 
-    std::copy(weights, weights + length,
+    std::copy(weights.begin(), weights.end(),
               ptr);
 
-	return result;
+    return result;
   }
 
   int MatrixNetwork_setWeights(PyMatrixNetwork *self,
@@ -247,16 +241,16 @@ extern "C" {
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of doubles.");
       return -1;
-	}
+    }
 
-	// First convert to normal double array
-    unsigned int length = self->net->LENGTH * self->net->LENGTH;
-	bool pylist = PyList_CheckExact(inputs);
-	PyObject *pyval = NULL;
-	double *ptr = NULL;
+    // First convert to normal double array
+    unsigned int length = self->net->weights.size();
+    bool pylist = PyList_CheckExact(inputs);
+    PyObject *pyval = NULL;
+    double *ptr = NULL;
 
-    if (pylist) {
-      for (int i = 0; (unsigned int)i < length; i++) {
+    for (int i = 0; (unsigned int)i < length; i++) {
+      if (pylist) {
         // Actual python list
         pyval = PyList_GetItem(inputs, i);
         if (pyval == NULL) {
@@ -265,50 +259,41 @@ extern "C" {
  values. Possibly wrong length?");
           return -1;
         }
-        self->net->weights[i] = PyFloat_AsDouble(pyval);
-      }
-    } else {
-      // Numpy array, first try with end
-      ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs,
-                                       length - 1);
-      if (ptr == NULL) {
-        PyErr_Format(PyExc_ValueError,
-                     "Something went wrong when iterating of input \
+        self->net->weights.at(i) = PyFloat_AsDouble(pyval);
+      } else {
+        ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, i);
+        if (ptr == NULL) {
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input \
  values. Possibly wrong length?");
-        return -1;
+          return -1;
+        }
+        // OK, correct length
+        self->net->weights.at(i) = *ptr;
       }
-      // OK, correct length
-      ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, 0);
-      std::copy(ptr, ptr + length,
-                self->net->weights);
     }
 
     return 0;
   }
 
   // Conns
-    PyObject *MatrixNetwork_getConns(PyMatrixNetwork *self,
-                                     void *closure) {
-    unsigned int *conns = self->net->conns;
-    unsigned int length = self->net->LENGTH * self->net->LENGTH;
-    printf("OK, WTF...\n");
-    if (nullptr == conns || NULL == conns) {
+  PyObject *MatrixNetwork_getConns(PyMatrixNetwork *self,
+                                   void *closure) {
+    unsigned int length = self->net->conns.size();
+    if (length == 0) {
       PyErr_Format(PyExc_ValueError,
-                   "Conns were NULL!");
+                   "Zero sized conns!");
       return NULL;
     }
 
     // Now convert to numpy array
     npy_intp dims[1] = { (npy_int) length };
     PyObject *result = PyArray_SimpleNew(1, dims, NPY_UINT);
-    unsigned int *ptr =
-      (unsigned int *) PyArray_GETPTR1((PyArrayObject*) result,
-                                       0);
-    printf("OK, Shit %d...\n", length);
-    //std::copy(conns, conns + length,
-    //          ptr);
 
-	return result;
+    std::copy(self->net->conns.begin(), self->net->conns.end(),
+              (unsigned int *) PyArray_GETPTR1((PyArrayObject*) result, 0));
+
+    return result;
   }
 
   int MatrixNetwork_setConns(PyMatrixNetwork *self,
@@ -326,17 +311,16 @@ extern "C" {
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of UINTs.");
       return -1;
-	}
+    }
 
-	// First convert to normal double array
-    unsigned int length = self->net->LENGTH * self->net->LENGTH;
-	bool pylist = PyList_CheckExact(inputs);
-	PyObject *pyval = NULL;
-	unsigned int *ptr = NULL;
+    // First convert to normal double array
+    unsigned int length = self->net->conns.size();
+    bool pylist = PyList_CheckExact(inputs);
+    PyObject *pyval = NULL;
+    unsigned int *ptr = NULL;
 
     if (pylist) {
-      printf("PyLIst...\n");
-      for (int i = 0; (unsigned int)i < length; i++) {
+      for (int i = 0; (unsigned int) i < length; i++) {
         // Actual python list
         pyval = PyList_GetItem(inputs, i);
         if (pyval == NULL) {
@@ -345,35 +329,19 @@ extern "C" {
  values. Possibly wrong length?");
           return -1;
         }
-        self->net->conns[i] = PyLong_AsLong(pyval);
+        self->net->conns.at(i) = PyLong_AsLong(pyval);
       }
     } else {
-      printf("Numpyarray...\n");
-      npy_intp arrayLength = PyArray_DIM((PyArrayObject*) inputs, 0);
-      for (int i = 0; (unsigned int)i < length && i < arrayLength; i++) {
+      for (int i = 0; (unsigned int) i < length; i++) {
         ptr = (unsigned int*) PyArray_GETPTR1((PyArrayObject*) inputs, i);
         if (ptr == NULL) {
           PyErr_Format(PyExc_ValueError,
                        "Something went wrong when iterating of input values.");
           return -1;
         } else {
-          self->net->conns[i] = *ptr;
+          self->net->conns.at(i) = *ptr;
         }
       }
-      // Numpy array, first try with end
-      /*
-      ptr = (unsigned int *) PyArray_GETPTR1((PyArrayObject*) inputs,
-                                       length - 1);
-      if (ptr == NULL) {
-        PyErr_Format(PyExc_ValueError,
-                     "Something went wrong when iterating of input \
- values. Possibly wrong length?");
-        return -1;
-      }
-      // OK, correct length
-      ptr = (unsigned int *) PyArray_GETPTR1((PyArrayObject*) inputs, 0);
-      std::copy(ptr, ptr + length,
-      self->net->conns);*/
     }
 
     return 0;
@@ -382,26 +350,22 @@ extern "C" {
   // ActFuncs
   PyObject *MatrixNetwork_getActFuncs(PyMatrixNetwork *self,
                                       void *closure) {
-    unsigned int length = self->net->LENGTH;
+    unsigned int length = self->net->actFuncs.size();
 
-    if (nullptr == self->net->actFuncs ||
-        NULL == self->net->actFuncs) {
+    if (0 == length) {
       PyErr_Format(PyExc_ValueError,
-                   "ActFuncs were NULL!");
+                   "ActFuncs were zero sized!");
       return NULL;
     }
 
-	// Now convert to numpy array
-	npy_intp dims[1] = { (int) length };
-	PyObject *result = PyArray_SimpleNew(1, dims, NPY_UINT);
-    unsigned int *ptr =
-      (unsigned int *) PyArray_GETPTR1((PyArrayObject*) result,
-                                       0);
-    for (unsigned int i = 0; i < length; i++) {
-      ptr[i] = (unsigned int) self->net->actFuncs[i];
-    }
+    // Now convert to numpy array
+    npy_intp dims[1] = { (int) length };
+    PyObject *result = PyArray_SimpleNew(1, dims, NPY_UINT);
 
-	return result;
+    std::copy(self->net->actFuncs.begin(), self->net->actFuncs.end(),
+              (unsigned int *) PyArray_GETPTR1((PyArrayObject*) result, 0));
+
+    return result;
   }
 
   int MatrixNetwork_setActFuncs(PyMatrixNetwork *self,
@@ -414,18 +378,18 @@ extern "C" {
 
     if (!(PyList_CheckExact(inputs)
           || (PyArray_NDIM((PyArrayObject *)inputs) == 1  &&
-                PyArray_TYPE((PyArrayObject *)inputs) == NPY_UINT))) {
+              PyArray_TYPE((PyArrayObject *)inputs) == NPY_UINT))) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of UINTs.");
       return -1;
-	}
+    }
 
-	// First convert to normal double array
-    unsigned int length = self->net->LENGTH;
-	bool pylist = PyList_CheckExact(inputs);
-	PyObject *pyval = NULL;
-	unsigned int *ptr = NULL;
+    // First convert to normal double array
+    unsigned int length = self->net->actFuncs.size();
+    bool pylist = PyList_CheckExact(inputs);
+    PyObject *pyval = NULL;
+    unsigned int *ptr = NULL;
 
     for (int i = 0; (unsigned int)i < length; i++) {
       if (pylist) {
@@ -437,23 +401,20 @@ extern "C" {
  values. Possibly wrong length?");
           return -1;
         }
-        self->net->actFuncs[i] = (ActivationFuncEnum) PyLong_AsLong(pyval);
-      }
-      else {
-        // Numpy array, first try with end
-        ptr = (unsigned int *) PyArray_GETPTR1((PyArrayObject *)inputs, i);
+        self->net->actFuncs.at(i) = getFuncFromNumber(PyLong_AsLong(pyval));
+      } else {
+        ptr = (unsigned int *) PyArray_GETPTR1((PyArrayObject *) inputs, i);
         if (ptr == NULL) {
           PyErr_Format(PyExc_ValueError,
                        "Something went wrong when iterating of input \
  values. Possibly wrong length?");
           return -1;
         }
-        self->net->actFuncs[i] = getFuncFromNumber(*ptr);
+        self->net->actFuncs.at(i) = getFuncFromNumber(*ptr);
       }
     }
 
     return 0;
   }
-
 
 }

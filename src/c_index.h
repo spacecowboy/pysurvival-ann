@@ -13,8 +13,7 @@ length*2. Length is the number of rows. The 2 is implicit.
 The Y vector on the other hand is an A[N] array! Be wary of this.
  */
 double get_C_index(const std::vector<double> &Y,
-                   const std::vector<double> &T,
-                   const unsigned int length);
+                   const std::vector<double> &T);
 
 
 /*

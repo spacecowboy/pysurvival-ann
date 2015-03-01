@@ -25,7 +25,7 @@ void GeneticMutator::mutateWeights(MatrixNetwork &net,
   unsigned int i;
   double roll;
 
-  for (i = 0; i < net.LENGTH * net.LENGTH; i++) {
+  for (i = 0; i < net.weights.size(); i++) {
     roll = this->rand.uniform();
     if (roll < chance) {
       // Mutate the weight
@@ -40,7 +40,7 @@ void GeneticMutator::mutateConns(MatrixNetwork &net,
   unsigned int i, bit;
   double roll;
 
-  for (i = 0; i < net.LENGTH * net.LENGTH; i++) {
+  for (i = 0; i < net.conns.size(); i++) {
     roll = this->rand.uniform();
     if (roll < chance) {
       bit = this->rand.randBit();
@@ -55,7 +55,7 @@ void GeneticMutator::mutateActFuncs(MatrixNetwork &net,
   unsigned int i, choice;
   double roll;
 
-  for (i = 0; i < net.LENGTH; i++) {
+  for (i = 0; i < net.actFuncs.size(); i++) {
     roll = this->rand.uniform();
     if (roll < chance) {
       // Select new function

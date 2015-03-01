@@ -295,7 +295,8 @@ double TaroneWareHighLow(const std::vector<double> &targets,
 double SurvArea(const std::vector<double> &targets,
                 std::vector<unsigned int> &groups,
                 std::vector<unsigned int> &groupCounts,
-                const unsigned int length) {
+                const unsigned int length,
+                const bool invert) {
   unsigned int i;
   double lastTime;
 
@@ -357,6 +358,10 @@ double SurvArea(const std::vector<double> &targets,
     }
   } // End loop
 
+  if (invert) {
+    // Return MaxArea - Area, which is 1.0 * lastTime - area
+    return lastTime - area;
+  }
   return area;
 }
 
@@ -377,7 +382,6 @@ double RiskGroup(const std::vector<double> &targets,
   double fails, cens, atRisk, surv;
 
   double medianTime = -1;
-  double lastEventTime = targets.at(0);
 
   // Times are already ordered (at least we assume so)
   // At the start, everyone is at risk
@@ -422,8 +426,6 @@ double RiskGroup(const std::vector<double> &targets,
       if (targets.at(2*i + 1)) {
         // Event
         fails += 1;
-        // Last event in group
-        lastEventTime = targets.at(2*i);
       } else {
         // Censored
         cens += 1;

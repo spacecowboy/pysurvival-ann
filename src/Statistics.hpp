@@ -42,7 +42,8 @@ double TaroneWareHighLow(const std::vector<double> &targets,
 double SurvArea(const std::vector<double> &targets,
                 std::vector<unsigned int> &groups,
                 std::vector<unsigned int> &groupCounts,
-                const unsigned int length);
+                const unsigned int length,
+                const bool invert);
 
 /**
  * Goal here is to maximize the risk groups. for HighRisk groups,

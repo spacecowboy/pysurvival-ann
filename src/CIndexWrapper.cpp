@@ -45,9 +45,19 @@ extern "C" {
 	}
 
 	// Arguments are valid!
-	double cindex = get_C_index((double *)PyArray_DATA(outputArray),
-				    (double *)PyArray_DATA(targetArray),
-				    PyArray_DIM(outputArray, 0));
+    std::vector<double> Y;
+    Y.resize(PyArray_DIM(outputArray, 0));
+    std::copy((double *)PyArray_DATA(outputArray),
+              (double *)PyArray_DATA(outputArray) + Y.size(),
+              Y.begin());
+
+    std::vector<double> T;
+    T.resize(PyArray_DIM(targetArray, 0) * 2);
+    std::copy((double *)PyArray_DATA(targetArray),
+              (double *)PyArray_DATA(targetArray) + T.size(),
+              T.begin());
+
+    double cindex = get_C_index(Y, T);
 
 	// Decrement counters for inputArray and targetArray
 	Py_DECREF(outputArray);

@@ -16,10 +16,8 @@
 #include <vector>
 #include <stdio.h>
 #include <math.h>
-
 #include <omp.h>
 
-using namespace std;
 
 GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
                                const unsigned int numOfHidden,
@@ -47,7 +45,7 @@ GeneticNetwork::GeneticNetwork(const unsigned int numOfInputs,
 }
 
 double getClassFitness(const FitnessFunction func,
-                       GeneticNetwork * const pNet,
+                       GeneticNetwork &net,
                        const std::vector<double> &X,
                        const std::vector<double> &Y,
                        const unsigned int length,
@@ -56,21 +54,19 @@ double getClassFitness(const FitnessFunction func,
   double retval, winningOutput, outVal;
   unsigned int i, j, nextGroup, groupCount = 0, winningGroup;
   // Index of each output neuron
-  std::vector<unsigned int> activeOutputs;
-  activeOutputs.reserve(pNet->OUTPUT_COUNT);
+  std::vector<unsigned int> activeOutputs(net.OUTPUT_COUNT, 0);
   // Store number of members in each group
-  std::vector<unsigned int> groupCounts(pNet->OUTPUT_COUNT, 0);
+  std::vector<unsigned int> groupCounts(net.OUTPUT_COUNT, 0);
 
   // Group membership
-  std::vector<unsigned int> groups;
-  groups.reserve(length);
+  std::vector<unsigned int> groups(length, 0);
 
   // Count active output neurons
-  for (i = pNet->OUTPUT_START; i < pNet->OUTPUT_END; i++) {
+  for (i = net.OUTPUT_START; i < net.OUTPUT_END; i++) {
     // Check diagonal connections
-    if (pNet->conns.at(i * pNet->LENGTH + i) == 1) {
+    if (net.conns.at(i * net.LENGTH + i) == 1) {
       // Active, remember index
-      activeOutputs.at(groupCount) = i - pNet->OUTPUT_START;
+      activeOutputs.at(groupCount) = i - net.OUTPUT_START;
       groupCount++;
     }
   }
@@ -79,17 +75,17 @@ double getClassFitness(const FitnessFunction func,
 
   // Classify each pattern, increasing group counts etc as we go along
   for (i = 0; i < length; i++) {
-    pNet->output(X.begin() + i * pNet->INPUT_COUNT,
-                 outputs.begin() + i * pNet->OUTPUT_COUNT);
+    net.output(X.begin() + i * net.INPUT_COUNT,
+                 outputs.begin() + i * net.OUTPUT_COUNT);
     // Start with first group
     nextGroup = 0;
     // Default value is first active neuron
     winningGroup = nextGroup;
-    winningOutput = outputs.at(i * pNet->OUTPUT_COUNT + activeOutputs.at(nextGroup));
-    for (j = 0; j < pNet->OUTPUT_COUNT; j++) {
+    winningOutput = outputs.at(i * net.OUTPUT_COUNT + activeOutputs.at(nextGroup));
+    for (j = 0; j < net.OUTPUT_COUNT; j++) {
       // Ignore inactive outputs
       if (j == activeOutputs.at(nextGroup)) {
-        outVal = outputs.at(i * pNet->OUTPUT_COUNT + activeOutputs.at(nextGroup));
+        outVal = outputs.at(i * net.OUTPUT_COUNT + activeOutputs.at(nextGroup));
         // greater output, possible winner
         if (outVal > winningOutput) {
           winningGroup = nextGroup;
@@ -114,29 +110,26 @@ double getClassFitness(const FitnessFunction func,
   switch (func) {
   case FitnessFunction::FITNESS_TARONEWARE_MEAN:
     retval = TaroneWareMeanPairwise(Y, groups, groupCounts, length,
-                                    pNet->getTaroneWareStatistic());
+                                    net.getTaroneWareStatistic());
     break;
   case FitnessFunction::FITNESS_TARONEWARE_HIGHLOW:
     retval = TaroneWareHighLow(Y, groups, groupCounts, length, groupCount,
-                               pNet->getTaroneWareStatistic());
+                               net.getTaroneWareStatistic());
     // Penalize small groups
-    if (groupCounts.at(0) < pNet->getMinGroup()) {
+    if (groupCounts.at(0) < net.getMinGroup()) {
       retval = 0;
     }
-    if (groupCount > 1 && groupCounts.at(1) < pNet->getMinGroup()) {
+    if (groupCount > 1 && groupCounts.at(1) < net.getMinGroup()) {
       retval = 0;
     }
     break;
   case FitnessFunction::FITNESS_SURV_KAPLAN_MAX:
   case FitnessFunction::FITNESS_SURV_KAPLAN_MIN:
-    retval = SurvArea(Y, groups, groupCounts, length);
+    retval = SurvArea(Y, groups, groupCounts, length,
+                      FitnessFunction::FITNESS_SURV_KAPLAN_MIN == func);
 
-    if (FitnessFunction::FITNESS_SURV_KAPLAN_MIN == func && retval > 0) {
-      // In this case, we want to minimize area
-      retval = 1.0 / retval;
-    }
     // Penalize small groups
-    if (groupCounts.at(0) < pNet->getMinGroup()) {
+    if (groupCounts.at(0) < net.getMinGroup()) {
       retval = 0;
     }
     break;
@@ -145,7 +138,7 @@ double getClassFitness(const FitnessFunction func,
     retval = RiskGroup(Y, groups, groupCounts, length,
                        FitnessFunction::FITNESS_SURV_RISKGROUP_HIGH == func);
     // Penalize small groups
-    if (groupCounts.at(0) < pNet->getMinGroup()) {
+    if (groupCounts.at(0) < net.getMinGroup()) {
       retval = 0;
     }
     break;
@@ -160,7 +153,7 @@ double getClassFitness(const FitnessFunction func,
 
 
 double evaluateNetwork(const FitnessFunction fitnessFunction,
-                       GeneticNetwork * const pNet,
+                       GeneticNetwork &net,
                        const std::vector<double> &X,
                        const std::vector<double> &Y,
                        const unsigned int length,
@@ -174,31 +167,30 @@ double evaluateNetwork(const FitnessFunction fitnessFunction,
       FitnessFunction::FITNESS_SURV_RISKGROUP_LOW == fitnessFunction){
     // Need to support a slightly different API for groups
     return getClassFitness(fitnessFunction,
-                           pNet,
+                           net,
                            X, Y, length,
                            outputs);
-  } else {
-    unsigned int i;
-
-    for (i = 0; i < length; i++) {
-      pNet->output(X.begin() + i * pNet->INPUT_COUNT,
-                   outputs.begin() + i * pNet->OUTPUT_COUNT);
-    }
-
-    return getFitness(fitnessFunction,
-                      Y, length,
-                      pNet->OUTPUT_COUNT,
-                      outputs);
   }
+  unsigned int i;
+
+  for (i = 0; i < length; i++) {
+    net.output(X.begin() + i * net.INPUT_COUNT,
+                 outputs.begin() + i * net.OUTPUT_COUNT);
+  }
+
+  return getFitness(fitnessFunction,
+                    Y, length,
+                    net.OUTPUT_COUNT,
+                    outputs);
 }
 
-void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
-                  vector<double> &sortedFitness,
+void insertSorted(std::vector<GeneticNetwork*>  &sortedPopulation,
+                  std::vector<double> &sortedFitness,
                   const double fitness,
                   GeneticNetwork * const net)
 {
-  vector<GeneticNetwork*>::iterator netIt;
-  vector<double>::iterator fitnessIt;
+  std::vector<GeneticNetwork*>::iterator netIt;
+  std::vector<double>::iterator fitnessIt;
   bool inserted = false;
   unsigned int j;
 
@@ -223,8 +215,8 @@ void insertSorted(vector<GeneticNetwork*>  &sortedPopulation,
   }
 }
 
-void insertLast(vector<GeneticNetwork*>  &sortedPopulation,
-                vector<double> &sortedFitness,
+void insertLast(std::vector<GeneticNetwork*>  &sortedPopulation,
+                std::vector<double> &sortedFitness,
                 GeneticNetwork * const net)
 {
   //printf("Inserting last, error = %f\n", error);
@@ -232,8 +224,8 @@ void insertLast(vector<GeneticNetwork*>  &sortedPopulation,
   sortedFitness.push_back(-99999999999.0);
 }
 
-GeneticNetwork *popLastNetwork(vector<GeneticNetwork*> &sortedPopulation,
-                               vector<double> &sortedFitness)
+GeneticNetwork *popLastNetwork(std::vector<GeneticNetwork*> &sortedPopulation,
+                               std::vector<double> &sortedFitness)
 {
   GeneticNetwork *pChild = sortedPopulation.back();
   sortedPopulation.pop_back();
@@ -243,8 +235,8 @@ GeneticNetwork *popLastNetwork(vector<GeneticNetwork*> &sortedPopulation,
 }
 
 GeneticNetwork *popNetwork(unsigned int i,
-                           vector<GeneticNetwork*> &sortedPopulation,
-                           vector<double> &sortedFitness)
+                           std::vector<GeneticNetwork*> &sortedPopulation,
+                           std::vector<double> &sortedFitness)
 {
   // Just in case
   if (i >= sortedPopulation.size()) {
@@ -262,8 +254,8 @@ GeneticNetwork *popNetwork(unsigned int i,
  * in many threads.
  */
 void breedNetworks(GeneticNetwork &self,
-                   vector<GeneticNetwork*> &sortedPopulation,
-                   vector<double> &sortedFitness,
+                   std::vector<GeneticNetwork*> &sortedPopulation,
+                   std::vector<double> &sortedFitness,
                    const unsigned int childCount,
                    const unsigned int curGen,
                    const std::vector<double> &X,
@@ -336,16 +328,16 @@ void breedNetworks(GeneticNetwork &self,
 
       // Evaluate fitness
       bFitness = evaluateNetwork(self.fitnessFunction,
-                                 pBrother, X, Y, length,
+                                 *pBrother, X, Y, length,
                                  outputs);
       sFitness = evaluateNetwork(self.fitnessFunction,
-                                 pSister, X, Y, length,
+                                 *pSister, X, Y, length,
                                  outputs);
       mFitness = evaluateNetwork(self.fitnessFunction,
-                                 pMother, X, Y, length,
+                                 *pMother, X, Y, length,
                                  outputs);
       fFitness = evaluateNetwork(self.fitnessFunction,
-                                 pFather, X, Y, length,
+                                 *pFather, X, Y, length,
                                  outputs);
 
       // Weight decay terms
@@ -394,8 +386,8 @@ void GeneticNetwork::learn(const std::vector<double> &X,
   initLog(generations * this->OUTPUT_COUNT);
 
   // Create a population of networks
-  vector<GeneticNetwork*> sortedPopulation;
-  vector<double> sortedFitness;
+  std::vector<GeneticNetwork*> sortedPopulation;
+  std::vector<double> sortedFitness;
 
   unsigned int extras;
 #pragma omp parallel
@@ -414,12 +406,12 @@ void GeneticNetwork::learn(const std::vector<double> &X,
 
   // Rank and insert them in a sorted order
   unsigned int i;
-  vector<GeneticNetwork*>::iterator netIt;
-  vector<double>::iterator errorIt;
+  std::vector<GeneticNetwork*>::iterator netIt;
+  std::vector<double>::iterator errorIt;
 
   double fitness = 0;
   // predictions
-  std::vector<double> preds(OUTPUT_COUNT * LENGTH, 0.0);
+  std::vector<double> preds(OUTPUT_COUNT * length, 0.0);
 
   Random rand;
   GeneticMutator mutator(rand);
@@ -435,12 +427,12 @@ void GeneticNetwork::learn(const std::vector<double> &X,
     // Respect mutation chances.
     mutator.mutateWeights(*pNet, weightMutationChance,
                           weightMutationFactor);
+
     mutator.mutateConns(*pNet, connsMutationChance);
     mutator.mutateActFuncs(*pNet, actFuncMutationChance);
-
     // evaluate error here
     fitness = evaluateNetwork(fitnessFunction,
-                              pNet, X, Y, length,
+                              *pNet, X, Y, length,
                               preds);
 
     insertSorted(sortedPopulation, sortedFitness, fitness, pNet);
