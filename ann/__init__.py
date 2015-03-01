@@ -96,7 +96,25 @@ class rpropnetwork(_rpropnetwork):
 @UtilMatrix
 class geneticnetwork(_gennetwork):
     __doc__ = _gennetwork.__doc__
-    pass
+
+    def learn(self, trninputs, trnoutputs):
+        '''
+        Train the network using a genetic algorithm.
+        In some cases (survival methods), the data will be sorted according
+        to survival time beforing being passed to the training method.
+        '''
+        # These fitness functions depend on sorted data
+        if (self.fitness_function == _gennetwork.FITNESS_SURV_KAPLAN_MIN
+          or self.fitness_function == _gennetwork.FITNESS_SURV_KAPLAN_MAX
+          or self.fitness_function == _gennetwork.FITNESS_SURV_RISKGROUP_LOW
+          or self.fitness_function == _gennetwork.FITNESS_SURV_RISKGROUP_HIGH
+          or self.fitness_function == _gennetwork.FITNESS_TARONEWARE_MEAN
+          or self.fitness_function == _gennetwork.FITNESS_TARONEWARE_HIGHLOW):
+            asc = trnoutputs[:, 0].argsort()
+            super(geneticnetwork, self).learn(trninputs[asc], trnoutputs[asc])
+        else:
+            # Pass data through unchanged
+            super(geneticnetwork, self).learn(trninputs, trnoutputs)
 
 
 @UtilMatrix
