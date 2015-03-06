@@ -33,7 +33,10 @@ MatrixNetwork::MatrixNetwork(unsigned int numOfInput,
   actFuncs(LENGTH, LOGSIG),
   conns(LENGTH*LENGTH, 0),
   weights(LENGTH*LENGTH, 0.0),
-  outputs(LENGTH, 0)
+  outputs(LENGTH, 0),
+  // disabled by default
+  inputDropoutProb(-1.0),
+  hiddenDropoutProb(-1.0)
 {
 }
 
@@ -79,11 +82,16 @@ ActivationFuncEnum MatrixNetwork::getHiddenActivationFunction() {
   return actFuncs.at(HIDDEN_START);
 }
 
-
 void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
                            std::vector<double>::iterator outputStart) {
+  output(inputStart, true, outputStart);
+}
+
+void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
+                           const bool doScaling,
+                           std::vector<double>::iterator outputStart) {
   unsigned int i, j, target;
-  double sum, outputSum, outputMax=0;
+  double sum, outputSum, outputMax=0, scale=1.0;
   bool first = true;
 
   // First set input values
@@ -102,8 +110,24 @@ void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
       // No recursive connections allowed
       for (j = INPUT_START; j < i; j++) {
         target = LENGTH * i + j;
-        if (1 == conns.at(target))
-          sum += weights.at(target) * outputs.at(j);
+
+        if (doScaling) {
+          if (j < INPUT_END) {
+            scale = inputDropoutProb;
+          } else if (j < HIDDEN_END) {
+            scale = hiddenDropoutProb;
+          } else {
+            scale = 1.0;
+          }
+        }
+        // In case dropout is disabled
+        if (scale < 0 || scale > 1) {
+          scale = 1.0;
+        }
+
+        if (1 == conns.at(target)) {
+          sum += scale * weights.at(target) * outputs.at(j);
+        }
       }
 
       outputs.at(i) = evaluateActFunction(actFuncs.at(i), sum);
@@ -147,4 +171,49 @@ void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
   std::copy(outputs.begin() + OUTPUT_START,
             outputs.end(),
             outputStart);
+}
+
+
+void MatrixNetwork::dropoutHidden() {
+  if (hiddenDropoutProb < 0 || hiddenDropoutProb > 1) {
+    return;
+  }
+  dropoutConns(hiddenDropoutProb, HIDDEN_START, HIDDEN_END);
+}
+
+void MatrixNetwork::dropoutInput() {
+  if (inputDropoutProb < 0 || inputDropoutProb > 1) {
+    return;
+  }
+  dropoutConns(inputDropoutProb, INPUT_START, INPUT_END);
+}
+
+void MatrixNetwork::dropoutInputNone() {
+  if (inputDropoutProb < 0 || inputDropoutProb > 1) {
+    return;
+  }
+  dropoutConns(1.0, INPUT_START, INPUT_END);
+}
+
+void MatrixNetwork::dropoutHiddenNone() {
+  if (hiddenDropoutProb < 0 || hiddenDropoutProb > 1) {
+    return;
+  }
+  dropoutConns(1.0, HIDDEN_START, HIDDEN_END);
+}
+
+void MatrixNetwork::dropoutConns(const double p,
+                                 const unsigned int NEURON_START,
+                                 const unsigned int NEURON_END) {
+  unsigned int bit, target, h;
+  // Enable/disable this unit with probability p
+  for (h=NEURON_START; h < NEURON_END; h++) {
+    if (rand.uniform() <= p) {
+      bit = 1;
+    } else {
+      bit = 0;
+    }
+    target = LENGTH * h + h;
+    conns.at(target) = bit;
+  }
 }

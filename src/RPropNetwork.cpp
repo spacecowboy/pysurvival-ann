@@ -109,6 +109,9 @@ int RPropNetwork::learn(const std::vector<double> &X,
   try {
   // Train
   do {
+    // Do dropout if configured
+    dropoutInput();
+    dropoutHidden();
     // Reset arrays
     for (unsigned int i = 0; i < backPropValues.size(); i++) {
       backPropValues.at(i) = 0.0;
@@ -131,7 +134,8 @@ int RPropNetwork::learn(const std::vector<double> &X,
 # pragma omp critical
         {
           // First let all neurons evaluate
-          output(X.begin() + i * INPUT_COUNT, preds.begin() + i * OUTPUT_COUNT);
+          output(X.begin() + i * INPUT_COUNT, false,
+                 preds.begin() + i * OUTPUT_COUNT);
           // Copy to local array
           for (unsigned int nc = 0; nc < LENGTH; nc++) {
             outValues.at(nc) = outputs.at(nc);
@@ -209,7 +213,8 @@ int RPropNetwork::learn(const std::vector<double> &X,
     // Evaluate again to calculate new error
     for (unsigned int i = 0; i < length; i++) {
       // First let all neurons evaluate
-      output(X.begin() + i * INPUT_COUNT, preds2.begin() + i * OUTPUT_COUNT);
+      output(X.begin() + i * INPUT_COUNT, false,
+             preds2.begin() + i * OUTPUT_COUNT);
     }
 
     epoch += 1;
@@ -247,6 +252,10 @@ int RPropNetwork::learn(const std::vector<double> &X,
     std::cerr << "\nException thrown: " << e.what() << "\n\n";
     retval = 1;
   }
+
+  // Undo dropout again if configured
+  dropoutInputNone();
+  dropoutHiddenNone();
 
   // Clean memory
   if (NULL != cache)

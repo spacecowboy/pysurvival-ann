@@ -202,6 +202,7 @@ void geneticTest1() {
 
 void geneticXOR() {
   std::cout << "\nGeneticXOR...";
+
   GeneticNetwork net(2, 5, 1);
   net.setGenerations(100);
   net.setWeightMutationChance(0.5);
@@ -256,6 +257,66 @@ void geneticXOR() {
 
   std::cout << "\nGeneticXOR Done.";
 }
+
+void geneticXORDroput() {
+  std::cout << "\nGeneticXORDropout...";
+
+  GeneticNetwork net(2, 5, 1);
+  net.setGenerations(100);
+  net.setWeightMutationChance(0.5);
+  net.setWeightMutationFactor(0.3);
+  net.connsMutationChance = 0.5;
+  net.actFuncMutationChance = 0.5;
+  net.setCrossoverChance(0.6);
+  net.hiddenDropoutProb = 0.9;
+
+  // define inputs
+  std::vector<double> X = {0,0,
+                           0,1,
+                           1,0,
+                           1,1};
+  // printf("\nbah %f", X[7]);
+
+  // define targets
+  std::vector<double> Y = {0, 1, 1, 0};
+  // printf("\nbah %f", Y[2]);
+
+  net.learn(X, Y, 4);
+
+  std::vector<double> preds(1, 0.0);
+
+   std::cout << "\nPredictions\n";
+  for (int i = 0; i < 4; i++) {
+    net.output(X.begin() + 2 * i, preds.begin());
+     std::cout << X[2*i] << " "<< X[2*i + 1]
+              << " : " << preds[0] << "\n";
+  }
+
+  // Print structure
+   std::cout << "\n\nWeights";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+     std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j < i; j++) {
+      std::cout << " " << net.weights.at(j + i*net.LENGTH);
+    }
+  }
+
+   std::cout << "\n\nConss";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+     std::cout << "\nN" << i << ":";
+    for (unsigned int j = 0; j < i; j++) {
+      std::cout << " " << net.conns.at(j + i*net.LENGTH);
+    }
+  }
+
+   std::cout << "\n\nActFuncs";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    std::cout << "\nN" << i << ": " << net.actFuncs.at(i);
+  }
+
+  std::cout << "\nGeneticXORDropout Done.";
+}
+
 
 void rpropsurvlik() {
   std::cout << "\nRPropSurvLikTest...";
@@ -418,6 +479,87 @@ void rproptest() {
   }
 
   std::cout << "\nRPropTest Done.";
+}
+
+void rpropdropouttest() {
+  std::cout << "\nRPropDropoutTest...";
+
+  Random r;
+  RPropNetwork net(2, 5, 1);
+  net.hiddenDropoutProb = 0.9;
+
+  // Set up a feedforward structure
+  for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
+    for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {
+      net.conns.at(net.LENGTH * i + j) = 1;
+      net.weights.at(net.LENGTH * i + j) = r.normal();
+    }
+    // Also activate self
+    net.conns.at(net.LENGTH * i + i) = 1;
+  }
+  for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
+    for (unsigned int j = 0; j < net.BIAS_END; j++) {
+      net.conns.at(net.LENGTH * i + j) = 1;
+      net.weights.at(net.LENGTH * i + j) = r.normal();
+    }
+    //Start with zero here to test dropout
+    net.conns.at(net.LENGTH * i + i) = 0;
+  }
+  net.setHiddenActivationFunction(TANH);
+  net.setOutputActivationFunction(LOGSIG);
+
+  // xor
+    // define inputs
+  std::vector<double> X = {0,0,
+                           0,1,
+                           1,0,
+                           1,1};
+  // printf("\nbah %f", X[7]);
+
+  // define targets
+  std::vector<double> Y = {0, 1, 1, 0};
+
+  // Print structure
+  std::cout << "\n\nConns before";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+    std::cout << "\nN" << i << "(" << net.conns.at(i + i*net.LENGTH) << ")" << ":";
+    for (unsigned int j = 0; j <= i; j++) {
+      std::cout << " " << net.conns.at(j + i*net.LENGTH);
+    }
+  }
+
+  net.setMaxEpochs(30000);
+  net.setMaxError(0.0);
+  net.setMinErrorFrac(0.01);
+  if ( 0 < net.learn(X, Y, 4)) {
+    throw "Shit hit the fan";
+  }
+
+  // Print structure
+  std::cout << "\n\nConns after";
+  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+     std::cout << "\nN" << i << "(" << net.conns.at(i + i*net.LENGTH) << ")" << ":";
+     assert(net.conns.at(i + i*net.LENGTH) == 1);
+    for (unsigned int j = 0; j < i; j++) {
+      std::cout << " " << net.conns.at(j + i*net.LENGTH);
+    }
+  }
+
+  std::vector<double> preds(1, 0);
+  // std::cout << "\n\nPredictions\n";
+  for (int i = 0; i < 4; i++) {
+    net.output(X.begin() + 2 * i, preds.begin());
+
+    std::cout << "\n  " << X[2*i] << " "<< X[2*i + 1]
+              << " : " << preds[0]
+              << " (" << Y[i] << ")";
+
+    double diff = preds[0] - Y[i];
+    if (diff < 0) diff = -diff;
+
+  }
+
+  std::cout << "\nRPropDropoutTest Done.";
 }
 
 void rpropalloctest() {
@@ -1336,6 +1478,13 @@ void testSurvAreaEndCens2() {
 
 int main( int argc, const char* argv[] )
 {
+  geneticXORDroput();
+  rpropdropouttest();
+  rproptest();
+  geneticTest1();
+  geneticXOR();
+
+
   testSurvAreaNoCens();
   testSurvAreaSameCens();
   testSurvAreaMidCens();
@@ -1352,9 +1501,6 @@ int main( int argc, const char* argv[] )
   randomtest();
   rpropalloctest();
   //survcachealloctest();
-  geneticTest1();
-  geneticXOR();
-  rproptest();
   testSurvCache();
   rpropsurvlik();
   printf("\nEND OF TEST\n");

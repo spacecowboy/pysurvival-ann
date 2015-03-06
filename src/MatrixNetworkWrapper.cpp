@@ -417,4 +417,45 @@ extern "C" {
     return 0;
   }
 
+
+  PyObject *MatrixNetwork_getInputDropoutProb(PyMatrixNetwork *self,
+                                              void *closure) {
+    return Py_BuildValue("d", self->net->inputDropoutProb);
+  }
+  int MatrixNetwork_setInputDropoutProb(PyMatrixNetwork *self, PyObject *value,
+                                        void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    self->net->inputDropoutProb = val;
+    return 0;
+  }
+
+  PyObject *MatrixNetwork_getHiddenDropoutProb(PyMatrixNetwork *self,
+                                              void *closure) {
+    return Py_BuildValue("d", self->net->hiddenDropoutProb);
+  }
+  int MatrixNetwork_setHiddenDropoutProb(PyMatrixNetwork *self, PyObject *value,
+                                         void *closure) {
+    if (value == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+      return -1;
+    }
+
+    double val = PyFloat_AsDouble(value);
+    if (PyErr_Occurred()) {
+      return -1;
+    }
+
+    self->net->hiddenDropoutProb = val;
+    return 0;
+  }
+
 }

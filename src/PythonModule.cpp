@@ -82,6 +82,16 @@ For example network.TANH", NULL},
    (setter)MatrixNetwork_setActFuncs,        \
    (char*)"The activation functions of the neurons.", NULL},
 
+  {(char*)"dropout_input_probability",       \
+   (getter)MatrixNetwork_getInputDropoutProb,   \
+   (setter)MatrixNetwork_setInputDropoutProb,        \
+   (char*)"Dropout probability for input neurons. Set negative to disable.", NULL},
+
+  {(char*)"dropout_hidden_probability",          \
+   (getter)MatrixNetwork_getHiddenDropoutProb,   \
+   (setter)MatrixNetwork_setHiddenDropoutProb,        \
+   (char*)"Dropout probability for hidden neurons. Set negative to disable.", NULL},
+
     {NULL} // Sentinel
 };
 
@@ -250,7 +260,12 @@ static PyMethodDef GenNetworkMethods[] =
 {
     {"learn", (PyCFunction) GenNetwork_learn,                           \
      METH_VARARGS | METH_KEYWORDS, \
-     "Trains the network using a genetic algorithm."},
+     "learn(inputData, targetData)\
+\n\nTrains the network using a genetic algorithm."},
+    {"getPredictionFitness", (PyCFunction) GenNetwork_getPredictionFitness,
+     METH_VARARGS | METH_KEYWORDS, \
+     "getPredictionFitness(inputData, targetData)\
+\n\nReturns the fitness based on the predictions of the given data."},
     {NULL}, // So that we can iterate safely below
 };
 

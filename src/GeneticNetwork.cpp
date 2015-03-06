@@ -75,7 +75,7 @@ double getClassFitness(const FitnessFunction func,
 
   // Classify each pattern, increasing group counts etc as we go along
   for (i = 0; i < length; i++) {
-    net.output(X.begin() + i * net.INPUT_COUNT,
+    net.output(X.begin() + i * net.INPUT_COUNT, false,
                  outputs.begin() + i * net.OUTPUT_COUNT);
     // Start with first group
     nextGroup = 0;
@@ -151,7 +151,6 @@ double getClassFitness(const FitnessFunction func,
   return retval;
 }
 
-
 double evaluateNetwork(const FitnessFunction fitnessFunction,
                        GeneticNetwork &net,
                        const std::vector<double> &X,
@@ -174,7 +173,7 @@ double evaluateNetwork(const FitnessFunction fitnessFunction,
   unsigned int i;
 
   for (i = 0; i < length; i++) {
-    net.output(X.begin() + i * net.INPUT_COUNT,
+    net.output(X.begin() + i * net.INPUT_COUNT, false,
                  outputs.begin() + i * net.OUTPUT_COUNT);
   }
 
@@ -326,6 +325,19 @@ void breedNetworks(GeneticNetwork &self,
       mutator.mutateActFuncs(*pSister,
                              self.actFuncMutationChance);
 
+      // Do dropout if configured
+      pBrother->dropoutInput();
+      pBrother->dropoutHidden();
+
+      pSister->dropoutInput();
+      pSister->dropoutHidden();
+
+      pMother->dropoutInput();
+      pMother->dropoutHidden();
+
+      pFather->dropoutInput();
+      pFather->dropoutHidden();
+
       // Evaluate fitness
       bFitness = evaluateNetwork(self.fitnessFunction,
                                  *pBrother, X, Y, length,
@@ -379,6 +391,18 @@ void breedNetworks(GeneticNetwork &self,
   // End parallel
 }
 
+double GeneticNetwork::getPredictionFitness(const std::vector<double> &X,
+                                            const std::vector<double> &Y,
+                                            const unsigned int length) {
+  std::vector<double> outputs(this->OUTPUT_COUNT * length, 0.0);
+  return evaluateNetwork(this->getFitnessFunction(),
+                         *this,
+                         X,
+                         Y,
+                         length,
+                         outputs);
+}
+
 void GeneticNetwork::learn(const std::vector<double> &X,
                            const std::vector<double> &Y,
                            const unsigned int length) {
@@ -430,6 +454,11 @@ void GeneticNetwork::learn(const std::vector<double> &X,
 
     mutator.mutateConns(*pNet, connsMutationChance);
     mutator.mutateActFuncs(*pNet, actFuncMutationChance);
+
+    // Do dropout if configured
+    pNet->dropoutInput();
+    pNet->dropoutHidden();
+
     // evaluate error here
     fitness = evaluateNetwork(fitnessFunction,
                               *pNet, X, Y, length,
@@ -476,6 +505,10 @@ void GeneticNetwork::learn(const std::vector<double> &X,
 
   this->cloneNetwork(*best);
 
+  // Undo dropout again if configured
+  dropoutInputNone();
+  dropoutHiddenNone();
+
   // And destroy population
   // do this last of all!
   best = nullptr;
@@ -490,6 +523,10 @@ void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
   // Need to have the same statistic set on all
   this->setTaroneWareStatistic(original.getTaroneWareStatistic());
   this->setMinGroup(original.getMinGroup());
+  // And dropout parameters
+  this->inputDropoutProb = original.inputDropoutProb;
+  this->hiddenDropoutProb = original.hiddenDropoutProb;
+
   // Now copy all structure
   std::copy(original.weights.begin(),
             original.weights.end(),

@@ -40,6 +40,9 @@ extern "C" {
   PyObject *GenNetwork_learn(PyGenNetwork *self, PyObject *args,
                              PyObject *kwargs);
 
+  PyObject *GenNetwork_getPredictionFitness(PyGenNetwork *self, PyObject *args,
+                                            PyObject *kwargs);
+
   /*
    * Getters and Setters
    */

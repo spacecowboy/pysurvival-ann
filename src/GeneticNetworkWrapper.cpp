@@ -246,6 +246,131 @@ expected number based on fitness function.");
     }
   }
 
+  PyObject *GenNetwork_getPredictionFitness(PyGenNetwork *self, PyObject *args,
+                                            PyObject *kwargs) {
+    PyObject *inputs = NULL;
+    PyObject *targets = NULL;
+    // Check inputs
+    static char *kwlist[] = {(char*)"inputs", \
+                             (char*)"targets", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist,
+                                     &inputs, &targets)) {
+      PyErr_Format(PyExc_ValueError, "Arguments should be: inputs (2d array), \
+targets (2d array)");
+      return NULL;
+    }
+
+    // Make sure they conform to required structure
+    PyArrayObject *inputArray = NULL;
+    PyArrayObject *targetArray = NULL;
+
+    inputArray =
+      (PyArrayObject *)  PyArray_ContiguousFromObject(inputs,
+                                                      NPY_DOUBLE, 2, 2);
+    if (inputArray == NULL)
+      return NULL;
+
+    targetArray = (PyArrayObject *) PyArray_ContiguousFromObject(targets,
+                                                                 NPY_DOUBLE,
+                                                                 2, 2);
+    if (targetArray == NULL) {
+      Py_DECREF(inputArray);
+      return NULL;
+    }
+
+    // Objects were converted successfully. But make sure they are the
+    // correct length!
+    int expectedTargetCount =
+      getExpectedTargetCount(((GeneticNetwork*)self->super.net)->getFitnessFunction());
+    if (expectedTargetCount < 1) {
+      // Then expect output count
+      expectedTargetCount = self->super.net->OUTPUT_COUNT;
+    }
+
+    int error = 0;
+    if (PyArray_DIM(inputArray, 0)!= PyArray_DIM(targetArray, 0)) {
+      error = 1;
+      PyErr_Format(PyExc_ValueError, "Inputs and targets must have the same\
+ number of rows.");
+    }
+    if ((unsigned int)PyArray_DIM(inputArray, 1) != self->super.net->INPUT_COUNT) {
+      error = 1;
+      PyErr_Format(PyExc_ValueError, "Number of input columns must match number\
+of input neurons in network.");
+    }
+
+    if ((int)PyArray_DIM(targetArray, 1) != expectedTargetCount) {
+      error = 1;
+      PyErr_Format(PyExc_ValueError, "Number of target columns does not match\
+expected number based on fitness function.");
+    }
+
+    if (error == 1) {
+      Py_DECREF(inputArray);
+      Py_DECREF(targetArray);
+      return NULL;
+    }
+
+    // Arguments are valid!
+    std::vector<double> vInputs(PyArray_DIM(inputArray, 0) * PyArray_DIM(inputArray, 1),
+                                0.0);
+    std::vector<double> vTargets(PyArray_DIM(targetArray, 0) * PyArray_DIM(targetArray, 1),
+                                0.0);
+
+    int index;
+    double *val = NULL;
+    for (int i = 0; i < PyArray_DIM(inputArray, 0); i++) {
+        for (int j = 0; j < PyArray_DIM(inputArray, 1); j++) {
+            index = j + i * PyArray_DIM(inputArray, 1);
+            val = (double *) PyArray_GETPTR2(inputArray, i, j);
+            if (val == NULL) {
+              Py_DECREF(inputArray);
+              Py_DECREF(targetArray);
+              PyErr_Format(PyExc_ValueError,
+                           "Something went wrong when iterating of input \
+ values. Possibly wrong length?");
+              return NULL;
+            }
+            vInputs.at(index) = *val;
+        }
+        for (int j = 0; j < PyArray_DIM(targetArray, 1); j++) {
+            index = j + i * PyArray_DIM(targetArray, 1);
+            val = (double *) PyArray_GETPTR2(targetArray, i, j);
+            if (val == NULL) {
+              Py_DECREF(inputArray);
+              Py_DECREF(targetArray);
+              PyErr_Format(PyExc_ValueError,
+                           "Something went wrong when iterating of input \
+ values. Possibly wrong length?");
+              return NULL;
+            }
+            vTargets.at(index) = *val;
+        }
+    }
+
+    // Release the GIL
+    double fitness = 0;
+    try {
+      fitness = ((GeneticNetwork*)self->super.net)->getPredictionFitness(vInputs,
+                                   vTargets,
+                                   PyArray_DIM(inputArray, 0));
+    } catch (const std::exception& ex) {
+      printf("\nException thrown: %s\n", ex.what());
+      PyErr_Format(PyExc_RuntimeError, "%s", ex.what());
+      error = 1;
+    }
+
+    // Decrement counters for inputArray and targetArray
+    Py_DECREF(inputArray);
+    Py_DECREF(targetArray);
+
+    if (error > 0) {
+      return NULL;
+    } else {
+      // Return fitness
+      return Py_BuildValue("d", fitness);
+    }
+  }
 
   /*
    * Getters and Setters

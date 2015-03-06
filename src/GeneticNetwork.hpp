@@ -70,6 +70,13 @@ class GeneticNetwork: public MatrixNetwork {
                      const std::vector<double> &Y,
                      const unsigned int length);
 
+  /**
+   * Performs output, then returns the fitness of those predictions.
+   */
+  double getPredictionFitness(const std::vector<double> &X,
+                              const std::vector<double> &Y,
+                              const unsigned int length);
+
 // Makes this network into a clone of the original. Assumes equal iteration.
   virtual void cloneNetwork(GeneticNetwork &original);
 
