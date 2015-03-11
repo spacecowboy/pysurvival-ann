@@ -95,10 +95,16 @@ void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
   bool first = true;
 
   // First set input values
-  std::copy(inputStart, inputStart + INPUT_COUNT, outputs.begin());
-  //for (i = 0; i < INPUT_COUNT; i++) {
-  //  outputs.at(i) = *(inputStart + i);
-  // }
+  //std::copy(inputStart, inputStart + INPUT_COUNT, outputs.begin());
+  for (i = 0; i < INPUT_COUNT; i++) {
+    j = INPUT_START + i;
+    // A connection to self means neuron is active
+    if (1 == conns.at(LENGTH * j + j)) {
+      outputs.at(i) = *(inputStart + i);
+    } else {
+      outputs.at(i) = 0;
+    }
+  }
   // Make sure bias is 1
   outputs.at(BIAS_INDEX) = 1;
 
