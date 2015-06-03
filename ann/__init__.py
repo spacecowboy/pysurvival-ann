@@ -9,12 +9,13 @@ from __future__ import division
 from ._ann import (matrixnetwork as _matrixnetwork,
                    rpropnetwork as _rpropnetwork,
                    gennetwork as _gennetwork,
-                   get_C_index, get_error,
+                   cindex, get_error,
                    get_deriv)
 from ._ann import (ERROR_MSE, ERROR_SURV_MSE,
                    ERROR_SURV_LIKELIHOOD)
 from .ensemble import Ensemble
 from .utils import *
+from functools import wraps
 from random import uniform
 import numpy as np
 
@@ -97,12 +98,8 @@ class rpropnetwork(_rpropnetwork):
 class geneticnetwork(_gennetwork):
     __doc__ = _gennetwork.__doc__
 
+    @wraps(_gennetwork.learn)
     def learn(self, trninputs, trnoutputs):
-        '''
-        Train the network using a genetic algorithm.
-        In some cases (survival methods), the data will be sorted according
-        to survival time beforing being passed to the training method.
-        '''
         # These fitness functions depend on sorted data
         if (self.fitness_function == _gennetwork.FITNESS_SURV_KAPLAN_MIN
           or self.fitness_function == _gennetwork.FITNESS_SURV_KAPLAN_MAX
@@ -136,8 +133,8 @@ class gensurvnetwork(_gennetwork):
         idx = len(self.trnoutputs[self.trnoutputs > out])
         return idx / len(self.trnoutputs)
 
+    @wraps(_gennetwork.learn)
     def learn(self, trninputs, trntargets):
-        '''Trains the network using a genetic algorithm'''
         super(gensurvnetwork, self).learn(trninputs, trntargets)
         # Evaluate and store outputs for training data
         self.trnoutputs = np.array([self.output(x) for x in trninputs]).ravel()

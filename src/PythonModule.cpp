@@ -31,7 +31,25 @@
 static PyMethodDef MatrixNetworkMethods[] =
 {
   {"output", (PyCFunction) MatrixNetwork_output, METH_O,
-   "Computes the network's output."},
+     "net.output(X)\n\n\
+Computes the network's output, given the input vector X.\n\n\
+Parameters\n\
+----------\n\
+X : Sequence of floats or ints\n\
+    Input values to feed to the network. Note that the list/array must\n\
+    have a length equal to the number of input neurons in the network.\n\
+\nReturns\n\
+-------\n\
+out : ndarray\n\
+    Array of output values. The size of this array is equal to the number\n\
+    of output neurons in the array.\n\
+\nExamples\n\
+--------\n\
+>>> net = matrixnetwork(2, 0, 1)\n\
+>>> net.weights = net.weights + 1\n\
+>>> net.connections = net.connections + 1\n\
+>>> net.output([1, -1])\n\
+array([ 0.73105858])\n"},
 
   {NULL}, // So that we can iterate safely below
 };
@@ -118,7 +136,29 @@ static PyTypeObject MatrixNetworkType = {
   0,						//* tp_setattro
   0,						//* tp_as_buffer
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 	//* tp_flags
-  "A feed forward neural network.",			//* tp_doc
+  "matrixnetwork(inputcount, hiddencount, outputcount)\n\n\
+A feed forward neural network. This class serves as a base class for all\n\
+other types of networks.\n\n\
+Parameters\n\
+----------\n\
+inputcount : integer\n\
+    The number of input neurons.\n\
+hiddencount : integer\n\
+    The number of hidden neurons. Note that this is the total number of\n\
+    neurons in all hidden layers.\n\
+outputcount : integer\n\
+    The number of output neurons.\n\n\
+Returns\n\
+-------\n\
+out : matrixnetwork\n\
+    A matrix network with the specified number of neurons.\n\n\
+See Also\n\
+--------\n\
+rpropnetwork, geneticnetwork\n\n\
+Examples\n\
+--------\n\
+>>> matrixnetwork(2, 3, 1)\n\
+matrixnetwork(2, 3, 1)\n",			//* tp_doc
   0,						//* tp_traverse
   0,			 			//* tp_clear
   0,			 			//* tp_richcompare
@@ -153,9 +193,39 @@ static PyMethodDef RPropNetworkMethods[] =
 {
     {"learn", (PyCFunction) RPropNetwork_learn,                         \
      METH_VARARGS | METH_KEYWORDS,
-     "Trains the network using iRProp+ as described in:\n\
-'Improving the Rprop Learning Algorithm' by \n\
-Christian Igel and Michael Hüsken."},
+     "net.learn(X, Y)\n\n\
+Trains the network using iRProp+ as described in:\n\
+'Improving the Rprop Learning Algorithm' by\n\
+Christian Igel and Michael Hüsken.\n\n\
+The training parameters are set directly as properties on the network.\n\
+\n\
+Parameters\n\
+----------\n\
+X : 2-dimensional ndarray of floats\n\
+    Input values to feed to the network. The second dimension (columns) must\n\
+    be equal to the number of input neurons in the network. The first\n\
+    dimension (rows) must equal the number of rows in Y.\n\
+Y : 2-dimensional ndarray of floats\n\
+    Target values to train against. The second dimension (columns) must\n\
+    be equal to the number of output neurons in the network. The first\n\
+    dimension (rows) must equal the number of rows in X.\n\
+\n\
+Returns\n\
+-------\n\
+Nothing\n\
+\n\
+Examples\n\
+--------\n\
+>>> X = array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=float)\n\
+>>> Y = array([[0], [1], [1], [0]], dtype=float)\n\
+>>> net = rpropnetwork(X.shape[1], 5, Y.shape[1])\n\
+>>> net.connections = net.connections + 1\n\
+>>> net.learn(X, Y)\n\
+>>> [net.output(x) for x in X]\n\
+[array([ 0.]),\n\
+ array([ 0.98790896]),\n\
+ array([ 0.98790896]),\n\
+ array([ 0.02218867])]\n"},
     {NULL}, // So that we can iterate safely below
 };
 
@@ -165,18 +235,18 @@ Christian Igel and Michael Hüsken."},
  * --------------------------------------
  */
 static PyGetSetDef RPropNetworkGetSetters[] = {
-  {(char*)"maxError",
+  {(char*)"max_error",
    (getter)RPropNetwork_getMaxError,                            \
    (setter)RPropNetwork_setMaxError,                            \
    (char*)"Maximum error allowed for early stopping", NULL},
 
-  {(char*)"minErrorFrac", \
+  {(char*)"min_errorfrac", \
    (getter)RPropNetwork_getMinErrorFrac, \
    (setter)RPropNetwork_setMinErrorFrac, \
    (char*)"Minimum relative change in error over 100 epochs to allow before stopping", \
    NULL},
 
-  {(char*)"maxEpochs",
+  {(char*)"max_epochs",
    (getter)RPropNetwork_getMaxEpochs,                               \
    (setter)RPropNetwork_setMaxEpochs,                               \
    (char*)"Maximum number of epochs allowed for training", NULL},
@@ -217,17 +287,48 @@ static PyTypeObject RPropNetworkType = {
     0,                                              /* tp_setattro */
     0,                                              /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       /* tp_flags*/
-    "A feed forward neural network which can be trained with iRProp+ \
- as described in:\n \
-'Improving the Rprop Learning Algorithm' by \n \
-Christian Igel and Michael Hüsken.\n \
-\n \
-You can change the behaviour of the algorithm by setting a few values:\n \
-**error_function** - Choose the appropriate error function for your data\n \
-\n \
-**max_error** - Used for early stopping. Set to zero to train until limit\n \
-\n \
-**max_epochs** - Maximum number of epochs to train for.\n", // tp_doc
+    "rpropnetwork(inputcount, hiddencount, outputcount)\n\n\
+A feed forward neural network which can be trained with iRProp+ as described in:\n\
+'Improving the Rprop Learning Algorithm' by \n\
+Christian Igel and Michael Hüsken.\n\
+\n\
+Parameters\n\
+----------\n\
+inputcount : integer\n\
+    The number of input neurons.\n\
+hiddencount : integer\n\
+    The number of hidden neurons. Note that this is the total number of\n\
+    neurons in all hidden layers.\n\
+outputcount : integer\n\
+    The number of output neurons.\n\
+\n\
+Returns\n\
+-------\n\
+out : rpropnetwork\n\
+    An Rprop matrix network with the specified number of neurons.\n\
+\n\
+The training parameters are set as properties directly on the network:\n\
+\n\
+Properties\n\
+----------\n\
+net.max_error : float\n\
+    Maximum error allowed for early stopping. Default 0.001\n\
+net.min_errorfrac : float\n\
+    Minimum relative change in error over 100 epochs required to prevent\n\
+    early stopping. Default 0.01.\n\
+net.max_epochs : integer\n\
+    Maximum number of epochs to train for. Default 1000.\n\
+net.error_function : error function identifier (integer)\n\
+    Error function to us during training. Default ann.ERROR_MSE.\n\
+\n\
+See Also\n\
+--------\n\
+geneticnetwork\n\
+\n\
+Examples\n\
+--------\n\
+>>> rpropnetwork(2, 3, 1)\n\
+rpropnetwork(2, 3, 1)\n", // tp_doc
     0,                                              /* tp_traverse */
     0,                                              /* tp_clear */
     0,                                              /* tp_richcompare */
@@ -260,12 +361,125 @@ static PyMethodDef GenNetworkMethods[] =
 {
     {"learn", (PyCFunction) GenNetwork_learn,                           \
      METH_VARARGS | METH_KEYWORDS, \
-     "learn(inputData, targetData)\
-\n\nTrains the network using a genetic algorithm."},
+     "net.learn(X, Y)\n\n\
+Trains the network using a genetic algorithm.\n\
+\n\
+Parameters\n\
+----------\n\
+X : 2-dimensional ndarray of floats\n\
+    Input values to feed to the network. The second dimension (columns) must\n\
+    be equal to the number of input neurons in the network. The first\n\
+    dimension (rows) must equal the number of rows in Y.\n\
+Y : 2-dimensional ndarray of floats\n\
+    Target values to train against. The second dimension (columns) must\n\
+    be equal to the number of output neurons in the network, or the number\n\
+    specified by the current fitness function (survival functions can\n\
+    require 2 columns, while only having 1 output neuron). The first\n\
+    dimension (rows) must equal the number of rows in X.\n\
+\n\
+Returns\n\
+-------\n\
+Nothing\n\
+\n\
+Examples\n\
+--------\n\
+>>> X = array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=float)\n\
+>>> Y = array([[0], [1], [1], [0]], dtype=float)\n\
+>>> net = geneticnetwork(X.shape[1], 5, Y.shape[1])\n\
+>>> net.connections = net.connections + 1\n\
+>>> net.learn(X, Y)\n\
+>>> [net.output(x) for x in X]\n\
+[array([  3.39518590e-37]),\n\
+ array([ 1.]),\n\
+ array([ 1.]),\n\
+ array([  5.21302310e-38])]\n\
+\n\
+The training parameters are set as properties directly on the network, \n\
+where some properties take integer constants defined on this class.\n\
+\n\
+Properties\n\
+----------\n\
+net.selection_method : method id (integer)\n\
+    The way in which networks are chosen as parents for\n\
+    crossover. Possible values are:\n\
+    - Geometric picks the parents from a geometric distribution\n\
+      which benefits the fittest network the most.\n\
+    - Roulette gives each network a probability proportional to their score\n\
+      divided by the sum of all scores.\n\
+    - Tournament picks, for each parent, two networks and selects the most\n\
+      fit. This is the least elitist, and least predictable.\n\
+    Default is SELECTION_GEOMETRIC.\n\
+net.crossover_method : method id (integer)\n\
+    The crossover operation can be done in several ways. Given two parents\n\
+    with genomes XXXXX and YYYYY for example:\n\
+    - Uniform, assembles a child by selecting neurons and associated\n\
+      weights at random from each parent with equal probability.\n\
+      Example children: XYXYX, YXYXY.\n\
+    - Two point, selects two places along the genome and exchanges everything\n\
+      in-between for the other parent's genetic material. This produces two\n\
+      children, with 'opposite' genomes.\n\
+      Example children: XYYXX, YXXYY.\n\
+    - One point, selects a single pivot point along the genome and exchanges\n\
+      everything before/after the point for the other parent's genome.\n\
+      Produces two children, with 'opposite' genomes.\n\
+       Example children: XXYYY, YYXXX.\n\
+    Default is CROSSOVER_ONEPOINT.\n\
+net.fitness_function : function id (integer)\n\
+    The function that will judge the performance of the networks.\n\
+    Default is FITNESS_MSE.\n\
+net.generations : integer\n\
+    Number of generations to train for, where the number of 'iterations'\n\
+    or networks 'born' in each generation is equal to population_size.\n\
+    Default 100.\n\
+net.population_size : integer\n\
+    Size of population to create. This indirectly makes generations longer.\n\
+    Default 50.\n\
+net.crossover_chance : float\n\
+    Probability to perform cross-over between parents. Default 1.0.\n\
+net.connection_mutation_chance : float\n\
+    Probability to flip each bit in the connection matrix. Default 0.\n\
+net.activation_mutation_chance : float\n\
+    Probability for each neuron to switch activation function. Default 0.\n\
+net.weight_mutation_chance : float\n\
+    Probability of a single weight being selected for mutation. Default 0.15.\n\
+net.weight_mutation_factor: float\n\
+    Standard deviation of gaussian distribution used for mutation. A random\n\
+    number R is picked from this distribution and then weight w = w + R.\n\
+    Default 1.0.\n\
+net.weight_mutation_halfpoint : integer\n\
+    Generation at which the weight_mutation_factor should have decreased to\n\
+    half of its original value. Default 0 (off).\n\
+net.mingroup : integer\n\
+    Used by some fitness functions (SURV_KAPLAN_*) to determine minimum\n\
+    valid group size. Default 1.\n"},
     {"getPredictionFitness", (PyCFunction) GenNetwork_getPredictionFitness,
      METH_VARARGS | METH_KEYWORDS, \
-     "getPredictionFitness(inputData, targetData)\
-\n\nReturns the fitness based on the predictions of the given data."},
+     "getPredictionFitness(X, Y)\n\n\
+Returns the fitness of the network based on the predictions of the data,\n\
+and the currently specified fitness function.\n\
+\n\
+Parameters\n\
+----------\n\
+X : 2-dimensional ndarray of floats\n\
+    Input values to feed to the network. The second dimension (columns) must\n\
+    be equal to the number of input neurons in the network. The first\n\
+    dimension (rows) must equal the number of rows in Y.\n\
+Y : 2-dimensional ndarray of floats\n\
+    Target values to train against. The second dimension (columns) must\n\
+    be equal to the number of output neurons in the network, or the number\n\
+    specified by the current fitness function (survival functions can\n\
+    require 2 columns, while only having 1 output neuron). The first\n\
+    dimension (rows) must equal the number of rows in X.\n\
+\n\
+Returns\n\
+-------\n\
+fitness : float\n\
+    The current fitness of the network, judged on the given data.\n\
+\n\
+Examples\n\
+--------\n\
+>>> net.getPredictionFitness(X, Y)\n\
+-1.4748804266032915e-74\n"},
     {NULL}, // So that we can iterate safely below
 };
 
@@ -385,35 +599,92 @@ static PyTypeObject GenNetworkType = {
   0,                                              //* tp_setattro
   0,                                              //* tp_as_buffer
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,       //* tp_flags
-  "A neural network that trains using a genetic algorithm.\n\
-A few properties influence the algorithm's behaviour:\n\
-\n                                                                      \
-**selection_method** - The way in which networks are chosen as parents for\n \
-crossover. *Geometric* picks the parents from a geometric distribution\n \
-to benifit the fittest network the most.\n                              \
-*Roulette* gives each network a probability proportional to their score\n \
-divided by the sum of all scores. \n                                    \
-*Tournament* picks, for each parent, two networks and uses the fittest.\n \
-This is the least elitist, and least predictable.\n                     \
-\n                                                                      \
-**crossover_method** - The crossover operation itself can be done in several\n \
-ways. *Random neuron* assembles a child by selecting neurons and associated\n \
-weight vector at random from each parent with equal probability. \n     \
-*Two point* selects two places along the genome and exchanges everything\n \
-in between for the other parent's genetic material. This produces two\n\
-children, with opposite genomes.\n                                     \
-\n                                                                      \
-**insertion_method** - Once a crossover, and possible mutation, is performed\n \
-the children must be inserted into the population somehow.\n            \
-*Insert all* simply inserts the children into the sorted population.\n  \
-Nothing is done with the parents. \n                                    \
-*Insert fittest* on the other hand makes a choice between the children\n \
-and the parents. The fittest of the two is (re)inserted in the\n        \
-population. The exception is if the parent is the best current member,\n \
-then it is always kept in the population.\n                             \
-\n                                                                      \
-**fitness_function** - The function that will judge the performance \n  \
-of the networks.\n", // tp_doc
+  "geneticnetwork(inputcount, hiddencount, outputcount)\n\n\
+A feed forward neural network which can be trained with a\n\
+genetic algorithm.\n\
+\n\
+Parameters\n\
+----------\n\
+inputcount : integer\n\
+    The number of input neurons.\n\
+hiddencount : integer\n\
+    The number of hidden neurons. Note that this is the total number of\n\
+    neurons in all hidden layers.\n\
+outputcount : integer\n\
+    The number of output neurons.\n\
+\n\
+Returns\n\
+-------\n\
+out : geneticnetwork\n\
+    A genetic matrix network with the specified number of neurons.\n\
+\n\
+The training parameters are set as properties directly on the network, \n\
+where some properties take integer constants defined on this class.\n\
+\n\
+Properties\n\
+----------\n\
+net.selection_method : method id (integer)\n\
+    The way in which networks are chosen as parents for\n\
+    crossover. Possible values are:\n\
+    - Geometric picks the parents from a geometric distribution\n\
+      which benefits the fittest network the most.\n\
+    - Roulette gives each network a probability proportional to their score\n\
+      divided by the sum of all scores.\n\
+    - Tournament picks, for each parent, two networks and selects the most\n\
+      fit. This is the least elitist, and least predictable.\n\
+    Default is SELECTION_GEOMETRIC.\n\
+net.crossover_method : method id (integer)\n\
+    The crossover operation can be done in several ways. Given two parents\n\
+    with genomes XXXXX and YYYYY for example:\n\
+    - Uniform, assembles a child by selecting neurons and associated\n\
+      weights at random from each parent with equal probability.\n\
+      Example children: XYXYX, YXYXY.\n\
+    - Two point, selects two places along the genome and exchanges everything\n\
+      in-between for the other parent's genetic material. This produces two\n\
+      children, with 'opposite' genomes.\n\
+      Example children: XYYXX, YXXYY.\n\
+    - One point, selects a single pivot point along the genome and exchanges\n\
+      everything before/after the point for the other parent's genome.\n\
+      Produces two children, with 'opposite' genomes.\n\
+       Example children: XXYYY, YYXXX.\n\
+    Default is CROSSOVER_ONEPOINT.\n\
+net.fitness_function : function id (integer)\n\
+    The function that will judge the performance of the networks.\n\
+    Default is FITNESS_MSE.\n\
+net.generations : integer\n\
+    Number of generations to train for, where the number of 'iterations'\n\
+    or networks 'born' in each generation is equal to population_size.\n\
+    Default 100.\n\
+net.population_size : integer\n\
+    Size of population to create. This indirectly makes generations longer.\n\
+    Default 50.\n\
+net.crossover_chance : float\n\
+    Probability to perform cross-over between parents. Default 1.0.\n\
+net.connection_mutation_chance : float\n\
+    Probability to flip each bit in the connection matrix. Default 0.\n\
+net.activation_mutation_chance : float\n\
+    Probability for each neuron to switch activation function. Default 0.\n\
+net.weight_mutation_chance : float\n\
+    Probability of a single weight being selected for mutation. Default 0.15.\n\
+net.weight_mutation_factor: float\n\
+    Standard deviation of gaussian distribution used for mutation. A random\n\
+    number R is picked from this distribution and then weight w = w + R.\n\
+    Default 1.0.\n\
+net.weight_mutation_halfpoint : integer\n\
+    Generation at which the weight_mutation_factor should have decreased to\n\
+    half of its original value. Default 0 (off).\n\
+net.mingroup : integer\n\
+    Used by some fitness functions (SURV_KAPLAN_*) to determine minimum\n\
+    valid group size. Default 1.\n\
+\n\
+See Also\n\
+--------\n\
+rpropnetwork\n\
+\n\
+Examples\n\
+--------\n\
+>>> geneticnetwork(2, 3, 1)\n\
+geneticnetwork(2, 3, 1)\n", // tp_doc
   0,                                              //* tp_traverse
   0,                                              //* tp_clear
   0,                                              //* tp_richcompare
@@ -442,24 +713,69 @@ of the networks.\n", // tp_doc
 Module methods
 */
 static PyMethodDef annMethods[] = {
-    {"get_C_index", (PyCFunction) CIndex_getCindex,                     \
-     METH_VARARGS | METH_KEYWORDS, "Calculates the C-index. Note that outputs \
-are converted to one dimension. Targets should be (survival time,\
- event)\n\nInput: Targets, Predictions\nReturns: 0 if no concordance \
-could be found."},
-
+    {"cindex", (PyCFunction) CIndex_getCindex,                     \
+     METH_VARARGS | METH_KEYWORDS,
+     "cindex(targets, outputs)\n\
+\n\
+Calculates the concordance index. This is an O(n^2) implementation.\n\
+\n\
+Parameters\n\
+----------\n\
+targets : ndarray of floats\n\
+    2-dimension array as (survival time, event flag).\n\
+outputs : ndarray of floats\n\
+    1-dimensional array of predictions. Must have the same number of\n\
+    rows as targets. If not 1-dimensional, the array is flattened first.\n\
+\n\
+Returns\n\
+-------\n\
+cindex : float\n\
+    A value between 0 and 1, where 0.5 is expected for random sorting.\n\
+    1 is perfect concordance, and 0 is perfect anti-concordance.\n"},
     {"get_error", (PyCFunction) ErrorFuncs_getError,
      METH_VARARGS | METH_KEYWORDS, \
-     "get_error(errorfunc, targets, outputs)\n\n \
-\nCalculates the error using the specified error function on the given \
-target/output arrays. The result is averaged over the first axis."},
-
+     "get_error(errorfunc, targets, outputs)\n\
+\n\
+Calculates the error using the specified error function on the given\n\
+target/output arrays. The result is averaged over the first axis.\n\
+\n\
+Parameters\n\
+----------\n\
+errorfunc : function id (integer)\n\
+    The error function to calculate error with.\n\
+targets : ndarray of floats\n\
+    2-dimension array as (survival time, event flag).\n\
+outputs : ndarray of floats\n\
+    2-dimensional array of predictions. Must have the same number of\n\
+    rows as targets. If the specified error function only functions with\n\
+    one prediction value, then the second value is ignored.\n\
+\n\
+Returns\n\
+-------\n\
+error : float\n\
+    The calculated error for the predictions.\n"},
     {"get_deriv", (PyCFunction) ErrorFuncs_getDeriv,
      METH_VARARGS | METH_KEYWORDS, \
      "get_deriv(error_func, targets, outputs)\n\n \
-Calculates the derivative using the specified error function on the given \
-target/output arrays. The result is averaged over the first axis."},
-
+\n\
+Calculates the derivative using the specified error function on the given\n\
+target/output arrays. The result is averaged over the first axis.\n\
+\n\
+Parameters\n\
+----------\n\
+errorfunc : function id (integer)\n\
+    The error function to calculate error with.\n\
+targets : ndarray of floats\n\
+    2-dimension array as (survival time, event flag).\n\
+outputs : ndarray of floats\n\
+    2-dimensional array of predictions. Must have the same number of\n\
+    rows as targets. If the specified error function only functions with\n\
+    one prediction value, then the second value is ignored.\n\
+\n\
+Returns\n\
+-------\n\
+deriv : float\n\
+    The calculated error derivative for the predictions.\n"},
 
     {NULL, NULL, 0, NULL} /* Sentinel */
 };

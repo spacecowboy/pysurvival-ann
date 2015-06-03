@@ -21,8 +21,8 @@ extern "C" {
                          PyObject *args, PyObject *kwds)
   {
     static char *kwlist[] =
-      { (char*)"numOfInputs", (char*)"numOfHidden", \
-        (char*)"numOfOutputs", NULL };
+      { (char*)"inputcount", (char*)"hiddencount", \
+        (char*)"outputcount", NULL };
 
     unsigned int numOfInputs, numOfHidden, numOfOutputs;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "III", kwlist,
@@ -30,7 +30,7 @@ extern "C" {
                                      &numOfHidden, &numOfOutputs)) {
       PyErr_Format(PyExc_ValueError,
                    "Arguments should be (all mandatory positive integers):\
- numOfInputs, numOfHidden, numOfOutputs");
+ inputcount, hiddencount, outputcount");
       return -1;
     }
 
