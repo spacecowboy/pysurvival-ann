@@ -405,7 +405,7 @@ void rproptest() {
   std::cout << "\nRPropTest...";
 
   Random r;
-  RPropNetwork net(2, 8, 1);
+  RPropNetwork net(2, 5, 1);
 
   // Set up a feedforward structure
   for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
@@ -447,9 +447,9 @@ void rproptest() {
     }
   }
 
-  net.setMaxEpochs(10000);
-  net.setMaxError(0.0);
-  net.setMinErrorFrac(0.01);
+  net.setMaxEpochs(1000);
+  //net.setMaxError(0.01);
+  //net.setMinErrorFrac(0.001);
   if ( 0 < net.learn(X, Y, 4)) {
     throw "Shit hit the fan";
   }
@@ -463,6 +463,7 @@ void rproptest() {
     }
   }
 
+  bool success = true;
   std::vector<double> preds(1, 0);
   // std::cout << "\n\nPredictions\n";
   for (int i = 0; i < 4; i++) {
@@ -475,8 +476,9 @@ void rproptest() {
     double diff = preds[0] - Y[i];
     if (diff < 0) diff = -diff;
 
-    assert(diff < 0.1);
+    if (diff > 0.1) success = false;
   }
+  assert(success);
 
   std::cout << "\nRPropTest Done.";
 }
@@ -1478,11 +1480,12 @@ void testSurvAreaEndCens2() {
 
 int main( int argc, const char* argv[] )
 {
-  geneticXORDroput();
-  rpropdropouttest();
-  rproptest();
   geneticTest1();
   geneticXOR();
+  rproptest();
+
+  geneticXORDroput();
+  rpropdropouttest();
 
 
   testSurvAreaNoCens();
