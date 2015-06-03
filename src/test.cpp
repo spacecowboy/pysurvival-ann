@@ -407,6 +407,11 @@ void rproptest() {
   Random r;
   RPropNetwork net(2, 5, 1);
 
+  // Activate inputs
+  for (unsigned int i = net.INPUT_START; i < net.INPUT_END; i++) {
+    net.conns.at(net.LENGTH * i + i) = 1;
+  }
+
   // Set up a feedforward structure
   for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
     for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {

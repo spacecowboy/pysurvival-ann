@@ -383,15 +383,20 @@ def test_matrixnetwork():
 
     # Solve XOR
     # set all conns to zero first
-    for i in range(len(conns)):
-        conns[i] = 0
-        weights[i] = 0
+    conns[:] = 0
+    net.connections = conns
+
+    # Connect feedforward
+    from ann.utils import connect_feedforward
+    connect_feedforward(net)
+
     # We care only about first two neurons and output
     actfuncs[3] = net.LOGSIG
     actfuncs[4] = net.LOGSIG
     actfuncs[5] = net.LINEAR
     net.activation_functions = actfuncs
 
+    weights[:] = 0
     weights[3*length + 0] = -60
     weights[3*length + 1] = 60
     weights[3*length + 2] = -30
@@ -404,39 +409,24 @@ def test_matrixnetwork():
     weights[(length-1)*length + 4] = 1
 
     net.weights = weights
+
+    print(net.connections.reshape((6,6)))
+    print(net.weights.reshape((6,6)))
+    print(net.activation_functions)
+
+    for val in xor_in:
+        print("In:", val, " out:", net.output(val))
+        if sum(val) != 1:
+            assert net.output(val) < 0.1, "xor solution doesnt work"
+        else:
+            assert net.output(val) > 0.9, "xor solution doesnt work"
+
+    conns[:] = 0
     net.connections = conns
 
     for val in xor_in:
         #print("In:", val, " out:", net.output(val))
         assert net.output(val) == 0, "no conns should mean zero output!"
-
-    conns[3*length + 0] = 1
-    conns[3*length + 1] = 1
-    conns[3*length + 2] = 1
-    # self
-    conns[3*length + 3] = 1
-
-    conns[4*length + 0] = 1
-    conns[4*length + 1] = 1
-    conns[4*length + 2] = 1
-    # self
-    conns[4*length + 4] = 1
-
-    conns[(length-1)*length + 3] = 1
-    conns[(length-1)*length + 4] = 1
-    # self
-    conns[(length-1)*length + (length-1)] = 1
-
-    net.connections = conns
-
-    #print(conns)
-
-    for val in xor_in:
-        #print("In:", val, " out:", net.output(val))
-        if sum(val) != 1:
-            assert net.output(val) < 0.1, "xor solution doesnt work"
-        else:
-            assert net.output(val) > 0.9, "xor solution doesnt work"
 
 
     # Pickle test
@@ -540,7 +530,7 @@ def rpropnetwork_surv(datafunc, inputcount, censfrac, errorfunc):
     Must specify output activation function and
     function which returns dataset.
     '''
-    from ann import rpropnetwork, get_C_index
+    from ann import rpropnetwork, cindex as get_C_index
 
     net = rpropnetwork(inputcount, 8, 2)
 
