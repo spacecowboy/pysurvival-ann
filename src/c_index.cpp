@@ -49,7 +49,7 @@ double get_C_index(const std::vector<double> &Y,
           // Non-censored and censored. Compare if
           // Compare noncensored with later censored
           // X noncensored
-          if (Tx0 < Ty0) {
+          if (Tx0 <= Ty0) {
 #pragma omp atomic
             total++;
 
