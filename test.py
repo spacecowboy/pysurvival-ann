@@ -348,21 +348,33 @@ def test_matrixnetwork():
     #print("Length: ", len(net.connections))
     #print(net.connections)
     assert len(net.connections) == length**2, "Wrong length of conns vector"
-    assert np.all(net.connections == 0) == True, "Expected conns to equal zero"
+    assert np.all(net.connections == 0), "Expected conns to equal zero"
     conns = net.connections
     for i in range(len(conns)):
         conns[i] = 1
     net.connections = conns
 
     #print(net.connections)
-    assert np.all(net.connections == 1) == True, "Expected conns to equal 1"
+    assert np.all(net.connections == 1), "Expected conns to equal 1"
+
+    # Default dropout value
+    assert np.all(net.dropout_probabilities == 1), "Expected default dropout probs to be 1"
+    dp = net.dropout_probabilities
+    dp[:] = 0.5
+    net.dropout_probabilities = dp
+    assert np.all(net.dropout_probabilities == 0.5), "Expected dropout probs to be 0.5"
+
+    # Set one again
+    dp[:] = 1.0
+    net.dropout_probabilities = dp
+    assert np.all(net.dropout_probabilities == 1), "Expected dropout probs to be 1"
 
     # ActFuncs
     #print("Length: ", len(net.activation_functions))
     #print(net.activation_functions)
     assert len(net.activation_functions) == length, \
            "Wrong length of funcs vector"
-    assert np.all(net.activation_functions == net.LOGSIG) == True, \
+    assert np.all(net.activation_functions == net.LOGSIG), \
            "Expected funcs to be LINEAR"
 
     actfuncs = net.activation_functions
@@ -373,10 +385,10 @@ def test_matrixnetwork():
     net.activation_functions = actfuncs
 
     #print(net.activation_functions)
-    assert np.all(net.activation_functions == net.TANH) == True, \
+    assert np.all(net.activation_functions == net.TANH), \
            "Expected actfuncs to be TANH"
 
-    # oUTPUTS
+    # OUTPUTS
     for val in xor_in:
         assert net.output(val) != 0, "Expected some output"
 

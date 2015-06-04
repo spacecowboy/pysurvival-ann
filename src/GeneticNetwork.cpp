@@ -326,17 +326,13 @@ void breedNetworks(GeneticNetwork &self,
                              self.actFuncMutationChance);
 
       // Do dropout if configured
-      pBrother->dropoutInput();
-      pBrother->dropoutHidden();
+      pBrother->dropoutConns();
 
-      pSister->dropoutInput();
-      pSister->dropoutHidden();
+      pSister->dropoutConns();
 
-      pMother->dropoutInput();
-      pMother->dropoutHidden();
+      pMother->dropoutConns();
 
-      pFather->dropoutInput();
-      pFather->dropoutHidden();
+      pFather->dropoutConns();
 
       // Evaluate fitness
       bFitness = evaluateNetwork(self.fitnessFunction,
@@ -456,8 +452,7 @@ void GeneticNetwork::learn(const std::vector<double> &X,
     mutator.mutateActFuncs(*pNet, actFuncMutationChance);
 
     // Do dropout if configured
-    pNet->dropoutInput();
-    pNet->dropoutHidden();
+    pNet->dropoutConns();
 
     // evaluate error here
     fitness = evaluateNetwork(fitnessFunction,
@@ -506,8 +501,7 @@ void GeneticNetwork::learn(const std::vector<double> &X,
   this->cloneNetwork(*best);
 
   // Undo dropout again if configured
-  dropoutInputNone();
-  dropoutHiddenNone();
+  dropoutReset();
 
   // And destroy population
   // do this last of all!
@@ -523,9 +517,6 @@ void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
   // Need to have the same statistic set on all
   this->setTaroneWareStatistic(original.getTaroneWareStatistic());
   this->setMinGroup(original.getMinGroup());
-  // And dropout parameters
-  this->inputDropoutProb = original.inputDropoutProb;
-  this->hiddenDropoutProb = original.hiddenDropoutProb;
 
   // Now copy all structure
   std::copy(original.weights.begin(),
@@ -539,6 +530,14 @@ void GeneticNetwork::cloneNetwork(GeneticNetwork &original) {
   std::copy(original.actFuncs.begin(),
             original.actFuncs.end(),
             this->actFuncs.begin());
+
+  std::copy(original.dropoutProbs.begin(),
+            original.dropoutProbs.end(),
+            this->dropoutProbs.begin());
+
+  std::copy(original.dropoutStatus.begin(),
+            original.dropoutStatus.end(),
+            this->dropoutStatus.begin());
 }
 
 

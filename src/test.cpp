@@ -268,7 +268,9 @@ void geneticXORDroput() {
   net.connsMutationChance = 0.5;
   net.actFuncMutationChance = 0.5;
   net.setCrossoverChance(0.6);
-  net.hiddenDropoutProb = 0.9;
+  std::fill(net.dropoutProbs.begin() + net.HIDDEN_START * net.LENGTH,
+            net.dropoutProbs.begin() + net.HIDDEN_END * net.LENGTH,
+            0.9);
 
   // define inputs
   std::vector<double> X = {0,0,
@@ -492,25 +494,39 @@ void rpropdropouttest() {
   std::cout << "\nRPropDropoutTest...";
 
   Random r;
-  RPropNetwork net(2, 5, 1);
-  net.hiddenDropoutProb = 0.9;
+  RPropNetwork net(2, 8, 1);
+
+  // Activate all neurons
+  for (unsigned int i = 0; i < net.LENGTH; i++) {
+    net.conns.at(net.LENGTH * i + i) = 1.0;
+  }
 
   // Set up a feedforward structure
   for (unsigned int i = net.OUTPUT_START; i < net.LENGTH; i++) {
+    net.conns.at(net.LENGTH * i + net.BIAS_START) = 1;
+    net.weights.at(net.LENGTH * i + net.BIAS_START) = r.normal();
+
     for (unsigned int j = net.HIDDEN_START; j < net.HIDDEN_END; j++) {
-      net.conns.at(net.LENGTH * i + j) = 1;
-      net.weights.at(net.LENGTH * i + j) = r.normal();
+      // Output only to two previous nodes
+      if (j == net.HIDDEN_START + 3 || j == net.HIDDEN_START + 7) {
+        net.conns.at(net.LENGTH * i + j) = 1;
+        net.weights.at(net.LENGTH * i + j) = r.normal();
+        net.dropoutProbs.at(net.LENGTH * i + j) = 0.8;
+      }
     }
-    // Also activate self
-    net.conns.at(net.LENGTH * i + i) = 1;
   }
   for (unsigned int i = net.HIDDEN_START; i < net.HIDDEN_END; i++) {
-    for (unsigned int j = 0; j < net.BIAS_END; j++) {
+    for (unsigned int j = 0; j < i; j++) {
+      if ((j == net.BIAS_START) ||
+          (i == net.HIDDEN_START + 3 && j >= net.BIAS_END) ||
+          (i == net.HIDDEN_START + 7 && j >= net.HIDDEN_START + 4) ||
+          (i <= net.HIDDEN_START + 2 && j < net.HIDDEN_START) ||
+          (i > net.HIDDEN_START + 3 && i <= net.HIDDEN_START +6 && j < net.BIAS_END)) {
+
       net.conns.at(net.LENGTH * i + j) = 1;
       net.weights.at(net.LENGTH * i + j) = r.normal();
+      }
     }
-    //Start with zero here to test dropout
-    net.conns.at(net.LENGTH * i + i) = 0;
   }
   net.setHiddenActivationFunction(TANH);
   net.setOutputActivationFunction(LOGSIG);
@@ -527,8 +543,8 @@ void rpropdropouttest() {
   std::vector<double> Y = {0, 1, 1, 0};
 
   // Print structure
-  std::cout << "\n\nConns before";
-  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
+  std::cout << "\n\nConns";
+  for (unsigned int i = net.INPUT_START; i < net.OUTPUT_END; i++) {
     std::cout << "\nN" << i << "(" << net.conns.at(i + i*net.LENGTH) << ")" << ":";
     for (unsigned int j = 0; j <= i; j++) {
       std::cout << " " << net.conns.at(j + i*net.LENGTH);
@@ -540,16 +556,6 @@ void rpropdropouttest() {
   net.setMinErrorFrac(0.01);
   if ( 0 < net.learn(X, Y, 4)) {
     throw "Shit hit the fan";
-  }
-
-  // Print structure
-  std::cout << "\n\nConns after";
-  for (unsigned int i = net.HIDDEN_START; i < net.OUTPUT_END; i++) {
-     std::cout << "\nN" << i << "(" << net.conns.at(i + i*net.LENGTH) << ")" << ":";
-     assert(net.conns.at(i + i*net.LENGTH) == 1);
-    for (unsigned int j = 0; j < i; j++) {
-      std::cout << " " << net.conns.at(j + i*net.LENGTH);
-    }
   }
 
   std::vector<double> preds(1, 0);

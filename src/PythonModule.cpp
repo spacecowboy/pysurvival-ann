@@ -100,15 +100,10 @@ For example network.TANH", NULL},
    (setter)MatrixNetwork_setActFuncs,        \
    (char*)"The activation functions of the neurons.", NULL},
 
-  {(char*)"dropout_input_probability",       \
-   (getter)MatrixNetwork_getInputDropoutProb,   \
-   (setter)MatrixNetwork_setInputDropoutProb,        \
-   (char*)"Dropout probability for input neurons. Set negative to disable.", NULL},
-
-  {(char*)"dropout_hidden_probability",          \
-   (getter)MatrixNetwork_getHiddenDropoutProb,   \
-   (setter)MatrixNetwork_setHiddenDropoutProb,        \
-   (char*)"Dropout probability for hidden neurons. Set negative to disable.", NULL},
+  {(char*)"dropout_probabilities",       \
+   (getter)MatrixNetwork_getDropoutProbs,   \
+   (setter)MatrixNetwork_setDropoutProbs,        \
+   (char*)"Probabilities that neurons are NOT dropped during training.", NULL},
 
     {NULL} // Sentinel
 };

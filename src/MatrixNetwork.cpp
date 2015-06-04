@@ -34,9 +34,10 @@ MatrixNetwork::MatrixNetwork(unsigned int numOfInput,
   conns(LENGTH*LENGTH, 0),
   weights(LENGTH*LENGTH, 0.0),
   outputs(LENGTH, 0),
-  // disabled by default
-  inputDropoutProb(-1.0),
-  hiddenDropoutProb(-1.0)
+  // By default, no dropout prob, e.g. probability to remain is 1.0
+  dropoutProbs(LENGTH*LENGTH, 1.0),
+  // 1.0, not dropped
+  dropoutStatus(LENGTH*LENGTH, 1.0)
 {
 }
 
@@ -90,12 +91,24 @@ void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
 void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
                            const bool doScaling,
                            std::vector<double>::iterator outputStart) {
+  output(inputStart, doScaling, !doScaling, outputStart);
+}
+
+void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
+                           const bool doScaling,
+                           const bool doDropout,
+                           std::vector<double>::iterator outputStart) {
   unsigned int i, j, target;
   double sum, outputSum, outputMax=0, scale=1.0;
   bool first = true;
 
+  // scaling and dropout are mutually exclusive. scaling is used after
+  // training, and dropout is used during training.
+  if (doScaling && doDropout) {
+    throw "Scaling and Dropout can't both be active at once.";
+  }
+
   // First set input values
-  //std::copy(inputStart, inputStart + INPUT_COUNT, outputs.begin());
   for (i = 0; i < INPUT_COUNT; i++) {
     j = INPUT_START + i;
     // A connection to self means neuron is active
@@ -113,25 +126,21 @@ void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
     // A connection to self means neuron is active
     if (1 == conns.at(LENGTH * i + i)) {
       sum = 0;
-      // No recursive connections allowed
+      // No recursive connections allowed, so j < i
       for (j = INPUT_START; j < i; j++) {
         target = LENGTH * i + j;
 
         if (doScaling) {
-          if (j < INPUT_END) {
-            scale = inputDropoutProb;
-          } else if (j < HIDDEN_END) {
-            scale = hiddenDropoutProb;
-          } else {
-            scale = 1.0;
-          }
+          scale = dropoutProbs.at(target);
         }
-        // In case dropout is disabled
+        // Only allow valid probabilities
         if (scale < 0 || scale > 1) {
           scale = 1.0;
         }
 
-        if (1 == conns.at(target)) {
+        // Take dropout into account
+        if (1 == conns.at(target) &&
+            (!doDropout || 1 == dropoutStatus.at(target))) {
           sum += scale * weights.at(target) * outputs.at(j);
         }
       }
@@ -180,46 +189,22 @@ void MatrixNetwork::output(const std::vector<double>::const_iterator inputStart,
 }
 
 
-void MatrixNetwork::dropoutHidden() {
-  if (hiddenDropoutProb < 0 || hiddenDropoutProb > 1) {
-    return;
-  }
-  dropoutConns(hiddenDropoutProb, HIDDEN_START, HIDDEN_END);
-}
+void MatrixNetwork::dropoutConns() {
+  unsigned int i, j, target;
+  for (i = HIDDEN_START; i < OUTPUT_END; i++) {
+    // Can only be connected "back", so j < i
+    for (j = INPUT_START; j < i; j++) {
+      target = LENGTH * i + j;
 
-void MatrixNetwork::dropoutInput() {
-  if (inputDropoutProb < 0 || inputDropoutProb > 1) {
-    return;
-  }
-  dropoutConns(inputDropoutProb, INPUT_START, INPUT_END);
-}
-
-void MatrixNetwork::dropoutInputNone() {
-  if (inputDropoutProb < 0 || inputDropoutProb > 1) {
-    return;
-  }
-  dropoutConns(1.0, INPUT_START, INPUT_END);
-}
-
-void MatrixNetwork::dropoutHiddenNone() {
-  if (hiddenDropoutProb < 0 || hiddenDropoutProb > 1) {
-    return;
-  }
-  dropoutConns(1.0, HIDDEN_START, HIDDEN_END);
-}
-
-void MatrixNetwork::dropoutConns(const double p,
-                                 const unsigned int NEURON_START,
-                                 const unsigned int NEURON_END) {
-  unsigned int bit, target, h;
-  // Enable/disable this unit with probability p
-  for (h=NEURON_START; h < NEURON_END; h++) {
-    if (rand.uniform() <= p) {
-      bit = 1;
-    } else {
-      bit = 0;
+      // Only sample for active connections
+      if (1 == conns.at(target)) {
+        dropoutStatus.at(target) =
+          (rand.uniform() <= dropoutProbs.at(target));
+      }
     }
-    target = LENGTH * h + h;
-    conns.at(target) = bit;
   }
+}
+
+void MatrixNetwork::dropoutReset() {
+  std::fill(dropoutStatus.begin(), dropoutStatus.end(), 1.0);
 }

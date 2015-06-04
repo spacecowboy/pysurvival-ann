@@ -100,7 +100,7 @@ extern "C" {
       }
     }
 
-    // compute output
+    // compute output, with scaling and no dropout
     self->net->output(vInputs.begin(), vResult.begin());
 
     // Now convert to numpy array
@@ -418,44 +418,74 @@ extern "C" {
   }
 
 
-  PyObject *MatrixNetwork_getInputDropoutProb(PyMatrixNetwork *self,
-                                              void *closure) {
-    return Py_BuildValue("d", self->net->inputDropoutProb);
+  PyObject *MatrixNetwork_getDropoutProbs(PyMatrixNetwork *self,
+                                          void *closure) {
+    std::vector<double> probs = self->net->dropoutProbs;
+    unsigned int length = probs.size();
+
+    if (length == 0) {
+      PyErr_Format(PyExc_ValueError,
+                   "No probabilities");
+      return NULL;
+    }
+
+    // Now convert to numpy array
+    npy_intp dims[1] = { (int) length };
+    PyObject *result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    double *ptr = (double *) PyArray_GETPTR1((PyArrayObject*) result,
+                                             0);
+
+    std::copy(probs.begin(), probs.end(),
+              ptr);
+
+    return result;
   }
-  int MatrixNetwork_setInputDropoutProb(PyMatrixNetwork *self, PyObject *value,
-                                        void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
+  int MatrixNetwork_setDropoutProbs(PyMatrixNetwork *self, PyObject *inputs,
+                                    void *closure) {
+    if (inputs == NULL) {
+      PyErr_SetString(PyExc_TypeError, "Cannot delete this you bonehead");
       return -1;
     }
 
-    double val = PyFloat_AsDouble(value);
-    if (PyErr_Occurred()) {
+    if (!(PyList_CheckExact(inputs)
+          || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+              PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE))) {
+      PyErr_Format(PyExc_ValueError,
+                   "The input does not seem to be of a suitable list type.\
+ This method only accepts a python list or a 1D numpy array of doubles.");
       return -1;
     }
 
-    self->net->inputDropoutProb = val;
+    // First convert to normal double array
+    unsigned int length = self->net->dropoutProbs.size();
+    bool pylist = PyList_CheckExact(inputs);
+    PyObject *pyval = NULL;
+    double *ptr = NULL;
+
+    for (int i = 0; (unsigned int)i < length; i++) {
+      if (pylist) {
+        // Actual python list
+        pyval = PyList_GetItem(inputs, i);
+        if (pyval == NULL) {
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input\
+ values. Possibly wrong length?");
+          return -1;
+        }
+        self->net->dropoutProbs.at(i) = PyFloat_AsDouble(pyval);
+      } else {
+        ptr = (double *) PyArray_GETPTR1((PyArrayObject*) inputs, i);
+        if (ptr == NULL) {
+          PyErr_Format(PyExc_ValueError,
+                       "Something went wrong when iterating of input \
+ values. Possibly wrong length?");
+          return -1;
+        }
+        // OK, correct length
+        self->net->dropoutProbs.at(i) = *ptr;
+      }
+    }
+
     return 0;
   }
-
-  PyObject *MatrixNetwork_getHiddenDropoutProb(PyMatrixNetwork *self,
-                                              void *closure) {
-    return Py_BuildValue("d", self->net->hiddenDropoutProb);
-  }
-  int MatrixNetwork_setHiddenDropoutProb(PyMatrixNetwork *self, PyObject *value,
-                                         void *closure) {
-    if (value == NULL) {
-      PyErr_SetString(PyExc_TypeError, "Cannot delete attribute");
-      return -1;
-    }
-
-    double val = PyFloat_AsDouble(value);
-    if (PyErr_Occurred()) {
-      return -1;
-    }
-
-    self->net->hiddenDropoutProb = val;
-    return 0;
-  }
-
 }

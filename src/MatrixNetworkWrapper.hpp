@@ -73,17 +73,11 @@ extern "C" {
                                 void *closure);
 
 
-  PyObject *MatrixNetwork_getInputDropoutProb(PyMatrixNetwork *self,
-                                              void *closure);
-  int MatrixNetwork_setInputDropoutProb(PyMatrixNetwork *self,
-                                        PyObject *value,
-                                        void *closure);
-
-  PyObject *MatrixNetwork_getHiddenDropoutProb(PyMatrixNetwork *self,
-                                               void *closure);
-  int MatrixNetwork_setHiddenDropoutProb(PyMatrixNetwork *self,
-                                         PyObject *value,
-                                         void *closure);
+  PyObject *MatrixNetwork_getDropoutProbs(PyMatrixNetwork *self,
+                                          void *closure);
+  int MatrixNetwork_setDropoutProbs(PyMatrixNetwork *self,
+                                    PyObject *value,
+                                    void *closure);
 
 } // extern "C"
 

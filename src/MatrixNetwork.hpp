@@ -56,11 +56,10 @@ class MatrixNetwork {
   std::vector<unsigned int> conns;
   std::vector<double> weights;
   std::vector<double> outputs;
+  // Dropout probabilities. To be clear, probability to be ON.
+  std::vector<double> dropoutProbs;
+  std::vector<unsigned int> dropoutStatus;
 
-  // Probability that a neuron will be enabled
-  // Also determines the scaling done at output
-  double inputDropoutProb;
-  double hiddenDropoutProb;
 
   MatrixNetwork(unsigned int numOfInput, unsigned int numOfHidden,
                 unsigned int numOfOutput);
@@ -71,9 +70,15 @@ class MatrixNetwork {
   virtual void output(const std::vector<double>::const_iterator inputIt,
                       std::vector<double>::iterator outputIt);
   // Use this with dropout during training
+  // Same will call output with doDropout = !doScaling
   virtual void output(const std::vector<double>::const_iterator inputIt,
                       const bool doScaling,
                       std::vector<double>::iterator outputIt);
+  virtual void output(const std::vector<double>::const_iterator inputIt,
+                      const bool doScaling,
+                      const bool doDropout,
+                      std::vector<double>::iterator outputIt);
+
 
   // Please note that these are convenience methods and
   // the getters return values from ONE neuron each, and
@@ -92,19 +97,13 @@ class MatrixNetwork {
   ActivationFuncEnum getHiddenActivationFunction();
 
   /**
-   * Disable neurons probabilistically, to be used for Dropout.
+   * Disable neurons probabilistically, should be called for each input pattern.
    */
-  virtual void dropoutHidden();
-  virtual void dropoutInput();
+  virtual void dropoutConns();
   /**
-   * Enable all connections
+   * Disable dropout. Falls back to normal connection table only.
    */
-  virtual void dropoutInputNone();
-  virtual void dropoutHiddenNone();
-
-  virtual void dropoutConns(const double p,
-                            const unsigned int NEURON_START,
-                            const unsigned int NEURON_END);
+  virtual void dropoutReset();
 };
 
 #endif //MATRIXNETWORK_H_

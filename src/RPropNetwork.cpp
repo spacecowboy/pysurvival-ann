@@ -110,8 +110,8 @@ int RPropNetwork::learn(const std::vector<double> &X,
   // Train
   do {
     // Do dropout if configured
-    dropoutInput();
-    dropoutHidden();
+    dropoutConns();
+
     // Reset arrays
     for (unsigned int i = 0; i < backPropValues.size(); i++) {
       backPropValues.at(i) = 0.0;
@@ -134,7 +134,7 @@ int RPropNetwork::learn(const std::vector<double> &X,
 # pragma omp critical
         {
           // First let all neurons evaluate
-          output(X.begin() + i * INPUT_COUNT, false,
+          output(X.begin() + i * INPUT_COUNT, false, true,
                  preds.begin() + i * OUTPUT_COUNT);
           // Copy to local array
           for (unsigned int nc = 0; nc < LENGTH; nc++) {
@@ -156,11 +156,16 @@ int RPropNetwork::learn(const std::vector<double> &X,
         // Iterate backwards over the network
         // Backwards operation so sign is very important
         for (int n = OUTPUT_END - 1; n >= static_cast<int>(HIDDEN_START); n--) {
+          // Inactive neurons are skipped
+          if (conns.at(n * LENGTH + n) != 1) {
+            continue;
+          }
           // Multiply with derivative to neuron input: dY/dI
           derivs.at(n) *= evaluateActFuncDerivative(actFuncs.at(n), outValues.at(n));
           // Iterate over the connections of this neuron
           for (int i = 0; i < n; i++) {
-            if (conns.at(n * LENGTH + i) != 1) {
+            if (conns.at(n * LENGTH + i) != 1 ||
+                dropoutStatus.at(n * LENGTH + i) != 1) {
               continue;
             }
             // Propagate error backwards
@@ -213,7 +218,7 @@ int RPropNetwork::learn(const std::vector<double> &X,
     // Evaluate again to calculate new error
     for (unsigned int i = 0; i < length; i++) {
       // First let all neurons evaluate
-      output(X.begin() + i * INPUT_COUNT, false,
+      output(X.begin() + i * INPUT_COUNT, false, true,
              preds2.begin() + i * OUTPUT_COUNT);
     }
 
@@ -254,8 +259,7 @@ int RPropNetwork::learn(const std::vector<double> &X,
   }
 
   // Undo dropout again if configured
-  dropoutInputNone();
-  dropoutHiddenNone();
+  dropoutReset();
 
   // Clean memory
   if (NULL != cache)
