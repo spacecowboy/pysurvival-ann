@@ -422,7 +422,7 @@ net.crossover_method : method id (integer)\n\
     - One point, selects a single pivot point along the genome and exchanges\n\
       everything before/after the point for the other parent's genome.\n\
       Produces two children, with 'opposite' genomes.\n\
-       Example children: XXYYY, YYXXX.\n\
+      Example children: XXYYY, YYXXX.\n\
     Default is CROSSOVER_ONEPOINT.\n\
 net.fitness_function : function id (integer)\n\
     The function that will judge the performance of the networks.\n\
