@@ -84,23 +84,23 @@ For example network.LOGSIG.", NULL},
    (char*)"The activation function used by hidden neurons. \
 For example network.TANH", NULL},
   */
-  {(char*)"weights",               \
+  {(char*)"_weights",               \
    (getter)MatrixNetwork_getWeights,   \
    (setter)MatrixNetwork_setWeights,        \
    (char*)"All weights of networks as a LxL matrix. Ordered by \
 [neuron * neuron_count + target_weight]", NULL},
 
-  {(char*)"connections",                   \
+  {(char*)"_connections",                   \
    (getter)MatrixNetwork_getConns,                           \
    (setter)MatrixNetwork_setConns,        \
    (char*)"Connections of neurons, LxL matrix.", NULL},
 
-  {(char*)"activation_functions",                   \
+  {(char*)"_activation_functions",                   \
    (getter)MatrixNetwork_getActFuncs,   \
    (setter)MatrixNetwork_setActFuncs,        \
    (char*)"The activation functions of the neurons.", NULL},
 
-  {(char*)"dropout_probabilities",       \
+  {(char*)"_dropout_probabilities",       \
    (getter)MatrixNetwork_getDropoutProbs,   \
    (setter)MatrixNetwork_setDropoutProbs,        \
    (char*)"Probabilities that neurons are NOT dropped during training.", NULL},

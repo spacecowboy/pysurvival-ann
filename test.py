@@ -661,5 +661,34 @@ def test_rprop_lik_hardsim():
                          0.0, rpropnetwork.ERROR_SURV_LIKELIHOOD)
 
 
+def test_wrappers():
+    from ann import matrixnetwork, rpropnetwork, geneticnetwork
+
+    for c in (matrixnetwork, rpropnetwork, geneticnetwork):
+        net1 = c(2,1,1)
+        net2 = c(2,1,1)
+
+        # This was only way to do it previously, with copies
+        net1.weights = net1.weights + 1
+
+        # This is possible with wrappers
+        net2.weights += 1
+
+        # Should have changed
+        assert np.all(net1.weights == net2.weights), "Weight wrapper failed with {}".format(c.__name__)
+
+        #Rest of wrapped attributes
+        net1.connections = net1.connections + 123
+        net2.connections += 123
+        assert np.all(net1.weights == net2.weights), "Connections wrapper failed with {}".format(c.__name__)
+
+        net1.activation_functions = net1.activation_functions + 46
+        net2.activation_functions += 46
+        assert np.all(net1.weights == net2.weights), "Activation_functions wrapper failed with {}".format(c.__name__)
+
+        net1.dropout_probabilities = net1.dropout_probabilities + 133
+        net2.dropout_probabilities += 133
+        assert np.all(net1.weights == net2.weights), "Dropout_probabilities wrapper failed with {}".format(c.__name__)
+
 if __name__ == "__main__":
     test_surv_likelihood()

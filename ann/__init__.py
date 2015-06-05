@@ -70,6 +70,45 @@ def _repr_matrix(net):
                                        net.hidden_count,
                                        net.output_count)
 
+
+# These methods are used to wrap internal numpy array variables
+def _wrapinit(cls):
+    def init(self, *args, **kwargs):
+        # Call default constructor
+        super(cls, self).__init__(*args, **kwargs)
+        # Then set wrapper arrays
+        self.weights = self._weights
+        self.connections = self._connections
+        self.activation_functions = self._activation_functions
+        self.dropout_probabilities = self._dropout_probabilities
+
+    # Return wrapped constructor
+    return init
+
+
+def _wrapsync(cls, inner):
+    @wraps(inner)
+    def wrapper(self, *args, **kwargs):
+        # Synchronize wrapped attributes with internal
+        self._weights = self.weights
+        self._connections = self.connections
+        self._activation_functions = self.activation_functions
+        self._dropout_probabilities = self.dropout_probabilities
+
+        # Call original function
+        result = inner(self, *args, **kwargs)
+
+        # Sync again
+        self.weights = self._weights
+        self.connections = self._connections
+        self.activation_functions = self._activation_functions
+        self.dropout_probabilities = self._dropout_probabilities
+
+        return result
+
+    return wrapper
+
+
 ### These should be at the bottom of file ###
 
 
@@ -79,6 +118,12 @@ def UtilMatrix(cls):
     cls.__getstate__ = _getmatrixstate
     cls.__setstate__ = _setmatrixstate
     cls.predict_class = _softmax_predict
+    cls.__init__ = _wrapinit(cls)
+    cls.output = _wrapsync(cls, cls.output)
+    try:
+        cls.learn = _wrapsync(cls, cls.learn)
+    except AttributeError:
+        pass
     return cls
 
 
