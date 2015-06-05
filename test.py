@@ -332,10 +332,10 @@ def test_matrixnetwork():
     # Weights
     #print("Length: ", len(net.weights))
     #print(net.weights)
-    assert len(net.weights) == length**2, "Wrong length of weight vector"
+    assert len(net.weights.ravel()) == length**2, "Wrong length of weight vector"
     assert np.all(net.weights == 0) == True, "Expected weights to equal zero"
 
-    weights = net.weights
+    weights = net.weights.ravel()
 
     for i in range(len(weights)):
         weights[i] = 1.0
@@ -347,9 +347,9 @@ def test_matrixnetwork():
     # Connections
     #print("Length: ", len(net.connections))
     #print(net.connections)
-    assert len(net.connections) == length**2, "Wrong length of conns vector"
+    assert len(net.connections.ravel()) == length**2, "Wrong length of conns vector"
     assert np.all(net.connections == 0), "Expected conns to equal zero"
-    conns = net.connections
+    conns = net.connections.ravel()
     for i in range(len(conns)):
         conns[i] = 1
     net.connections = conns
@@ -491,8 +491,8 @@ def test_rpropnetwork_mse_xor():
 
     # Need to connect it
     l = net.input_count + net.hidden_count + net.output_count + 1
-    weights = net.weights
-    conns = net.connections
+    weights = net.weights.ravel()
+    conns = net.connections.ravel()
     act = net.activation_functions
     # Stop before output as it is included
     for i in range(l-1):
@@ -548,8 +548,8 @@ def rpropnetwork_surv(datafunc, inputcount, censfrac, errorfunc):
 
     # Need to connect it
     l = net.input_count + net.hidden_count + net.output_count + 1
-    weights = net.weights
-    conns = net.connections
+    weights = net.weights.ravel()
+    conns = net.connections.ravel()
     act = net.activation_functions
     # Stop before output as it is included
     for i in range(l-1):
@@ -699,7 +699,7 @@ def test_wrapper_segfault():
     try:
         net.weights = 1
         net.output([1, -1])
-    except ValueError:
+    except (ValueError, AttributeError):
         failed = True
         net.weights = net._weights + 1
 
@@ -709,7 +709,7 @@ def test_wrapper_segfault():
     try:
         net.connections = 1
         net.output([1, -1])
-    except ValueError:
+    except (ValueError, AttributeError):
         failed = True
         net.connections = net._connections + 1
 
@@ -719,7 +719,7 @@ def test_wrapper_segfault():
     try:
         net.activation_functions = 1
         net.output([1, -1])
-    except ValueError:
+    except (ValueError, AttributeError):
         failed = True
         net.activation_functions = net._activation_functions + 1
 
@@ -729,7 +729,7 @@ def test_wrapper_segfault():
     try:
         net.dropout_probabilities = 1
         net.output([1, -1])
-    except ValueError:
+    except (ValueError, AttributeError):
         failed = True
         net.dropout_probabilities = net._dropout_probabilities - 0.5
 
@@ -836,6 +836,26 @@ def test_possible_segfaults_genetic():
         failed = True
     assert failed
 
+
+def test_shape_of_weights():
+    # Shape should not matter
+    from ann import matrixnetwork
+
+    net = matrixnetwork(2,3,1)
+
+    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=float)
+
+    net.connections[:] = 1
+    net.weights = np.random.normal(size=net.weights.shape)
+
+    shaped = np.array([net.output(x) for x in X])
+
+    net.weights = net.weights.ravel()
+
+    flat = np.array([net.output(x) for x in X])
+
+
+    assert np.all(shaped == flat), "Shape should not matter"
 
 
 if __name__ == "__main__":

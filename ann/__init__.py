@@ -77,10 +77,11 @@ def _wrapinit(cls):
         # Call default constructor
         super(cls, self).__init__(*args, **kwargs)
         # Then set wrapper arrays
-        self.weights = self._weights
-        self.connections = self._connections
+        l = self.input_count + self.hidden_count + self.output_count + 1
+        self.weights = self._weights.reshape((l, l))
+        self.connections = self._connections.reshape((l, l))
         self.activation_functions = self._activation_functions
-        self.dropout_probabilities = self._dropout_probabilities
+        self.dropout_probabilities = self._dropout_probabilities.reshape((l, l))
 
     # Return wrapped constructor
     return init
@@ -90,19 +91,20 @@ def _wrapsync(cls, inner):
     @wraps(inner)
     def wrapper(self, *args, **kwargs):
         # Synchronize wrapped attributes with internal
-        self._weights = self.weights
-        self._connections = self.connections
-        self._activation_functions = self.activation_functions
-        self._dropout_probabilities = self.dropout_probabilities
+        self._weights = self.weights.ravel()
+        self._connections = self.connections.ravel()
+        self._activation_functions = self.activation_functions.ravel()
+        self._dropout_probabilities = self.dropout_probabilities.ravel()
 
         # Call original function
         result = inner(self, *args, **kwargs)
 
         # Sync again
-        self.weights = self._weights
-        self.connections = self._connections
+        l = self.input_count + self.hidden_count + self.output_count + 1
+        self.weights = self._weights.reshape((l, l))
+        self.connections = self._connections.reshape((l, l))
         self.activation_functions = self._activation_functions
-        self.dropout_probabilities = self._dropout_probabilities
+        self.dropout_probabilities = self._dropout_probabilities.reshape((l, l))
 
         return result
 
