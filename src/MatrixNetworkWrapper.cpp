@@ -56,9 +56,12 @@ extern "C" {
   PyObject *MatrixNetwork_output(PyMatrixNetwork *self,
                                  PyObject *inputs)
   {
-    if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
-              PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE))) {
+    bool pylist = PyList_CheckExact(inputs);
+    bool pyarray = PyArray_Check(inputs);
+
+    if ((!pylist && !pyarray) || (pyarray &&
+          !(PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+            PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE))) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of doubles.");
@@ -66,8 +69,6 @@ extern "C" {
     }
 
     // First convert to normal double array
-
-    bool pylist = PyList_CheckExact(inputs);
     PyObject *pyval = NULL;
     double *ptr = NULL;
 
@@ -234,9 +235,17 @@ extern "C" {
       return -1;
     }
 
-    if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
-              PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE))) {
+    bool pylist = PyList_CheckExact(inputs);
+    bool pyarray = PyArray_Check(inputs);
+
+    if (!pylist && !pyarray) {
+      PyErr_Format(PyExc_ValueError,
+                   "Weights have invalid type. Must be either a list or array.");
+      return -1;
+    }
+
+    if (pyarray && !(PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+                     PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE)) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of doubles.");
@@ -245,7 +254,6 @@ extern "C" {
 
     // First convert to normal double array
     unsigned int length = self->net->weights.size();
-    bool pylist = PyList_CheckExact(inputs);
     PyObject *pyval = NULL;
     double *ptr = NULL;
 
@@ -304,9 +312,18 @@ extern "C" {
       return -1;
     }
 
-    if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
-              PyArray_TYPE((PyArrayObject *)inputs) == NPY_UINT))) {
+    bool pylist = PyList_CheckExact(inputs);
+    bool pyarray = PyArray_Check(inputs);
+
+    if (!pylist && !pyarray) {
+      PyErr_Format(PyExc_ValueError,
+                   "Connections have invalid type. Must be either a list or array.");
+      return -1;
+    }
+
+
+    if (pyarray && !(PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+                     PyArray_TYPE((PyArrayObject *)inputs) == NPY_UINT)) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of UINTs.");
@@ -315,7 +332,6 @@ extern "C" {
 
     // First convert to normal double array
     unsigned int length = self->net->conns.size();
-    bool pylist = PyList_CheckExact(inputs);
     PyObject *pyval = NULL;
     unsigned int *ptr = NULL;
 
@@ -376,9 +392,18 @@ extern "C" {
       return -1;
     }
 
-    if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM((PyArrayObject *)inputs) == 1  &&
-              PyArray_TYPE((PyArrayObject *)inputs) == NPY_UINT))) {
+    bool pylist = PyList_CheckExact(inputs);
+    bool pyarray = PyArray_Check(inputs);
+
+    if (!pylist && !pyarray) {
+      PyErr_Format(PyExc_ValueError,
+                   "Activation functions have invalid type. Must be either a list or array.");
+      return -1;
+    }
+
+    if (pyarray
+          && !(PyArray_NDIM((PyArrayObject *)inputs) == 1  &&
+              PyArray_TYPE((PyArrayObject *)inputs) == NPY_UINT)) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of UINTs.");
@@ -387,7 +412,6 @@ extern "C" {
 
     // First convert to normal double array
     unsigned int length = self->net->actFuncs.size();
-    bool pylist = PyList_CheckExact(inputs);
     PyObject *pyval = NULL;
     unsigned int *ptr = NULL;
 
@@ -447,9 +471,19 @@ extern "C" {
       return -1;
     }
 
-    if (!(PyList_CheckExact(inputs)
-          || (PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
-              PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE))) {
+    bool pylist = PyList_CheckExact(inputs);
+    bool pyarray = PyArray_Check(inputs);
+
+    if (!pylist && !pyarray) {
+      PyErr_Format(PyExc_ValueError,
+                   "Dropout probabilities have invalid type. Must be either a list or array.");
+      return -1;
+    }
+
+
+    if (pyarray
+          && !(PyArray_NDIM((PyArrayObject *)inputs) == 1 &&
+              PyArray_TYPE((PyArrayObject *)inputs) == NPY_DOUBLE)) {
       PyErr_Format(PyExc_ValueError,
                    "The input does not seem to be of a suitable list type.\
  This method only accepts a python list or a 1D numpy array of doubles.");
@@ -458,7 +492,6 @@ extern "C" {
 
     // First convert to normal double array
     unsigned int length = self->net->dropoutProbs.size();
-    bool pylist = PyList_CheckExact(inputs);
     PyObject *pyval = NULL;
     double *ptr = NULL;
 

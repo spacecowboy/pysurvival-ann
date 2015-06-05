@@ -132,6 +132,16 @@ targets (2d array)");
       return NULL;
     }
 
+    if (!PyList_CheckExact(inputs) && !PyArray_Check(inputs)) {
+      PyErr_Format(PyExc_ValueError, "Inputs must be 2d-array!");
+      return NULL;
+    }
+    if (!PyList_CheckExact(targets) && !PyArray_Check(targets)) {
+      PyErr_Format(PyExc_ValueError, "Targets must be 2d-array!");
+      return NULL;
+    }
+
+
     // Make sure they conform to required structure
     PyArrayObject *inputArray = NULL;
     PyArrayObject *targetArray = NULL;
