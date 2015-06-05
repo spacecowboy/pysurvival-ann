@@ -46,8 +46,8 @@ out : ndarray\n\
 \nExamples\n\
 --------\n\
 >>> net = matrixnetwork(2, 0, 1)\n\
->>> net.weights = net.weights + 1\n\
->>> net.connections = net.connections + 1\n\
+>>> net.weights[:] = 1\n\
+>>> net.connections[:] = 1\n\
 >>> net.output([1, -1])\n\
 array([ 0.73105858])\n"},
 
@@ -214,7 +214,7 @@ Examples\n\
 >>> X = array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=float)\n\
 >>> Y = array([[0], [1], [1], [0]], dtype=float)\n\
 >>> net = rpropnetwork(X.shape[1], 5, Y.shape[1])\n\
->>> net.connections = net.connections + 1\n\
+>>> net.connections[:] = 1\n\
 >>> net.learn(X, Y)\n\
 >>> [net.output(x) for x in X]\n\
 [array([ 0.]),\n\
@@ -381,7 +381,7 @@ Examples\n\
 >>> X = array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=float)\n\
 >>> Y = array([[0], [1], [1], [0]], dtype=float)\n\
 >>> net = geneticnetwork(X.shape[1], 5, Y.shape[1])\n\
->>> net.connections = net.connections + 1\n\
+>>> net.connections[:] = 1\n\
 >>> net.learn(X, Y)\n\
 >>> [net.output(x) for x in X]\n\
 [array([  3.39518590e-37]),\n\
