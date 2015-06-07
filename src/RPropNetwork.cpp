@@ -134,6 +134,7 @@ int RPropNetwork::learn(const std::vector<double> &X,
 # pragma omp critical
         {
           // First let all neurons evaluate
+          // Using dropout
           output(X.begin() + i * INPUT_COUNT, false, true,
                  preds.begin() + i * OUTPUT_COUNT);
           // Copy to local array
@@ -218,7 +219,8 @@ int RPropNetwork::learn(const std::vector<double> &X,
     // Evaluate again to calculate new error
     for (unsigned int i = 0; i < length; i++) {
       // First let all neurons evaluate
-      output(X.begin() + i * INPUT_COUNT, false, true,
+      // Notice that we do scaling and not dropout here
+      output(X.begin() + i * INPUT_COUNT, true, false,
              preds2.begin() + i * OUTPUT_COUNT);
     }
 
